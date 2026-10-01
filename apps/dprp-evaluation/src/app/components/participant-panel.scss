@@ -1,0 +1,267 @@
+:host {
+  display: block;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: var(--space-4);
+  background: var(--bg);
+}
+
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+h3,
+h4 {
+  margin-top: 0;
+}
+
+.chart {
+  margin: var(--space-3) 0 var(--space-4);
+}
+
+.chart svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart figcaption {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  margin-top: var(--space-2);
+}
+
+.core {
+  fill: var(--band-core);
+}
+
+.maintenance {
+  fill: var(--band-maintenance);
+}
+
+.band,
+.axis {
+  fill: var(--text-muted);
+  font-size: 12px;
+  font-family: var(--font-body);
+}
+
+.grid {
+  stroke: var(--rule);
+}
+
+.marker {
+  stroke: var(--control-border);
+  stroke-dasharray: 4 4;
+}
+
+.year-end {
+  stroke: var(--text-muted);
+  stroke-width: 1.5;
+}
+
+.line {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+circle {
+  fill: var(--accent);
+  stroke: var(--bg);
+  stroke-width: 1.5;
+}
+
+circle.make-up {
+  fill: var(--bg);
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+
+circle.uncounted {
+  opacity: 0.45;
+}
+
+.determinations {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+@media (min-width: 52rem) {
+  .determinations {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.determination {
+  border-top: 2px solid var(--rule);
+  padding-top: var(--space-2);
+  min-width: 0;
+}
+
+.verdict {
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.verdict.met,
+.findings .met .mark {
+  color: var(--ok);
+}
+
+.verdict.not-met,
+.findings .not-met .mark {
+  color: var(--error);
+}
+
+.findings {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+  font-size: 0.9375rem;
+}
+
+.findings li {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr);
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+}
+
+.mark {
+  font-weight: 700;
+}
+
+.detail,
+.citation,
+.rule-line {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.guidance-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.guidance-item {
+  border: 1px solid var(--rule);
+  border-radius: 6px;
+  padding: var(--space-3);
+  margin-bottom: var(--space-3);
+}
+
+.guidance-item.resolved {
+  background: var(--surface);
+}
+
+.guidance-item p {
+  margin: var(--space-1) 0;
+}
+
+.guidance-head {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-2);
+  align-items: baseline;
+}
+
+.comparison {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+  font-variant-numeric: tabular-nums;
+}
+
+.resolution {
+  font-size: 0.875rem;
+}
+
+.button.small {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.9375rem;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  margin-top: var(--space-2);
+}
+
+.accept label {
+  display: block;
+  font-weight: 600;
+  margin: var(--space-2) 0 var(--space-1);
+}
+
+textarea {
+  width: 100%;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--control-border);
+  border-radius: 4px;
+  padding: var(--space-2);
+}
+
+.problem {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.editor {
+  border-left: 3px solid var(--accent);
+  padding-left: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.section-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.section-row h4 {
+  margin: 0;
+}
+
+.sessions {
+  margin-top: var(--space-4);
+}
+
+tr.flagged td:first-child {
+  box-shadow: inset 3px 0 0 var(--warn);
+}
+
+.tag {
+  margin-left: var(--space-1);
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  border: 1px solid var(--rule);
+  border-radius: 3px;
+  padding: 0 0.25rem;
+}
+
+.tag.flag {
+  color: var(--warn);
+  border-color: currentColor;
+}
+
+.row-actions {
+  white-space: nowrap;
+}
+
+.row-actions .link-button + .link-button {
+  margin-left: var(--space-2);
+}

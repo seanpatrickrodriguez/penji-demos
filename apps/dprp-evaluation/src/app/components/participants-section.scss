@@ -1,0 +1,34 @@
+:host {
+  display: block;
+}
+
+.filters {
+  border: 0;
+  padding: 0;
+  margin: 0 0 var(--space-3);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1) var(--space-4);
+}
+
+.filters legend {
+  font-weight: 600;
+  margin-bottom: var(--space-1);
+}
+
+.filters input {
+  accent-color: var(--accent);
+}
+
+tr.selected {
+  background: var(--surface);
+}
+
+.blocking {
+  color: var(--error);
+  font-weight: 600;
+}
+
+app-participant-panel {
+  margin-top: var(--space-4);
+}

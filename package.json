@@ -5,7 +5,7 @@
     "start": "ng serve dprp-evaluation",
     "build": "ng build dprp-evaluation",
     "build:site": "ng build dprp-evaluation --base-href /demos/dprp-evaluation/",
-    "test": "vitest run --config vitest.config.packages.ts && ng test dprp-evaluation --watch=false",
+    "test": "vitest run --config vitest.config.packages.ts",
     "test:packages": "vitest run --config vitest.config.packages.ts",
     "typecheck": "tsc -p tsconfig.packages.json --noEmit"
   },

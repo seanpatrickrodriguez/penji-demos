@@ -45,7 +45,7 @@ export function resolveFieldConstraints(
         text:
           check.kind === RULE_CHECK_KIND.RANGE ? `${check.min}-${check.max} ${check.unit}`
           : check.kind === RULE_CHECK_KIND.REQUIRED ? 'Required'
-          : 'Required when it applies',
+          : 'Required with its related answer',
       };
       constraints.set(check.field, {
         ...current,

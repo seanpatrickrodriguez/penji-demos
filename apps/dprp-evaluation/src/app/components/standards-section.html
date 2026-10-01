@@ -1,0 +1,66 @@
+<fieldset class="picker">
+  <legend>Standard</legend>
+  @for (standard of standards; track standard.shortName) {
+    <label><input type="radio" name="standard-picker" [value]="standard.shortName" [checked]="shown() === standard.shortName" (change)="show($event)" /> {{ standard.shortName }}</label>
+  }
+</fieldset>
+
+@for (standard of standards; track standard.shortName) {
+  @if (shown() === standard.shortName) {
+    <article class="standard" [attr.aria-label]="standard.title">
+      <h3><a [href]="standard.url">{{ standard.title }}</a></h3>
+      <p class="muted">Applies to: {{ standard.appliesTo }}.</p>
+
+      <h4>Eligibility</h4>
+      <ul class="criteria">
+        @for (criterion of standard.criteria; track criterion.label) {
+          <li><strong>{{ criterion.label }}</strong><span class="reads">{{ criterion.reads }}</span><a class="cite" [href]="criterion.url">{{ criterion.citation }}</a></li>
+        }
+        <li class="bases">
+          <strong>{{ standard.basesLabel }}, any of:</strong>
+          <ul>
+            @for (basis of standard.bases; track basis.label) {
+              <li><strong>{{ basis.label }}</strong><span class="reads">{{ basis.reads }}</span><a class="cite" [href]="basis.url">{{ basis.citation }}</a></li>
+            }
+          </ul>
+        </li>
+      </ul>
+
+      <h4>Rules on the records</h4>
+      <ul class="rules">
+        @for (rule of standard.rules; track rule.id) {
+          <li class="rule">
+            <div class="rule-head">
+              <span [class]="'badge ' + rule.severityClass">{{ rule.severity }}</span>
+              <strong>{{ rule.title }}</strong>
+            </div>
+            <dl>
+              <dt>Checks</dt><dd>{{ rule.check }}</dd>
+              <dt>Applies when</dt><dd>{{ rule.appliesWhen }}</dd>
+              <dt>If it fails</dt><dd>{{ rule.blocks }}</dd>
+              <dt>Issue</dt><dd>{{ rule.issue }}</dd>
+              <dt>Guidance</dt><dd>{{ rule.guidance }}</dd>
+              <dt>Fix this</dt><dd>{{ rule.fix }}</dd>
+              <dt>Actions</dt><dd>{{ rule.actions }}</dd>
+              <dt>Source</dt><dd><a [href]="rule.url">{{ rule.citation }}</a></dd>
+            </dl>
+            <details>
+              <summary>The definition<span class="visually-hidden"> of {{ rule.title }}</span></summary>
+              <pre tabindex="0">{{ rule.json }}</pre>
+            </details>
+          </li>
+        }
+      </ul>
+
+      @if (standard.interpretations.length > 0) {
+        <h4>How this reads the text</h4>
+        <dl class="interpretations">
+          @for (interpretation of standard.interpretations; track interpretation.clause) {
+            <dt>{{ interpretation.clause }}</dt>
+            <dd>{{ interpretation.reading }}</dd>
+          }
+        </dl>
+      }
+    </article>
+  }
+}

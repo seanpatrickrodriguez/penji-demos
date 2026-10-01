@@ -1,0 +1,66 @@
+@if (summaryItems().length > 0) {
+  <div class="summary" role="alert" tabindex="-1" #summary>
+    <p class="summary-title">Please fix {{ summaryItems().length === 1 ? 'this answer' : 'these answers' }}</p>
+    <ul>
+      @for (item of summaryItems(); track item.inputId + item.text) {
+        <li><a [href]="'#' + item.inputId" (click)="focusInput($event, item.inputId)">{{ item.text }}</a></li>
+      }
+    </ul>
+  </div>
+}
+
+<form novalidate (submit)="submit($event)">
+  @for (field of fields(); track field.inputId) {
+    <div class="field" [class.has-error]="field.errors.length > 0">
+      @if (field.kind === 'choice' || field.kind === 'yesNo') {
+        <fieldset [attr.aria-describedby]="field.describedBy">
+          <legend class="label">
+            {{ field.label }}
+            @if (field.optional) { <span class="optional">(optional)</span> }
+          </legend>
+          <ng-container [ngTemplateOutlet]="meta" [ngTemplateOutletContext]="{ $implicit: field }" />
+          <div class="options">
+            @for (option of field.options; track option.value) {
+              <label>
+                <input type="radio" [id]="option.id" [name]="field.inputId" [value]="option.value" [checked]="option.checked" [attr.aria-invalid]="field.errors.length > 0" (change)="setChoice(field.key, field.kind, option.value)" />
+                {{ option.label }}
+              </label>
+            }
+          </div>
+        </fieldset>
+      } @else {
+        <label class="label" [for]="field.inputId">
+          {{ field.label }}
+          @if (field.optional) { <span class="optional">(optional)</span> }
+        </label>
+        <ng-container [ngTemplateOutlet]="meta" [ngTemplateOutletContext]="{ $implicit: field }" />
+        @if (field.kind === 'number') {
+          <input [id]="field.inputId" type="text" inputmode="decimal" [value]="field.text" [attr.aria-describedby]="field.describedBy" [attr.aria-invalid]="field.errors.length > 0" (input)="setNumber(field.key, $event)" (blur)="markTouched(field.key)" />
+        } @else {
+          <input [id]="field.inputId" [type]="field.kind === 'date' ? 'date' : 'text'" [value]="field.text" [attr.aria-describedby]="field.describedBy" [attr.aria-invalid]="field.errors.length > 0" (input)="setText(field.key, $event)" (blur)="markTouched(field.key)" />
+        }
+      }
+    </div>
+  }
+  <div class="actions">
+    <button type="submit" class="button button-primary">{{ submitLabel() }}</button>
+    <button type="button" class="button button-secondary" (click)="cancelled.emit()">Cancel</button>
+  </div>
+</form>
+
+<ng-template #meta let-field>
+  @if (field.rules.length > 0) {
+    <ul class="rules" [id]="field.inputId + '-rules'">
+      @for (rule of field.rules; track rule) {
+        <li>{{ rule }}</li>
+      }
+    </ul>
+  }
+  @if (field.errors.length > 0) {
+    <ul class="errors" [id]="field.inputId + '-error'">
+      @for (message of field.errors; track message) {
+        <li><span class="visually-hidden">Error: </span>{{ message }}</li>
+      }
+    </ul>
+  }
+</ng-template>

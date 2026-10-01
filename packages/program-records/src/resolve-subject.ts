@@ -1,4 +1,4 @@
-import { DERIVED_FACT, RESULT_SOURCE, SESSION_FIELD } from '@penji-demos/constants';
+import { DERIVED_FACT, SESSION_FIELD } from '@penji-demos/constants';
 import { ComplianceSubject } from '@penji-demos/compliance-engine';
 import { isOnOrAfter } from '@penji-demos/time';
 import { Answers, CohortRecord, Enrollment, ParticipantRecord, SessionRecord } from '@penji-demos/types';
@@ -43,5 +43,3 @@ export function resolveComplianceSubject(participant: ParticipantRecord, cohort:
     sessions: participant.sessions.map((session) => ({ sessionDate: session.sessionDate, values: resolveSessionAnswers(session) })),
   };
 }
-
-export const isLabReported = (enrollment: Enrollment): boolean => enrollment.bloodTestSource === RESULT_SOURCE.LAB;
