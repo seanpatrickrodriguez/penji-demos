@@ -6,7 +6,7 @@ import { MetricKey, MetricValue, RequirementDefinition, RequirementResult, Statu
 // and a registry supplies how each named metric is calculated.
 
 export type MetricCalculator<Context> = (context: Context) => MetricValue;
-export type MetricRegistry<Context> = Readonly<Record<MetricKey, MetricCalculator<Context>>>;
+export type MetricRegistry<Context> = Readonly<Partial<Record<MetricKey, MetricCalculator<Context>>>>;
 
 export function isComparisonMet(requirement: RequirementDefinition, value: number): boolean {
   switch (requirement.comparator) {
@@ -41,7 +41,8 @@ export function evaluateRequirements<Context>(
     }
     let measured = metrics.get(requirement.metric);
     if (!measured) {
-      measured = registry[requirement.metric](context);
+      // A metric with no calculator is unmeasured; validateRequirementDefinitions reports it.
+      measured = registry[requirement.metric]?.(context) ?? NOT_CALCULATED;
       metrics.set(requirement.metric, measured);
     }
     results.set(requirement.id, evaluateRequirement(requirement, measured));
@@ -64,7 +65,7 @@ export function resolveTier<Status extends string>(
 export function validateRequirementDefinitions<Context, Status extends string>(
   requirements: readonly RequirementDefinition[],
   tiers: readonly TierDefinition<Status>[],
-  registry: Partial<MetricRegistry<Context>>,
+  registry: MetricRegistry<Context>,
 ): readonly string[] {
   const problems: string[] = [];
   const position = new Map(requirements.map((requirement, index) => [requirement.id, index]));

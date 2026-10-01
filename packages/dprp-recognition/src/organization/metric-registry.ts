@@ -1,6 +1,6 @@
 import { METRIC_KEY } from '@penji-demos/constants';
-import { MetricRegistry } from '@penji-demos/rule-engine';
-import { MetricValue, ParticipantEvaluation, RecognitionStandardDefinition } from '@penji-demos/types';
+import { MetricCalculator } from '@penji-demos/rule-engine';
+import { MetricValue, ParticipantEvaluation, RecognitionStandardDefinition, ValueOf } from '@penji-demos/types';
 
 // What the DPRP metrics are calculated from.
 export interface RecognitionContext {
@@ -29,7 +29,7 @@ const retainedShare = (programMonth: number) => (context: RecognitionContext): M
 
 // How each metric the standard names is calculated.  The standard decides the
 // thresholds; this registry decides only what is counted.
-export const DPRP_METRIC_REGISTRY: MetricRegistry<RecognitionContext> = {
+export const DPRP_METRIC_REGISTRY = {
   [METRIC_KEY.ELIGIBLE_PARTICIPANTS]: (context) => count(eligibleIn(context.evaluationCohort).length),
   [METRIC_KEY.COMPLETER_SHARE_OF_ELIGIBLE]: (context) =>
     share(completersIn(context.evaluationCohort).length, eligibleIn(context.evaluationCohort).length),
@@ -50,4 +50,4 @@ export const DPRP_METRIC_REGISTRY: MetricRegistry<RecognitionContext> = {
     standard.earlyPreliminary.submissionSequences.includes(submissionSequence)
       ? count(eligibleIn(allParticipants).filter((participant) => participant.sessionsAttended >= standard.earlyPreliminary.minimumSessionsAttended).length)
       : { value: null, numerator: null, denominator: null },
-};
+} satisfies Readonly<Record<ValueOf<typeof METRIC_KEY>, MetricCalculator<RecognitionContext>>>;

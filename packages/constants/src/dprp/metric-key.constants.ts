@@ -1,5 +1,5 @@
-// Every organization-level metric a standard's requirements may name.  The
-// standard (M1) refers to these keys; the metric registry maps each key to the
+// Every organization-level metric the DPRP's requirements name.  The standard
+// (M1) refers to these keys; the DPRP's metric registry maps each key to the
 // function that calculates it.  A registry-drift test keeps the two in step.
 export const METRIC_KEY = {
   ELIGIBLE_PARTICIPANTS: 'eligibleParticipants',

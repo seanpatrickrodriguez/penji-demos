@@ -1,8 +1,9 @@
-import { COMPARATOR, METRIC_KEY } from '@penji-demos/constants';
+import { COMPARATOR } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
 import { SourceReference } from './definition';
 
-export type MetricKey = ValueOf<typeof METRIC_KEY>;
+// A metric a requirement names; each standard's metric registry says how it is calculated.
+export type MetricKey = string;
 export type Comparator = ValueOf<typeof COMPARATOR>;
 
 // M2: one measurable requirement.  It names a metric, how to compare it and

@@ -5,7 +5,8 @@
     "noEmit": true
   },
   "include": [
-    "packages/*/src/**/*.ts"
+    "packages/*/src/**/*.ts",
+    "architecture/**/*.ts"
   ],
   "exclude": [
     "packages/ui/**"

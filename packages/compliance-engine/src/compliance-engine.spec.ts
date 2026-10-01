@@ -153,6 +153,6 @@ describe('describing definitions', () => {
   it('reads rule checks and conditions in plain language', () => {
     const labels = { laps: 'Laps', extra: 'Extra session' };
     expect(describeRuleCheck(LAP_RANGE.check, labels)).toBe('Laps is 1 to 200 laps');
-    expect(describeRuleCheck(ONE_EXTRA_PER_WEEK.check, labels)).toBe('At most 1 session where Extra session is yes, in any 7 days');
+    expect(describeRuleCheck(ONE_EXTRA_PER_WEEK.check, labels, [], 'session')).toBe('At most 1 session where Extra session is yes, in any 7 days');
   });
 });

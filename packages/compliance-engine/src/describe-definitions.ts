@@ -38,7 +38,7 @@ export function describeCondition(condition: Condition, labels: FieldLabels, fie
 }
 
 // `eventNoun` names one dated event in the subject's history: a session, an item.
-export function describeRuleCheck(check: RuleCheck, labels: FieldLabels, fields: readonly FieldDefinition[] = [], eventNoun = 'session'): string {
+export function describeRuleCheck(check: RuleCheck, labels: FieldLabels, fields: readonly FieldDefinition[] = [], eventNoun = 'entry'): string {
   const label = (field: string) => labels[field] ?? field;
   const condition = (nested: Condition) => describeCondition(nested, labels, fields);
   const plural = (count: number) => `${eventNoun}${count === 1 ? '' : 's'}`;

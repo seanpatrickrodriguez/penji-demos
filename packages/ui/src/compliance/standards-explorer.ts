@@ -109,7 +109,7 @@ export class StandardsExplorer {
   // What a blocking rule stops, in the domain's terms.
   readonly blocksLabel = input('Blocks submission');
   readonly fields = input<readonly FieldDefinition[]>([]);
-  readonly eventNoun = input('session');
+  readonly eventNoun = input('entry');
   protected readonly standards = computed(() => this.definitions().map((standard) => describeStandard(standard, { labels: this.labels(), fields: this.fields(), formTitles: this.formTitles(), blocksLabel: this.blocksLabel(), eventNoun: this.eventNoun() })));
   private readonly picked = signal<string | null>(null);
   protected readonly shown = computed(() => this.picked() ?? this.standards()[0]?.shortName ?? '');
