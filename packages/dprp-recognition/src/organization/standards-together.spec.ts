@@ -1,13 +1,12 @@
 import { ENROLLMENT_FIELD, RESULT_SOURCE, PROGRAM_STREAM, SESSION_FIELD } from '@penji-demos/constants';
 import { resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/compliance-engine';
+import { ENROLLMENT_FORM, SESSION_FORM } from '@penji-demos/dprp-configuration';
+import { DPRP_STANDARD_2024 } from '@penji-demos/dprp-standard';
 import { MDPP_STANDARD } from '@penji-demos/mdpp-standard';
-import { ENROLLMENT_FORM, SESSION_FORM } from '@penji-demos/program-records';
 import { toPlainDate } from '@penji-demos/time';
-import { Enrollment } from '@penji-demos/types';
+import { Answers } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
-import { DPRP_STANDARD_2024 } from '../definitions/dprp-standard-2024';
-import { evaluateParticipant } from '../participant/evaluate-participant';
-import { buildCohort, buildEnrollment, buildParticipant, buildSessions } from '../testing/build-records';
+import { buildCohort, buildEnrollment, buildParticipant, buildSessions, evaluateCase } from '../testing/build-records';
 
 // Two standards on the same records: the DPRP for every participant, and the
 // MDPP for those enrolled in Medicare Part B.  Neither changes the records,
@@ -15,10 +14,10 @@ import { buildCohort, buildEnrollment, buildParticipant, buildSessions } from '.
 
 const COHORT = buildCohort('C1', '2025-01-06');
 const SESSIONS = buildSessions('2025-01-06', [0, 7, 14], 210, 208);
-const MEDICARE: Partial<Enrollment> = { medicarePartB: true, ageYears: 67 };
+const MEDICARE: Answers = { medicarePartB: true, ageYears: 67 };
 
-const evaluate = (overrides: Partial<Enrollment>) => {
-  const evaluation = evaluateParticipant(DPRP_STANDARD_2024, buildParticipant('P1', COHORT, SESSIONS, { enrollment: buildEnrollment(overrides) }), COHORT, [MDPP_STANDARD]);
+const evaluate = (overrides: Answers) => {
+  const evaluation = evaluateCase(buildParticipant('P1', COHORT, SESSIONS, { enrollment: buildEnrollment(overrides) }));
   const [dprp, mdpp] = evaluation.standards;
   if (!dprp || !mdpp) throw new Error('Both standards should be evaluated.');
   return { dprp, mdpp };
@@ -58,7 +57,7 @@ describe('the DPRP and the MDPP on the same participant', () => {
 });
 
 describe('rules delivered to the canonical forms', () => {
-  const facts = (overrides: Partial<Enrollment>) => ({ ...buildEnrollment(overrides) });
+  const facts = (overrides: Answers) => ({ ...buildEnrollment(overrides) });
 
   it("puts the DPRP's weight range and required activity minutes on the session form", () => {
     const constraints = resolveFieldConstraints(SESSION_FORM, PROGRAM_STREAM.SESSION, [DPRP_STANDARD_2024, MDPP_STANDARD], facts({}));

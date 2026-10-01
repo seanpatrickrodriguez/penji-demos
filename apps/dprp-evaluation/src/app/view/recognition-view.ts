@@ -1,6 +1,8 @@
 import { REQUIREMENT_OUTCOME } from '@penji-demos/constants';
-import { SubmissionResult } from '@penji-demos/dprp-standard';
-import { CohortRecord, RecognitionStandardDefinition, RecognitionStatus, RequirementOutcome } from '@penji-demos/types';
+import { SubmissionResult } from '@penji-demos/dprp-recognition';
+import { COHORT_FIELD } from '@penji-demos/constants';
+import { readDate, readText } from '@penji-demos/record-engine';
+import { EntityRecord, RecognitionStandardDefinition, RecognitionStatus, RequirementOutcome } from '@penji-demos/types';
 import { OUTCOME_LABEL, STATUS_LABEL, formatDate, formatMeasured, formatMonth, formatShortMonth, formatThreshold } from './format';
 
 export interface SubmissionView {
@@ -112,21 +114,27 @@ export function resolveTierGroups(standard: RecognitionStandardDefinition, entry
 
 export interface CohortRow {
   readonly cohortId: string;
+  readonly cohortCode: string;
   readonly firstSession: string;
   readonly inWindow: boolean;
   readonly participants: number;
 }
 
-export function resolveCohortRows(cohorts: readonly CohortRecord[], entry: SubmissionResult): readonly CohortRow[] {
+export function resolveCohortRows(cohorts: readonly EntityRecord[], entry: SubmissionResult): readonly CohortRow[] {
   const inWindow = new Set<string>(entry.evaluation.evaluationCohortIds);
-  return cohorts
-    .filter((cohort) => cohort.firstSessionDate < entry.evaluation.submissionMonth)
-    .map((cohort) => ({
-      cohortId: cohort.cohortId,
-      firstSession: formatDate(cohort.firstSessionDate),
-      inWindow: inWindow.has(cohort.cohortId),
-      participants: entry.evaluation.participants.filter((participant) => participant.cohortId === cohort.cohortId).length,
-    }));
+  return cohorts.flatMap((cohort) => {
+    const start = readDate(cohort.values, COHORT_FIELD.START_DATE);
+    if (!start || start >= entry.evaluation.submissionMonth) return [];
+    return [
+      {
+        cohortId: cohort.entityId,
+        cohortCode: readText(cohort.values, COHORT_FIELD.CODE) ?? cohort.entityId,
+        firstSession: formatDate(start),
+        inWindow: inWindow.has(cohort.entityId),
+        participants: entry.evaluation.participants.filter((participant) => participant.cohortId === cohort.entityId).length,
+      },
+    ];
+  });
 }
 
 export const formatWindow = (entry: SubmissionResult): string =>

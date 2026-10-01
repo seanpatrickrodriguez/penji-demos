@@ -1,5 +1,7 @@
+import { ENROLLMENT_FIELD } from '@penji-demos/constants';
+import { readDate, readNumber } from '@penji-demos/record-engine';
 import { calculateDaysBetween, resolveProgramMonth } from '@penji-demos/time';
-import { ActivitySummary, OutcomePathwayDefinition, OutcomeResult, ParticipantRecord, PlainDate, ProgramSession, RecognitionStandardDefinition, WeightChange } from '@penji-demos/types';
+import { A1cResult, ActivitySummary, Answers, OutcomePathwayDefinition, OutcomeResult, PlainDate, ProgramSession, RecognitionStandardDefinition, WeightChange } from '@penji-demos/types';
 
 interface OutcomeEvidence {
   readonly weightChange: WeightChange | null;
@@ -12,12 +14,14 @@ interface OutcomeEvidence {
 // The A1C reduction a participant can claim, or null with the reason it cannot be used.
 export function calculateA1cReduction(
   standard: RecognitionStandardDefinition,
-  participant: ParticipantRecord,
+  enrollment: Answers,
+  final: A1cResult | null,
   cohortStart: PlainDate,
   counted: readonly ProgramSession[],
 ): { readonly points: number | null; readonly detail: string } {
-  const { a1cPercent: initialPercent, a1cTestDate: initialTested, a1cReportedDate: initialReported } = participant.enrollment;
-  const final = participant.finalA1c;
+  const initialPercent = readNumber(enrollment, ENROLLMENT_FIELD.A1C_PERCENT);
+  const initialTested = readDate(enrollment, ENROLLMENT_FIELD.A1C_TEST_DATE);
+  const initialReported = readDate(enrollment, ENROLLMENT_FIELD.A1C_REPORTED_DATE);
   const firstAttended = counted[0]?.sessionDate;
   const { initialRange: range, initialTestedWithinDaysBeforeFirstSession: testDays, initialReportedWithinDaysOfFirstSession: reportDays, finalTestProgramMonths: months } = standard.a1cOutcome;
   if (initialPercent === null || !initialTested || !initialReported || !final || !firstAttended) return { points: null, detail: 'No initial and final A1C pair' };

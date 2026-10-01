@@ -193,3 +193,8 @@ tr.flagged td:first-child {
 .row-actions .link-button + .link-button {
   margin-left: var(--space-2);
 }
+
+.change-problems {
+  color: var(--error);
+  font-weight: 600;
+}

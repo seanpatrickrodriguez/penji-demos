@@ -1,7 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { SUBMISSION_COLUMN } from '@penji-demos/constants';
-import { resolveRecordsAsOf, resolveSubmissionCsv, resolveSubmissionRows } from '@penji-demos/dprp-standard';
-import { DemoStore, RECOGNITION_STANDARD } from '../state/demo-store';
+import { resolveSubmissionCsv, resolveSubmissionRows } from '@penji-demos/dprp-recognition';
+import { resolveDataAsOf } from '@penji-demos/record-engine';
+import { CONFIGURATION, DemoStore, ORGANIZATION_ID, RECOGNITION_STANDARD } from '../state/demo-store';
 import { formatMonth } from '../view/format';
 
 const PREVIEW_ROWS = 8;
@@ -43,7 +44,10 @@ export class SubmissionSection {
   private readonly store = inject(DemoStore);
   protected readonly columns = Object.values(SUBMISSION_COLUMN);
   protected readonly month = computed(() => formatMonth(this.store.selected().evaluation.submissionMonth));
-  protected readonly rows = computed(() => resolveSubmissionRows(RECOGNITION_STANDARD, resolveRecordsAsOf(this.store.data(), this.store.selected().evaluation.submissionMonth)));
+  protected readonly rows = computed(() => {
+    const month = this.store.selected().evaluation.submissionMonth;
+    return resolveSubmissionRows(RECOGNITION_STANDARD, CONFIGURATION, resolveDataAsOf(CONFIGURATION, this.store.data(), month), ORGANIZATION_ID, month);
+  });
   protected readonly preview = computed(() => this.rows().slice(0, PREVIEW_ROWS));
 
   protected download(): void {

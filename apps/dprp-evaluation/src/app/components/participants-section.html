@@ -24,8 +24,8 @@
     <tbody>
       @for (row of rows(); track row.participantId) {
         <tr [class.selected]="row.participantId === store.selectedParticipantId()">
-          <th scope="row"><button type="button" class="link-button" (click)="open(row.participantId)">{{ row.participantId }}</button></th>
-          <td>{{ row.cohortId }}</td>
+          <th scope="row"><button type="button" class="link-button" (click)="open(row.participantId)">{{ row.participantCode }}</button></th>
+          <td>{{ row.cohortCode }}</td>
           <td>{{ row.eligible ? 'Yes' : 'No' }}</td>
           <td>{{ row.mdpp === 'notApplicable' ? '—' : row.mdpp === 'eligible' ? 'Eligible' : 'Not eligible' }}</td>
           <td>{{ row.completer ? 'Yes' : 'No' }}</td>

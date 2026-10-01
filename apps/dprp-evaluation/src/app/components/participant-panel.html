@@ -3,7 +3,7 @@
     <div class="panel-head">
       <div>
         <p class="eyebrow">Participant</p>
-        <h3 id="participant-heading" tabindex="-1">{{ participant.participantId }} <span class="muted">· cohort {{ participant.cohortId }}</span></h3>
+        <h3 id="participant-heading" tabindex="-1">{{ evaluation.participantCode }} <span class="muted">· cohort {{ evaluation.cohortCode }}</span></h3>
         <p class="muted">The whole current record, under every standard that applies.  Changes here re-evaluate every submission above.</p>
       </div>
       <button type="button" class="button button-secondary" (click)="close()">Close</button>
@@ -81,6 +81,7 @@
       <app-guidance-list
         [items]="store.participantGuidance()"
         [labels]="labels"
+        [fields]="fields"
         eventLabel="Session"
         recordLabel="Enrollment record"
         blockingLabel="blocking submission"
@@ -101,6 +102,10 @@
       <p><button type="button" class="button button-secondary" (click)="editEnrollment()">Edit enrollment</button></p>
     }
 
+    @if (store.changeProblems().length > 0) {
+      <p class="change-problems" role="alert">{{ store.changeProblems().join(' ') }}</p>
+    }
+
     <section class="sessions" aria-labelledby="sessions-heading">
       <div class="section-row">
         <h4 id="sessions-heading">Sessions</h4>
@@ -108,7 +113,7 @@
       </div>
       @if (editingSession(); as editing) {
         <div class="editor">
-          <p class="muted">{{ editing.index === null ? 'A new session.' : 'Editing a session.' }}  Rules marked ◆ come from the standards that apply.</p>
+          <p class="muted">{{ editing.entryId === null ? 'A new session.' : 'Editing a session.' }}  Rules marked ◆ come from the standards that apply.</p>
           <app-definition-form [definition]="sessionForm()" [constraints]="sessionConstraints()" [initial]="sessionInitial()" [focusField]="editing.focus" idPrefix="session" submitLabel="Save session" (saved)="saveSession($event)" (cancelled)="cancelEdit()" />
         </div>
       }
@@ -118,7 +123,7 @@
             <tr><th scope="col">Date</th><th scope="col">Month</th><th scope="col">Phase</th><th scope="col">Weight</th><th scope="col">Minutes</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
           </thead>
           <tbody>
-            @for (row of sessionRows(); track $index) {
+            @for (row of sessionRows(); track row.entryId) {
               <tr [class.flagged]="row.flagged">
                 <td>{{ row.date }}@if (row.makeUp) { <span class="tag">make-up</span> }@if (row.flagged) { <span class="tag flag">flagged</span> }</td>
                 <td>{{ row.programMonth }}</td>
@@ -126,13 +131,13 @@
                 <td>{{ row.weight }}</td>
                 <td>{{ row.minutes }}</td>
                 <td class="row-actions">
-                  @if (confirmingRemoval() === row.index) {
+                  @if (confirmingRemoval() === row.entryId) {
                     <span role="alert">Remove this session?</span>
-                    <button type="button" class="link-button" (click)="removeSession(row.index)">Yes, remove<span class="visually-hidden"> the session of {{ row.date }}</span></button>
+                    <button type="button" class="link-button" (click)="removeSession(row.entryId)">Yes, remove<span class="visually-hidden"> the session of {{ row.date }}</span></button>
                     <button type="button" class="link-button" (click)="confirmingRemoval.set(null)">Keep it</button>
                   } @else {
-                    <button type="button" class="link-button" (click)="editSession(row.index)">Edit<span class="visually-hidden"> session of {{ row.date }}</span></button>
-                    <button type="button" class="link-button" (click)="confirmingRemoval.set(row.index)">Remove<span class="visually-hidden"> session of {{ row.date }}</span></button>
+                    <button type="button" class="link-button" (click)="editSession(row.entryId)">Edit<span class="visually-hidden"> session of {{ row.date }}</span></button>
+                    <button type="button" class="link-button" (click)="confirmingRemoval.set(row.entryId)">Remove<span class="visually-hidden"> session of {{ row.date }}</span></button>
                   }
                 </td>
               </tr>

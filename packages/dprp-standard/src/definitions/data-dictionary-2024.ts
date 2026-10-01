@@ -62,10 +62,3 @@ export const DPRP_DATA_DICTIONARY_2024: readonly DataElementDefinition[] = [
   element(SUBMISSION_COLUMN.WEIGHT, "Participant's weight", 'Measured at each session, to the nearest tenth of a pound.', { range: { min: 70, max: 997 }, notReported: NOT_REPORTED.WEIGHT, unit: 'pounds' }),
   element(SUBMISSION_COLUMN.PHYSICAL_ACTIVITY, "Participant's physical activity minutes", 'Moderate or brisk activity since the previous session attended; 0 if none or not tracked.', { range: { min: 0, max: Number.MAX_SAFE_INTEGER }, unit: 'minutes' }),
 ];
-
-// Finds one element by its column; the dictionary is defined above, so a missing column is a programming error.
-export function resolveDataElement(column: string): DataElementDefinition {
-  const found = DPRP_DATA_DICTIONARY_2024.find((candidate) => candidate.column === column);
-  if (!found) throw new Error(`The 2024 data dictionary has no ${column} element.`);
-  return found;
-}

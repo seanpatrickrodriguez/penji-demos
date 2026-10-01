@@ -1,18 +1,67 @@
-import { PROGRAM_FORM, DEFINITION_KIND, DELIVERY_MODE, DERIVED_FACT, ENROLLMENT_FIELD, RESULT_SOURCE, SESSION_FIELD } from '@penji-demos/constants';
+import {
+  A1C_RESULT_FIELD,
+  COHORT_FIELD,
+  COHORT_KIND,
+  DEFINITION_KIND,
+  DELIVERY_MODE,
+  ENROLLMENT_FIELD,
+  HUB_FIELD,
+  INELIGIBILITY_EVENT,
+  ORGANIZATION_FIELD,
+  PARTICIPANT_FIELD,
+  PROGRAM_FORM,
+  RECODE_FIELD,
+  RESULT_SOURCE,
+  SESSION_FIELD,
+  STAFF_FIELD,
+} from '@penji-demos/constants';
 import { FieldDefinition, FormDefinition, toDefinitionId } from '@penji-demos/types';
 
-// M1: the platform's own forms.  They collect facts in plain terms and carry
+// M1: the program's own forms.  They collect facts in plain terms and carry
 // no standard's codes or limits; every active standard adds its rules to them
 // through the compliance engine.
 
-const PLATFORM_SOURCE = { title: 'Penji demos: canonical records', url: 'https://github.com/seanpatrickrodriguez/penji-demos' };
+const PLATFORM_SOURCE = { title: 'Penji demos: diabetes prevention program records', url: 'https://github.com/seanpatrickrodriguez/penji-demos' };
 const E = ENROLLMENT_FIELD;
 const S = SESSION_FIELD;
 
 const answered = (field: string) => ({ kind: 'answered' as const, field });
 const isTrue = (field: string) => ({ kind: 'equals' as const, field, value: true });
 
+const DELIVERY_MODE_OPTIONS = [
+  { value: DELIVERY_MODE.IN_PERSON, label: 'In person' },
+  { value: DELIVERY_MODE.ONLINE, label: 'Online' },
+  { value: DELIVERY_MODE.DISTANCE_LEARNING, label: 'Distance learning' },
+];
+
+const HUB_FIELDS: readonly FieldDefinition[] = [{ kind: 'text', key: HUB_FIELD.REGION, label: 'Region served', required: true }];
+
+const ORGANIZATION_FIELDS: readonly FieldDefinition[] = [
+  { kind: 'text', key: ORGANIZATION_FIELD.CODE, label: 'Organization code', required: true, maxLength: 10 },
+  { kind: 'choice', key: ORGANIZATION_FIELD.DELIVERY_MODE, label: 'Delivery mode', required: true, options: DELIVERY_MODE_OPTIONS },
+  { kind: 'date', key: ORGANIZATION_FIELD.EFFECTIVE_DATE, label: 'Recognition effective date', required: true },
+];
+
+const STAFF_FIELDS: readonly FieldDefinition[] = [{ kind: 'text', key: STAFF_FIELD.TITLE, label: 'Title', required: true }];
+
+const COHORT_FIELDS: readonly FieldDefinition[] = [
+  { kind: 'text', key: COHORT_FIELD.CODE, label: 'Cohort ID', required: true, maxLength: 25 },
+  {
+    kind: 'choice',
+    key: COHORT_FIELD.KIND,
+    label: 'Cohort kind',
+    required: true,
+    options: [
+      { value: COHORT_KIND.GROUP, label: 'Group' },
+      { value: COHORT_KIND.INDIVIDUAL, label: 'Individual' },
+    ],
+  },
+  { kind: 'date', key: COHORT_FIELD.START_DATE, label: "Cohort's first session", required: true },
+];
+
 const ENROLLMENT_FIELDS: readonly FieldDefinition[] = [
+  { kind: 'text', key: PARTICIPANT_FIELD.CODE, label: 'Participant ID', required: true, maxLength: 25 },
+  { kind: 'text', key: PARTICIPANT_FIELD.COACH_CODE, label: 'Coach ID', required: true, maxLength: 25 },
   { kind: 'date', key: E.ENROLLMENT_DATE, label: 'Enrollment date', required: true },
   { kind: 'number', key: E.AGE_YEARS, label: 'Age at enrollment', required: true, min: 0, max: 125, wholeNumber: true },
   { kind: 'number', key: E.HEIGHT_INCHES, label: 'Height (inches)', required: true, min: 30, max: 98 },
@@ -51,11 +100,7 @@ const SESSION_FIELDS: readonly FieldDefinition[] = [
     key: S.DELIVERY_MODE,
     label: 'Delivered',
     required: true,
-    options: [
-      { value: DELIVERY_MODE.IN_PERSON, label: 'In person' },
-      { value: DELIVERY_MODE.ONLINE, label: 'Online' },
-      { value: DELIVERY_MODE.DISTANCE_LEARNING, label: 'Distance learning' },
-    ],
+    options: DELIVERY_MODE_OPTIONS,
   },
   { kind: 'yesNo', key: S.WEIGHT_REPORTED, label: 'Weight recorded', required: true },
   { kind: 'number', key: S.WEIGHT_POUNDS, label: 'Weight (pounds)', required: true, min: 0, showWhen: isTrue(S.WEIGHT_REPORTED) },
@@ -73,15 +118,31 @@ const form = (id: string, title: string, description: string, fields: readonly F
   rules: [],
 });
 
+const A1C_RESULT_FIELDS: readonly FieldDefinition[] = [
+  { kind: 'number', key: A1C_RESULT_FIELD.PERCENT, label: 'A1C result (%)', required: true, min: 2.5, max: 18 },
+  { kind: 'date', key: A1C_RESULT_FIELD.TEST_DATE, label: 'A1C result test date', required: true },
+  { kind: 'date', key: A1C_RESULT_FIELD.REPORTED_DATE, label: 'A1C result reported date', required: true },
+];
+
+const RECODE_FIELDS: readonly FieldDefinition[] = [
+  {
+    kind: 'choice',
+    key: RECODE_FIELD.EVENT,
+    label: 'No longer eligible because of',
+    required: true,
+    options: [
+      { value: INELIGIBILITY_EVENT.TYPE_2_DIABETES, label: 'A type 2 diabetes diagnosis' },
+      { value: INELIGIBILITY_EVENT.PREGNANCY, label: 'A pregnancy' },
+    ],
+  },
+  { kind: 'date', key: RECODE_FIELD.DATE, label: 'Recoded on', required: true },
+];
+
+export const HUB_FORM = form(PROGRAM_FORM.HUB, 'Hub', 'An organization that oversees the programs delivering under it.', HUB_FIELDS);
+export const ORGANIZATION_FORM = form(PROGRAM_FORM.ORGANIZATION, 'Organization', 'An organization delivering the program.', ORGANIZATION_FIELDS);
+export const STAFF_FORM = form(PROGRAM_FORM.STAFF, 'Staff member', 'A person who works the records.', STAFF_FIELDS);
+export const COHORT_FORM = form(PROGRAM_FORM.COHORT, 'Cohort', 'Participants who start the program together, or one on their own.', COHORT_FIELDS);
 export const ENROLLMENT_FORM = form(PROGRAM_FORM.ENROLLMENT, 'Enrollment', 'The facts gathered when a participant enrolls.', ENROLLMENT_FIELDS);
 export const SESSION_FORM = form(PROGRAM_FORM.SESSION, 'Session', 'One session attended by one participant.', SESSION_FIELDS);
-
-// Labels for every fact a rule can read: the form fields, and the facts worked out from records.
-export const FACT_LABELS: Readonly<Record<string, string>> = {
-  ...Object.fromEntries([...ENROLLMENT_FIELDS, ...SESSION_FIELDS].map((field) => [field.key, field.label])),
-  [DERIVED_FACT.COHORT_START_DATE]: "Cohort's first session",
-  [DERIVED_FACT.COHORT_KIND]: 'Cohort kind',
-  [DERIVED_FACT.FIRST_SESSION_DATE]: 'First session attended',
-  [DERIVED_FACT.FIRST_SESSION_BMI]: 'BMI at the first weighed session',
-  [DERIVED_FACT.RECODED_INELIGIBLE]: 'Recoded ineligible during the program',
-};
+export const A1C_RESULT_FORM = form(PROGRAM_FORM.A1C_RESULT, 'A1C result', 'An A1C test reported after enrollment.', A1C_RESULT_FIELDS);
+export const RECODE_FORM = form(PROGRAM_FORM.RECODE, 'Recode', 'A participant who stopped being eligible during the program.', RECODE_FIELDS);

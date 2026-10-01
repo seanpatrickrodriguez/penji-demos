@@ -35,8 +35,11 @@
       "@penji-demos/record-engine": [
         "packages/record-engine/src/index.ts"
       ],
-      "@penji-demos/program-records": [
-        "packages/program-records/src/index.ts"
+      "@penji-demos/dprp-configuration": [
+        "packages/dprp-configuration/src/index.ts"
+      ],
+      "@penji-demos/dprp-recognition": [
+        "packages/dprp-recognition/src/index.ts"
       ],
       "@penji-demos/dprp-standard": [
         "packages/dprp-standard/src/index.ts"
@@ -56,8 +59,8 @@
       "@penji-demos/fleet-seed": [
         "packages/fleet-seed/src/index.ts"
       ],
-      "@penji-demos/seed": [
-        "packages/seed/src/index.ts"
+      "@penji-demos/dprp-seed": [
+        "packages/dprp-seed/src/index.ts"
       ],
       "@penji-demos/ui": [
         "packages/ui/src/index.ts"

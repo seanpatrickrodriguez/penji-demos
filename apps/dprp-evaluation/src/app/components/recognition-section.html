@@ -89,7 +89,7 @@
     <ul class="cohorts">
       @for (cohort of cohorts(); track cohort.cohortId) {
         <li [class.in-window]="cohort.inWindow">
-          <span class="cohort-id">{{ cohort.cohortId }}</span>
+          <span class="cohort-id">{{ cohort.cohortCode }}</span>
           <span>{{ cohort.firstSession }}</span>
           <span>{{ cohort.participants }} participants</span>
           <span class="cohort-state">{{ cohort.inWindow ? 'Evaluated' : 'Outside the window' }}</span>

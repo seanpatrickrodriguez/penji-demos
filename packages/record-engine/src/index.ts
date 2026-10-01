@@ -7,3 +7,4 @@ export * from './record-changes';
 export * from './resolve-as-of';
 export * from './evaluate-entity';
 export * from './validate-configuration';
+export * from './opaque-id';

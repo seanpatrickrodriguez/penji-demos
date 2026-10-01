@@ -1,12 +1,12 @@
-import { PROGRAM_PHASE, REQUIREMENT_OUTCOME } from '@penji-demos/constants';
+import { DELIVERY_MODE, PROGRAM_PHASE, REQUIREMENT_OUTCOME } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
-import { CohortId, ParticipantId } from '../primitives/branded-ids';
+import { EntityId, EntryId } from '../primitives/branded-ids';
 import { PlainDate } from '../primitives/plain-date';
 import { RequirementDefinition } from '../definitions/requirement-definition';
 import { RuleFinding } from '../definitions/compliance-definition';
 import { OutcomePathway, RecognitionStatus } from '../definitions/standard-definition';
-import { SessionRecord } from '../records/program-records';
 
+export type DeliveryMode = ValueOf<typeof DELIVERY_MODE>;
 export type ProgramPhase = ValueOf<typeof PROGRAM_PHASE>;
 export type RequirementOutcome = ValueOf<typeof REQUIREMENT_OUTCOME>;
 
@@ -37,10 +37,25 @@ export interface StandardEvaluation {
   readonly findings: readonly RuleFinding[];
 }
 
-// A session placed on the program calendar of its cohort.
-export interface ProgramSession extends SessionRecord {
+// A session entry read as a session and placed on the program calendar of its cohort.
+export interface ProgramSession {
+  readonly entryId: EntryId;
+  readonly sessionDate: PlainDate;
+  readonly isMakeUp: boolean;
+  readonly deliveryMode: DeliveryMode | null;
+  // Null when no weight was reported for the session.
+  readonly weightPounds: number | null;
+  // Minutes of moderate or brisk activity since the previous session attended.
+  readonly activityMinutes: number;
   readonly programMonth: number;
   readonly phase: ProgramPhase;
+}
+
+// An A1C result recorded after enrollment, read from its stream entry.
+export interface A1cResult {
+  readonly percent: number;
+  readonly testDate: PlainDate;
+  readonly reportedDate: PlainDate;
 }
 
 export interface WeightChange {
@@ -64,8 +79,11 @@ export interface OutcomeResult {
 }
 
 export interface ParticipantEvaluation {
-  readonly participantId: ParticipantId;
-  readonly cohortId: CohortId;
+  readonly participantId: EntityId;
+  // The IDs the organization assigned, as the participant and cohort records hold them.
+  readonly participantCode: string;
+  readonly cohortId: EntityId;
+  readonly cohortCode: string;
   readonly sessions: readonly ProgramSession[];
   // Sessions on or after the cohort's first session and within the program year.
   readonly sessionsAttended: number;
@@ -101,7 +119,7 @@ export interface CohortWindow {
 export interface RecognitionEvaluation {
   readonly submissionMonth: PlainDate;
   readonly window: CohortWindow;
-  readonly evaluationCohortIds: readonly CohortId[];
+  readonly evaluationCohortIds: readonly EntityId[];
   readonly participants: readonly ParticipantEvaluation[];
   readonly requirements: readonly RequirementResult[];
   readonly status: RecognitionStatus;

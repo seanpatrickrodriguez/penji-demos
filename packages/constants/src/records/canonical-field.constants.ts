@@ -1,5 +1,44 @@
-// The canonical fields of the platform's records.  Standards bind their data
-// elements and rules to these names; the records never take a standard's shape.
+// The canonical fields of a diabetes prevention program's records on the
+// platform.  Standards bind their data elements and rules to these names; the
+// records never take a standard's shape.
+
+// The levels of the program's tenant tree: a hub that oversees organizations.
+export const PROGRAM_TENANT_KIND = {
+  HUB: 'hub',
+  ORGANIZATION: 'organization',
+} as const;
+
+// What an organization keeps on file: cohorts, and participants under them.
+export const PROGRAM_ENTITY = {
+  COHORT: 'cohort',
+  PARTICIPANT: 'participant',
+} as const;
+
+export const HUB_FIELD = {
+  REGION: 'hubRegion',
+} as const;
+
+export const ORGANIZATION_FIELD = {
+  CODE: 'organizationCode',
+  DELIVERY_MODE: 'organizationDeliveryMode',
+  EFFECTIVE_DATE: 'effectiveDate',
+} as const;
+
+export const STAFF_FIELD = {
+  TITLE: 'staffTitle',
+} as const;
+
+export const COHORT_FIELD = {
+  CODE: 'cohortCode',
+  KIND: 'cohortKind',
+  START_DATE: 'cohortStartDate',
+} as const;
+
+export const PARTICIPANT_FIELD = {
+  CODE: 'participantCode',
+  COACH_CODE: 'coachCode',
+} as const;
+
 export const ENROLLMENT_FIELD = {
   ENROLLMENT_DATE: 'enrollmentDate',
   AGE_YEARS: 'ageYears',
@@ -28,6 +67,7 @@ export const DERIVED_FACT = {
   COHORT_START_DATE: 'cohortStartDate',
   COHORT_KIND: 'cohortKind',
   FIRST_SESSION_DATE: 'firstSessionDate',
+  FIRST_SESSION_WEIGHT: 'firstSessionWeight',
   FIRST_SESSION_BMI: 'firstSessionBmi',
   RECODED_INELIGIBLE: 'recodedIneligible',
 } as const;
@@ -53,10 +93,41 @@ export const RESULT_SOURCE = {
   SELF_REPORTED: 'selfReported',
 } as const;
 
-// The program records' forms, by definition ID.
+// An A1C result recorded after enrollment, such as the final test for the A1C outcome.
+export const A1C_RESULT_FIELD = {
+  PERCENT: 'resultA1cPercent',
+  TEST_DATE: 'resultA1cTestDate',
+  REPORTED_DATE: 'resultA1cReportedDate',
+} as const;
+
+// A participant recoded as no longer eligible during the program.
+export const RECODE_FIELD = {
+  EVENT: 'ineligibilityEvent',
+  DATE: 'recodedDate',
+} as const;
+
+// The program's forms, by definition ID.
 export const PROGRAM_FORM = {
+  HUB: 'hub',
+  ORGANIZATION: 'organization',
+  STAFF: 'staff',
+  COHORT: 'cohort',
   ENROLLMENT: 'enrollment',
   SESSION: 'session',
+  A1C_RESULT: 'a1cResult',
+  RECODE: 'recode',
+} as const;
+
+export const PROGRAM_PERMISSION = {
+  EDIT_COHORT: 'editCohort',
+  EDIT_ENROLLMENT: 'editEnrollment',
+  RECORD_SESSION: 'recordSession',
+  RECORD_RESULT: 'recordResult',
+} as const;
+
+export const PROGRAM_ROLE = {
+  DATA_SPECIALIST: 'dataSpecialist',
+  COACH: 'coach',
 } as const;
 
 // The program's streams of dated entries on a participant.

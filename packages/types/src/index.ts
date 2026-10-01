@@ -12,6 +12,5 @@ export * from './definitions/workflow-definition';
 export * from './definitions/entity-definition';
 export * from './definitions/configuration-definition';
 export * from './records/platform-records';
-export * from './records/program-records';
 export * from './records/fleet-records';
 export * from './evaluation/evaluation';

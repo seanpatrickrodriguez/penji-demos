@@ -1,13 +1,13 @@
 import { DPRP_REQUIREMENT_ID, METRIC_KEY, OUTCOME_PATHWAY, RECOGNITION_STATUS, REQUIREMENT_OUTCOME, RULE_CHECK_KIND, SESSION_FIELD, SESSION_TYPE_CODE, SUBMISSION_COLUMN } from '@penji-demos/constants';
 import { validateRequirementDefinitions } from '@penji-demos/rule-engine';
 import { toPlainDate } from '@penji-demos/time';
-import { RecognitionStandardDefinition } from '@penji-demos/types';
+import { PROGRAM_CONFIGURATION } from '@penji-demos/dprp-configuration';
+import { DPRP_DATA_DICTIONARY_2024, DPRP_STANDARD_2024 } from '@penji-demos/dprp-standard';
+import { PlainDate, PlatformData, RecognitionStandardDefinition } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
-import { resolveDataElement } from '../definitions/data-dictionary-2024';
-import { DPRP_STANDARD_2024 } from '../definitions/dprp-standard-2024';
 import { resolveSubmissionCsv, resolveSubmissionRows } from '../submission/resolve-submission-rows';
-import { FULL_SCHEDULE, NO_BLOOD_TEST, buildCohort, buildEnrollment, buildOrganization, buildParticipant, buildSessions } from '../testing/build-records';
-import { evaluateRecognition } from './evaluate-recognition';
+import { FULL_SCHEDULE, NO_BLOOD_TEST, ORGANIZATION_ID, ParticipantCase, buildCohort, buildEnrollment, buildOrganization, buildParticipant, buildSessions } from '../testing/build-records';
+import { evaluateRecognition as evaluateRecognitionOf } from './evaluate-recognition';
 import { DPRP_METRIC_REGISTRY } from './metric-registry';
 import { resolveCohortWindow } from './resolve-evaluation-cohort';
 
@@ -16,14 +16,17 @@ const START = '2025-01-06';
 const SUBMISSION = toPlainDate('2026-03-01');
 const COHORT = buildCohort('C1', START);
 
+const evaluateRecognition = (standard: RecognitionStandardDefinition, data: PlatformData, month: PlainDate) => evaluateRecognitionOf(standard, PROGRAM_CONFIGURATION, data, ORGANIZATION_ID, month);
+
 // Ten eligible participants: six complete the year losing 6%, two complete without
 // losing weight, two leave after month 2.  Completers 8/10, risk reduced 6/8.
-function buildDefaultOrganization() {
-  const completers = Array.from({ length: 6 }, (_, index) => buildParticipant(`P${index + 1}`, COHORT, buildSessions(START, FULL_SCHEDULE, 220, 206.8)));
-  const steady = Array.from({ length: 2 }, (_, index) => buildParticipant(`S${index + 1}`, COHORT, buildSessions(START, FULL_SCHEDULE, 220, 219)));
-  const leavers = Array.from({ length: 2 }, (_, index) => buildParticipant(`L${index + 1}`, COHORT, buildSessions(START, [0, 7, 14, 21, 28, 35], 220, 218)));
-  return buildOrganization([COHORT], [...completers, ...steady, ...leavers]);
+function buildDefaultParticipants(enrollment = buildEnrollment()): readonly ParticipantCase[] {
+  const completers = Array.from({ length: 6 }, (_, index) => buildParticipant(`P${index + 1}`, COHORT, buildSessions(START, FULL_SCHEDULE, 220, 206.8), { enrollment }));
+  const steady = Array.from({ length: 2 }, (_, index) => buildParticipant(`S${index + 1}`, COHORT, buildSessions(START, FULL_SCHEDULE, 220, 219), { enrollment }));
+  const leavers = Array.from({ length: 2 }, (_, index) => buildParticipant(`L${index + 1}`, COHORT, buildSessions(START, [0, 7, 14, 21, 28, 35], 220, 218), { enrollment }));
+  return [...completers, ...steady, ...leavers];
 }
+const buildDefaultOrganization = () => buildOrganization([COHORT], buildDefaultParticipants());
 
 const result = (evaluation: ReturnType<typeof evaluateRecognition>, id: string) => evaluation.requirements.find((entry) => entry.requirement.id === id);
 
@@ -35,7 +38,7 @@ describe('evaluation cohort', () => {
   it('leaves out a cohort that began too recently', () => {
     const late = buildCohort('C2', '2025-04-01');
     const data = buildOrganization([COHORT, late], [buildParticipant('X1', late, buildSessions('2025-04-01', FULL_SCHEDULE, 220, 200))]);
-    expect(evaluateRecognition(STANDARD, data, SUBMISSION).evaluationCohortIds).toEqual([COHORT.cohortId]);
+    expect(evaluateRecognition(STANDARD, data, SUBMISSION).evaluationCohortIds).toEqual([COHORT.entityId]);
   });
 });
 
@@ -57,17 +60,15 @@ describe('recognition', () => {
   });
 
   it('does not calculate requirements 6 and 7 until requirement 5 is met', () => {
-    const data = buildDefaultOrganization();
-    const evaluation = evaluateRecognition(STANDARD, { ...data, participants: data.participants.slice(0, 4) }, SUBMISSION);
+    const evaluation = evaluateRecognition(STANDARD, buildOrganization([COHORT], buildDefaultParticipants().slice(0, 4)), SUBMISSION);
     expect(result(evaluation, DPRP_REQUIREMENT_ID.ELIGIBLE_PARTICIPANTS)?.outcome).toBe(REQUIREMENT_OUTCOME.NOT_MET);
     expect(result(evaluation, DPRP_REQUIREMENT_ID.RISK_REDUCTION)?.outcome).toBe(REQUIREMENT_OUTCOME.NOT_EVALUATED);
     expect(evaluation.status).toBe(RECOGNITION_STATUS.PENDING);
   });
 
   it('needs 35% of completers eligible by blood test or gestational diabetes', () => {
-    const data = buildDefaultOrganization();
-    const riskTestOnly = data.participants.map((participant) => ({ ...participant, enrollment: buildEnrollment({ ...NO_BLOOD_TEST, riskTestPositive: true }) }));
-    const evaluation = evaluateRecognition(STANDARD, { ...data, participants: riskTestOnly }, SUBMISSION);
+    const riskTestOnly = buildDefaultParticipants(buildEnrollment({ ...NO_BLOOD_TEST, riskTestPositive: true }));
+    const evaluation = evaluateRecognition(STANDARD, buildOrganization([COHORT], riskTestOnly), SUBMISSION);
     expect(result(evaluation, DPRP_REQUIREMENT_ID.BLOOD_TEST_ELIGIBILITY)?.outcome).toBe(REQUIREMENT_OUTCOME.NOT_MET);
     expect(evaluation.status).toBe(RECOGNITION_STATUS.PRELIMINARY);
   });
@@ -95,15 +96,15 @@ describe('the standard is data', () => {
 
   it("keeps the weight rule's range in step with the data dictionary", () => {
     const weightRule = STANDARD.rules.find((rule) => rule.check.kind === RULE_CHECK_KIND.RANGE && rule.check.field === SESSION_FIELD.WEIGHT_POUNDS);
-    const element = resolveDataElement(SUBMISSION_COLUMN.WEIGHT);
-    expect(weightRule?.check.kind === RULE_CHECK_KIND.RANGE ? { min: weightRule.check.min, max: weightRule.check.max } : null).toEqual(element.range);
+    const element = DPRP_DATA_DICTIONARY_2024.find((candidate) => candidate.column === SUBMISSION_COLUMN.WEIGHT);
+    expect(weightRule?.check.kind === RULE_CHECK_KIND.RANGE ? { min: weightRule.check.min, max: weightRule.check.max } : null).toEqual(element?.range);
   });
 });
 
 describe('submission file', () => {
   it('writes records in the DPRP columns and codes', () => {
     const data = buildOrganization([COHORT], [buildParticipant('P1', COHORT, buildSessions(START, [0, 200], 220, 210))]);
-    const rows = resolveSubmissionRows(STANDARD, data);
+    const rows = resolveSubmissionRows(STANDARD, PROGRAM_CONFIGURATION, data, ORGANIZATION_ID, SUBMISSION);
     expect(rows.map((row) => [row[SUBMISSION_COLUMN.SESSION_TYPE], row[SUBMISSION_COLUMN.SESSION_DATE], row[SUBMISSION_COLUMN.WEIGHT]])).toEqual([
       [SESSION_TYPE_CODE.CORE, '01/06/2025', '220.0'],
       [SESSION_TYPE_CODE.CORE_MAINTENANCE, '07/25/2025', '210.0'],

@@ -15,7 +15,7 @@ export class RecognitionSection {
   protected readonly current = computed(() => this.submissions()[this.store.selectedSequence() - 1]);
   protected readonly requirements = computed(() => resolveRequirementRows(this.store.selected()));
   protected readonly tiers = computed(() => resolveTierGroups(RECOGNITION_STANDARD, this.store.selected()));
-  protected readonly cohorts = computed(() => resolveCohortRows(this.store.data().cohorts, this.store.selected()));
+  protected readonly cohorts = computed(() => resolveCohortRows(this.store.cohorts(), this.store.selected()));
   protected readonly window = computed(() => formatWindow(this.store.selected()));
   protected readonly evaluatedLabel = computed(() => STATUS_LABEL[this.store.selected().evaluation.status]);
 

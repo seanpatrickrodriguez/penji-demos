@@ -1,25 +1,17 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { DELIVERY_MODE, PROGRAM_FORM, PROGRAM_STREAM, SESSION_FIELD } from '@penji-demos/constants';
 import { resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/compliance-engine';
-import {
-  ENROLLMENT_FORM,
-  FACT_LABELS,
-  SESSION_FORM,
-  resolveEnrollmentAnswers,
-  resolveEnrollmentFromAnswers,
-  resolveParticipantFacts,
-  resolveSessionAnswers,
-  resolveSessionFromAnswers,
-} from '@penji-demos/program-records';
-import { Answers, GuidanceItem } from '@penji-demos/types';
+import { ENROLLMENT_FORM, SESSION_FORM } from '@penji-demos/dprp-configuration';
+import { resolveEntityFacts, resolveFieldDefinitions, resolveFieldLabels } from '@penji-demos/record-engine';
+import { Answers, EntryId, GuidanceItem } from '@penji-demos/types';
 import { DefinitionForm, GuidanceList, ResolveGuidance } from '@penji-demos/ui';
-import { ALL_STANDARDS, DemoStore, RECOGNITION_STANDARD } from '../state/demo-store';
+import { ALL_STANDARDS, CONFIGURATION, DemoStore, RECOGNITION_STANDARD, THROUGH_MONTH } from '../state/demo-store';
 import { CHART, resolveWeightChart } from '../view/chart-view';
 import { formatDate } from '../view/format';
 import { resolveSessionRows } from '../view/participant-view';
 
 type Editing =
-  | { readonly form: typeof PROGRAM_FORM.SESSION; readonly index: number | null; readonly focus: string | null }
+  | { readonly form: typeof PROGRAM_FORM.SESSION; readonly entryId: EntryId | null; readonly focus: string | null }
   | { readonly form: typeof PROGRAM_FORM.ENROLLMENT; readonly focus: string | null };
 
 @Component({
@@ -33,8 +25,9 @@ export class ParticipantPanel {
   protected readonly store = inject(DemoStore);
   protected readonly chartSize = CHART;
   protected readonly editing = signal<Editing | null>(null);
-  protected readonly confirmingRemoval = signal<number | null>(null);
-  protected readonly labels = FACT_LABELS;
+  protected readonly confirmingRemoval = signal<EntryId | null>(null);
+  protected readonly labels = resolveFieldLabels(CONFIGURATION);
+  protected readonly fields = resolveFieldDefinitions(CONFIGURATION);
   protected readonly formatDate = formatDate;
   protected readonly resolveGuidance: ResolveGuidance = (item, action, note) => this.store.resolveGuidance(item, action, note);
   // Enrollment answers while the form is open, so rules that depend on them (Medicare) apply as they change.
@@ -45,8 +38,8 @@ export class ParticipantPanel {
 
   protected readonly chart = computed(() => {
     const evaluation = this.evaluation();
-    const cohort = this.store.selectedCohort();
-    return evaluation && cohort ? resolveWeightChart(RECOGNITION_STANDARD, evaluation, cohort.firstSessionDate) : null;
+    const subject = this.store.selectedSubject();
+    return evaluation && subject ? resolveWeightChart(RECOGNITION_STANDARD, evaluation, subject.cohortStart) : null;
   });
 
   protected readonly standards = computed(() =>
@@ -59,15 +52,13 @@ export class ParticipantPanel {
 
   protected readonly sessionRows = computed(() => {
     const evaluation = this.evaluation();
-    const participant = this.participant();
-    return evaluation && participant ? resolveSessionRows(evaluation, participant.sessions, this.store.participantGuidance()) : [];
+    return evaluation ? resolveSessionRows(evaluation, this.store.participantGuidance()) : [];
   });
 
   private readonly facts = computed(() => {
     const participant = this.participant();
-    const cohort = this.store.selectedCohort();
-    if (!participant || !cohort) return {};
-    const facts = resolveParticipantFacts(participant, cohort);
+    if (!participant) return {};
+    const facts = resolveEntityFacts(CONFIGURATION, this.store.data(), participant, THROUGH_MONTH);
     const draft = this.draftEnrollment();
     return draft ? { ...facts, ...draft } : facts;
   });
@@ -79,16 +70,14 @@ export class ParticipantPanel {
 
   protected readonly sessionInitial = computed<Answers>(() => {
     const editing = this.editing();
-    const participant = this.participant();
-    if (!editing || editing.form !== PROGRAM_FORM.SESSION || !participant) return {};
-    const session = editing.index === null ? null : participant.sessions[editing.index];
+    if (!editing || editing.form !== PROGRAM_FORM.SESSION) return {};
+    const session = this.store.sessionEntries().find((entry) => entry.entryId === editing.entryId);
     return session
-      ? resolveSessionAnswers(session)
+      ? session.values
       : { [SESSION_FIELD.WEIGHT_REPORTED]: true, [SESSION_FIELD.IS_MAKE_UP]: false, [SESSION_FIELD.DELIVERY_MODE]: DELIVERY_MODE.IN_PERSON, [SESSION_FIELD.ACTIVITY_MINUTES]: 0 };
   });
   protected readonly enrollmentInitial = computed<Answers>(() => {
-    const participant = this.participant();
-    return participant ? resolveEnrollmentAnswers(participant.enrollment) : {};
+    return this.participant()?.values ?? {};
   });
 
   protected readonly editingSession = computed(() => {
@@ -104,8 +93,8 @@ export class ParticipantPanel {
     this.store.selectParticipant(null);
   }
 
-  protected editSession(index: number | null, focus: string | null = null): void {
-    this.editing.set({ form: PROGRAM_FORM.SESSION, index, focus });
+  protected editSession(entryId: EntryId | null, focus: string | null = null): void {
+    this.editing.set({ form: PROGRAM_FORM.SESSION, entryId, focus });
   }
 
   protected editEnrollment(focus: string | null = null): void {
@@ -122,15 +111,12 @@ export class ParticipantPanel {
     const editing = this.editingSession();
     const participant = this.participant();
     if (!editing || !participant) return;
-    const previous = editing.index === null ? null : (participant.sessions[editing.index] ?? null);
-    const session = resolveSessionFromAnswers(answers, previous);
-    if (session) this.store.saveSession(participant.participantId, editing.index, session);
+    this.store.saveSession(participant.entityId, editing.entryId, answers);
     this.editing.set(null);
   }
 
-  protected removeSession(index: number): void {
-    const participant = this.participant();
-    if (participant) this.store.removeSession(participant.participantId, index);
+  protected removeSession(entryId: EntryId): void {
+    this.store.removeSession(entryId);
     this.confirmingRemoval.set(null);
   }
 
@@ -140,21 +126,20 @@ export class ParticipantPanel {
 
   protected saveEnrollment(answers: Answers): void {
     const participant = this.participant();
-    if (participant) this.store.saveEnrollment(participant.participantId, resolveEnrollmentFromAnswers(answers, participant.enrollment));
+    if (participant) this.store.saveEnrollment(participant.entityId, answers);
     this.cancelEdit();
   }
 
   // "Fix this": open the form the rule names, at the session it found, on the field to change.
   protected fix(item: GuidanceItem): void {
     const target = item.target;
-    const participant = this.participant();
-    if (!target || !participant) return;
+    if (!target) return;
     if (target.form === PROGRAM_FORM.ENROLLMENT) {
       this.editEnrollment(target.field);
       return;
     }
-    const index = participant.sessions.findIndex((session) => session.sessionDate === target.eventDate);
-    this.editSession(index >= 0 ? index : null, target.field);
+    const session = this.store.sessionEntries().find((entry) => entry.entryId === target.eventId);
+    this.editSession(session?.entryId ?? null, target.field);
   }
 
 }

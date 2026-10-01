@@ -1,40 +1,37 @@
 import { Injectable, computed, signal } from '@angular/core';
-import { resolveGuidanceItem, validateResolution } from '@penji-demos/compliance-engine';
-import { DPRP_STANDARD_2024, evaluateParticipant, evaluateRecognitionTimeline } from '@penji-demos/dprp-standard';
-import { MDPP_STANDARD } from '@penji-demos/mdpp-standard';
-import { buildSyntheticOrganization } from '@penji-demos/seed';
+import { validateResolution } from '@penji-demos/compliance-engine';
+import { PROGRAM_ENTITY, PROGRAM_STREAM } from '@penji-demos/constants';
+import { PROGRAM_CONFIGURATION } from '@penji-demos/dprp-configuration';
+import { evaluateParticipant, evaluateRecognitionTimeline, resolveProgramParticipants } from '@penji-demos/dprp-recognition';
+import { SYNTHETIC_DATA_SPECIALIST_ID, SYNTHETIC_ORGANIZATION_ID, buildSyntheticProgram } from '@penji-demos/dprp-seed';
+import { DPRP_STANDARD_2024 } from '@penji-demos/dprp-standard';
+import { RecordChange, addEntry, removeEntry, resolveGuidance, resolveStreamEntries, updateEntity, updateEntry } from '@penji-demos/record-engine';
 import { toPlainDate } from '@penji-demos/time';
-import {
-  ComplianceStandardDefinition,
-  Enrollment,
-  GuidanceActionType,
-  GuidanceItem,
-  GuidanceResolution,
-  OrganizationData,
-  ParticipantId,
-  RuleDefinition,
-  SessionRecord,
-} from '@penji-demos/types';
+import { Answers, EntityId, EntryId, GuidanceActionType, GuidanceItem, GuidanceResolution, PlatformData, toEntryId } from '@penji-demos/types';
 
-// The standards this organization is held to.  The DPRP applies to everyone;
-// the MDPP selects its own participants through its definition.
+// The product this page runs: the diabetes prevention program's configuration.
+// The DPRP is the standard the organization is recognized under; every
+// standard in the configuration evaluates its participants.
+export const CONFIGURATION = PROGRAM_CONFIGURATION;
 export const RECOGNITION_STANDARD = DPRP_STANDARD_2024;
-export const OTHER_STANDARDS: readonly ComplianceStandardDefinition[] = [MDPP_STANDARD];
-export const ALL_STANDARDS: readonly ComplianceStandardDefinition[] = [RECOGNITION_STANDARD, ...OTHER_STANDARDS];
+export const ALL_STANDARDS = CONFIGURATION.standards;
+export const ORGANIZATION_ID = SYNTHETIC_ORGANIZATION_ID;
 
-// The last submission the demo evaluates through.
-const THROUGH_MONTH = toPlainDate('2027-01-01');
+// The last submission the demo evaluates through, and the date the whole record is read on.
+export const THROUGH_MONTH = toPlainDate('2027-01-01');
+// The page acts as the organization's data specialist; every change is checked against that role.
+const ACTOR_ID = SYNTHETIC_DATA_SPECIALIST_ID;
 const RESOLVER = 'You (demo)';
-
-const RULES_BY_ID: ReadonlyMap<string, RuleDefinition> = new Map(ALL_STANDARDS.flatMap((standard) => standard.rules.map((rule) => [rule.id, rule] as const)));
 
 // All the page's state lives here as signals; everything shown is computed from it.
 @Injectable({ providedIn: 'root' })
 export class DemoStore {
-  readonly data = signal<OrganizationData>(buildSyntheticOrganization());
+  readonly data = signal<PlatformData>(buildSyntheticProgram());
   readonly resolutions = signal<ReadonlyMap<string, GuidanceResolution>>(new Map());
+  // What stopped the last change, if anything did.
+  readonly changeProblems = signal<readonly string[]>([]);
 
-  readonly timeline = computed(() => evaluateRecognitionTimeline(RECOGNITION_STANDARD, this.data(), THROUGH_MONTH, OTHER_STANDARDS));
+  readonly timeline = computed(() => evaluateRecognitionTimeline(RECOGNITION_STANDARD, CONFIGURATION, this.data(), ORGANIZATION_ID, THROUGH_MONTH));
   readonly selectedSequence = signal(this.timeline().length);
   readonly selected = computed(() => {
     const timeline = this.timeline();
@@ -43,54 +40,53 @@ export class DemoStore {
     return entry;
   });
 
-  readonly selectedParticipantId = signal<ParticipantId | null>(null);
-  readonly selectedParticipant = computed(() => this.data().participants.find((participant) => participant.participantId === this.selectedParticipantId()) ?? null);
-  readonly selectedCohort = computed(() => {
+  readonly cohorts = computed(() => this.data().entities.filter((entity) => entity.kind === PROGRAM_ENTITY.COHORT));
+
+  readonly selectedParticipantId = signal<EntityId | null>(null);
+  readonly selectedSubject = computed(() => resolveProgramParticipants(this.data()).find((subject) => subject.participant.entityId === this.selectedParticipantId()) ?? null);
+  readonly selectedParticipant = computed(() => this.selectedSubject()?.participant ?? null);
+  readonly sessionEntries = computed(() => {
     const participant = this.selectedParticipant();
-    return participant ? (this.data().cohorts.find((cohort) => cohort.cohortId === participant.cohortId) ?? null) : null;
+    return participant ? resolveStreamEntries(this.data(), participant, PROGRAM_STREAM.SESSION) : [];
   });
 
   // The selected participant's whole current record, evaluated under every standard.
   readonly participantEvaluation = computed(() => {
-    const participant = this.selectedParticipant();
-    const cohort = this.selectedCohort();
-    return participant && cohort ? evaluateParticipant(RECOGNITION_STANDARD, participant, cohort, OTHER_STANDARDS) : null;
+    const subject = this.selectedSubject();
+    return subject ? evaluateParticipant(RECOGNITION_STANDARD, CONFIGURATION, this.data(), subject, THROUGH_MONTH) : null;
   });
 
   readonly participantGuidance = computed<readonly GuidanceItem[]>(() => {
     const evaluation = this.participantEvaluation();
-    if (!evaluation) return [];
-    const resolutions = this.resolutions();
-    return evaluation.standards.flatMap((standard) =>
-      standard.findings.flatMap((finding) => {
-        const rule = RULES_BY_ID.get(finding.ruleId);
-        return rule ? [resolveGuidanceItem(evaluation.participantId, rule, finding, resolutions)] : [];
-      }),
-    );
+    const participant = this.selectedParticipant();
+    return evaluation && participant ? resolveGuidance(CONFIGURATION, evaluation.standards, participant, this.resolutions()) : [];
   });
 
   selectSubmission(sequence: number): void {
     this.selectedSequence.set(sequence);
   }
 
-  selectParticipant(participantId: ParticipantId | null): void {
+  selectParticipant(participantId: EntityId | null): void {
     this.selectedParticipantId.set(participantId);
+    this.changeProblems.set([]);
   }
 
-  // Replaces one session (or adds one when `index` is null) on a participant's record.
-  saveSession(participantId: ParticipantId, index: number | null, session: SessionRecord): void {
-    this.updateParticipant(participantId, (participant) => ({
-      ...participant,
-      sessions: index === null ? [...participant.sessions, session] : participant.sessions.map((existing, at) => (at === index ? session : existing)),
-    }));
+  // Records a session, or replaces one when `entryId` names it.
+  saveSession(participantId: EntityId, entryId: EntryId | null, values: Answers): void {
+    const data = this.data();
+    this.apply(
+      entryId === null
+        ? addEntry(CONFIGURATION, data, { actorId: ACTOR_ID, entityId: participantId, streamId: PROGRAM_STREAM.SESSION, entryId: toEntryId(crypto.randomUUID()), values, date: THROUGH_MONTH })
+        : updateEntry(CONFIGURATION, data, { actorId: ACTOR_ID, entryId, values }),
+    );
   }
 
-  removeSession(participantId: ParticipantId, index: number): void {
-    this.updateParticipant(participantId, (participant) => ({ ...participant, sessions: participant.sessions.filter((_, at) => at !== index) }));
+  removeSession(entryId: EntryId): void {
+    this.apply(removeEntry(CONFIGURATION, this.data(), { actorId: ACTOR_ID, entryId }));
   }
 
-  saveEnrollment(participantId: ParticipantId, enrollment: Enrollment): void {
-    this.updateParticipant(participantId, (participant) => ({ ...participant, enrollment }));
+  saveEnrollment(participantId: EntityId, values: Answers): void {
+    this.apply(updateEntity(CONFIGURATION, this.data(), { actorId: ACTOR_ID, entityId: participantId, values }));
   }
 
   // Records what a person did about a guidance item; returns the problems, if any, instead.
@@ -112,11 +108,13 @@ export class DemoStore {
   }
 
   resetRecords(): void {
-    this.data.set(buildSyntheticOrganization());
+    this.data.set(buildSyntheticProgram());
     this.resolutions.set(new Map());
+    this.changeProblems.set([]);
   }
 
-  private updateParticipant(participantId: ParticipantId, change: (participant: OrganizationData['participants'][number]) => OrganizationData['participants'][number]): void {
-    this.data.update((data) => ({ ...data, participants: data.participants.map((participant) => (participant.participantId === participantId ? change(participant) : participant)) }));
+  private apply(change: RecordChange): void {
+    if (change.ok) this.data.set(change.data);
+    this.changeProblems.set(change.ok ? [] : change.problems);
   }
 }

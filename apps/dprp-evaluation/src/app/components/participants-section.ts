@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, afterNextRender, computed, inject, signal } from '@angular/core';
-import { ParticipantId } from '@penji-demos/types';
+import { EntityId } from '@penji-demos/types';
 import { ALL_STANDARDS, DemoStore } from '../state/demo-store';
 import { resolveParticipantRows } from '../view/participant-view';
 import { ParticipantPanel } from './participant-panel';
@@ -48,7 +48,7 @@ export class ParticipantsSection {
     if (match) this.filter.set(match.value);
   }
 
-  protected open(participantId: ParticipantId): void {
+  protected open(participantId: EntityId): void {
     this.store.selectParticipant(participantId);
     afterNextRender(() => this.host.nativeElement.querySelector<HTMLElement>('#participant-heading')?.focus(), { injector: this.injector });
   }
