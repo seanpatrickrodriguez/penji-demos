@@ -28,7 +28,12 @@ export type FactDerivation =
     }
   | { readonly kind: typeof FACT_DERIVATION_KIND.ANY_ENTRY; readonly stream: string; readonly where: Condition | null }
   | { readonly kind: typeof FACT_DERIVATION_KIND.CALCULATED; readonly calculation: Calculation }
-  | { readonly kind: typeof FACT_DERIVATION_KIND.PERMISSION_HELD; readonly permission: string }
+  | {
+      readonly kind: typeof FACT_DERIVATION_KIND.PERMISSION_HELD;
+      readonly permission: string;
+      // Only assignments of this kind count: ENTITY for the people assigned to the entity itself; null for anyone whose scope covers it.
+      readonly assignedTo: AccessScopeKind | null;
+    }
   | { readonly kind: typeof FACT_DERIVATION_KIND.STATE_REACHED; readonly states: readonly string[] };
 
 export interface FactDefinition {

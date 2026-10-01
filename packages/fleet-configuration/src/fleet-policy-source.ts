@@ -4,7 +4,5 @@ import { SourceReference } from '@penji-demos/types';
 // this demo.  None of it restates a regulation or a classification society's rules.
 export const FLEET_POLICY_SOURCE: SourceReference = {
   title: 'Kestrel Tug & Barge fleet policy (fictional)',
-  url: 'https://github.com/seanpatrickrodriguez/penji-demos/tree/main/packages/fleet-standard',
+  url: 'https://github.com/seanpatrickrodriguez/penji-demos/tree/main/packages/fleet-configuration',
 };
-
-export const fleetPolicySection = (section: string): SourceReference => ({ ...FLEET_POLICY_SOURCE, section });

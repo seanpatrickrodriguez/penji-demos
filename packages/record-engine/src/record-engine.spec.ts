@@ -175,7 +175,8 @@ const MEMBER: EntityDefinition = {
     { key: 'firstReach', label: 'First reach', derivation: { kind: FACT_DERIVATION_KIND.FIRST_ENTRY_VALUE, stream: 'visits', field: 'reachInches', where: { kind: 'answered', field: 'reachInches' }, onOrAfter: null } },
     { key: 'reachRatio', label: 'Reach ratio', derivation: { kind: FACT_DERIVATION_KIND.CALCULATED, calculation: { kind: 'quotient', numerator: ['firstReach'], denominator: ['heightInches'], factor: 1, decimals: 2 } } },
     { key: 'hasBorrowed', label: 'Has borrowed', derivation: { kind: FACT_DERIVATION_KIND.ANY_ENTRY, stream: 'loans', where: null } },
-    { key: 'lenderOnDuty', label: 'A lender is on duty', derivation: { kind: FACT_DERIVATION_KIND.PERMISSION_HELD, permission: 'lend' } },
+    { key: 'borrowerAssigned', label: 'A volunteer is assigned to the household', derivation: { kind: FACT_DERIVATION_KIND.PERMISSION_HELD, permission: 'borrow', assignedTo: ACCESS_SCOPE_KIND.ENTITY } },
+    { key: 'lenderOnDuty', label: 'A lender is on duty', derivation: { kind: FACT_DERIVATION_KIND.PERMISSION_HELD, permission: 'lend', assignedTo: null } },
   ],
   standardIds: [id('safety')],
 };
@@ -284,7 +285,11 @@ describe('scope', () => {
 describe('facts', () => {
   it('reads the parent, the first matching entry in date order, a calculation over both, any entry, and who is on duty', () => {
     const facts = resolveEntityFacts(CONFIGURATION, DATA, entity('m-north'), date('2026-04-01'));
-    expect(facts).toMatchObject({ zone: 'Ridge', firstReach: 80, reachRatio: 1.25, hasBorrowed: true, lenderOnDuty: true, [PLATFORM_FACT.AS_OF_DATE]: '2026-04-01' });
+    expect(facts).toMatchObject({ zone: 'Ridge', firstReach: 80, reachRatio: 1.25, hasBorrowed: true, lenderOnDuty: true, borrowerAssigned: true, [PLATFORM_FACT.AS_OF_DATE]: '2026-04-01' });
+  });
+
+  it('counts only the people assigned to the entity itself when the fact says so', () => {
+    expect(resolveEntityFacts(CONFIGURATION, DATA, entity('m-south'), date('2026-04-01'))).toMatchObject({ lenderOnDuty: true, borrowerAssigned: false });
   });
 
   it('works out an entry’s calculated fields and the platform’s entry facts', () => {

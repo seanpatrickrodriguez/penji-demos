@@ -1,6 +1,8 @@
-import { BARGE_CARGO, DEFINITION_KIND, FLEET_FACT, FLEET_FORM, RULE_CHECK_KIND, RULE_SCOPE, VALIDATION_SEVERITY, VESSEL_FIELD, VESSEL_KIND } from '@penji-demos/constants';
-import { ComplianceStandardDefinition, Condition, FieldKey, RuleDefinition, toDefinitionId } from '@penji-demos/types';
-import { FLEET_POLICY_SOURCE, fleetPolicySection } from './fleet-policy-source';
+import { BARGE_CARGO, DEFINITION_KIND, FLEET_FACT, FLEET_FORM, PLATFORM_FACT, RULE_CHECK_KIND, RULE_SCOPE, VALIDATION_SEVERITY, VESSEL_FIELD, VESSEL_KIND } from '@penji-demos/constants';
+import { ComplianceStandardDefinition, Condition, FieldKey, RuleDefinition, SourceReference, toDefinitionId } from '@penji-demos/types';
+import { FLEET_POLICY_SOURCE } from './fleet-policy-source';
+
+const fleetPolicySection = (section: string): SourceReference => ({ ...FLEET_POLICY_SOURCE, section });
 
 // M1: the company's vessel maintenance and inspection schedule, written as a
 // ComplianceStandardDefinition.  The intervals are this fictional company's
@@ -21,7 +23,7 @@ const carries = (cargo: string): Condition => ({ kind: 'equals', field: V.CARGO,
 const isManned: Condition = { kind: 'any', conditions: [isTug, carries(BARGE_CARGO.FUEL), carries(BARGE_CARGO.PROPANE)] };
 
 // Holds while the last date is recorded and the check date falls within `days` after it.
-const withinDaysOf = (last: FieldKey, days: number): Condition => ({ kind: 'withinDaysAfter', field: FLEET_FACT.AS_OF_DATE, anchor: last, days });
+const withinDaysOf = (last: FieldKey, days: number): Condition => ({ kind: 'withinDaysAfter', field: PLATFORM_FACT.AS_OF_DATE, anchor: last, days });
 const unrecordedOr = (last: FieldKey, condition: Condition): Condition => ({ kind: 'any', conditions: [{ kind: 'not', condition: { kind: 'answered', field: last } }, condition] });
 
 const interval = (id: string, title: string, section: string, last: FieldKey, days: number, appliesWhen: Condition | null, guidance: string): RuleDefinition => ({
@@ -31,7 +33,7 @@ const interval = (id: string, title: string, section: string, last: FieldKey, da
   scope: RULE_SCOPE.SUBJECT,
   stream: null,
   appliesWhen,
-  check: { kind: RULE_CHECK_KIND.CONDITION, condition: unrecordedOr(last, withinDaysOf(last, days)), describes: [last, FLEET_FACT.AS_OF_DATE] },
+  check: { kind: RULE_CHECK_KIND.CONDITION, condition: unrecordedOr(last, withinDaysOf(last, days)), describes: [last, PLATFORM_FACT.AS_OF_DATE] },
   severity: VALIDATION_SEVERITY.ERROR,
   blocks: true,
   bypassable: false,
@@ -107,7 +109,7 @@ export const VESSEL_MAINTENANCE_POLICY: ComplianceStandardDefinition = {
             { kind: 'not', condition: withinDaysOf(V.LAST_ANNUAL_INSPECTION, ANNUAL_INSPECTION_DAYS) },
           ],
         },
-        describes: [V.LAST_ANNUAL_INSPECTION, FLEET_FACT.AS_OF_DATE],
+        describes: [V.LAST_ANNUAL_INSPECTION, PLATFORM_FACT.AS_OF_DATE],
       },
       severity: VALIDATION_SEVERITY.WARNING,
       blocks: false,

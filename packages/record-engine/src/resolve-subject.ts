@@ -72,7 +72,7 @@ function deriveEntityFact(configuration: PlatformConfiguration, data: PlatformDa
       return calculateField(derivation.calculation, facts);
     case FACT_DERIVATION_KIND.PERMISSION_HELD:
       return data.actors.some((actor) =>
-        isPermitted(configuration.accessPolicy, resolveActorRoles(data, actor.actorId, entity), derivation.permission, { ...facts, [PLATFORM_FACT.ACTOR_ID]: actor.actorId }),
+        isPermitted(configuration.accessPolicy, resolveActorRoles(data, actor.actorId, entity, derivation.assignedTo), derivation.permission, { ...facts, [PLATFORM_FACT.ACTOR_ID]: actor.actorId }),
       );
     case FACT_DERIVATION_KIND.STATE_REACHED:
       return null;

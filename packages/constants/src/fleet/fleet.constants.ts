@@ -35,6 +35,25 @@ export const FLEET_POSITION = {
   SENIOR_ELECTRICIAN: 'seniorElectrician',
 } as const;
 
+// The levels of the fleet's tenant tree: the company that owns the vessels, and the shop under it.
+export const FLEET_TENANT_KIND = {
+  COMPANY: 'company',
+} as const;
+
+// What the company keeps on file.
+export const FLEET_ENTITY = {
+  VESSEL: 'vessel',
+} as const;
+
+export const COMPANY_FIELD = {
+  HOME_PORT: 'homePort',
+} as const;
+
+// What the company keeps about a person.
+export const CREW_FIELD = {
+  POSITION: 'position',
+} as const;
+
 // Access roles.  A person's position decides which roles they hold.
 export const FLEET_ROLE = {
   CREW_MEMBER: 'crewMember',
@@ -55,6 +74,7 @@ export const FLEET_PERMISSION = {
   REQUEST_APPROVAL: 'requestApproval',
   DECIDE: 'decide',
   CONFIRM_RECEIPT: 'confirmReceipt',
+  EDIT_ITEM: 'editItem',
   EDIT_PROFILE: 'editProfile',
 } as const;
 
@@ -121,23 +141,19 @@ export const WANT_ITEM_FIELD = {
   UNIT_COST: 'unitCost',
   ESTIMATED_TOTAL: 'estimatedTotal',
   LIMITED: 'limited',
-  STATUS: 'status',
-  REQUESTED_BY: 'requestedBy',
-  ADDED_DATE: 'addedDate',
 } as const;
 
-// Facts worked out for a vessel or an actor, alongside the record fields.
+// Facts worked out for a vessel or an item, alongside the record fields.
 export const FLEET_FACT = {
-  AS_OF_DATE: 'asOfDate',
+  // Someone assigned to the vessel and on their rotation can send its want list.
   HAS_SENDING_OFFICER: 'hasSendingOfficer',
-  ACTOR_ID: 'actorId',
-  // The actor is aboard the vessel the record belongs to, on their rotation on.
-  ON_THIS_VESSEL: 'onThisVessel',
   // The item's history holds an approval by the port engineer or the owner's representative.
   APPROVED: 'approved',
 } as const;
 
 export const FLEET_FORM = {
+  COMPANY: 'company',
+  CREW: 'crew',
   VESSEL_PROFILE: 'vesselProfile',
   WANT_ITEM: 'wantItem',
 } as const;

@@ -1,9 +1,9 @@
-import { BARGE_CARGO, DEFINITION_KIND, FLEET_FACT, FLEET_FORM, SUPPLY_CATEGORY, TOILET_FLUSH, VESSEL_FIELD, VESSEL_KIND, WANT_ITEM_FIELD } from '@penji-demos/constants';
-import { FieldDefinition, FormDefinition, toDefinitionId } from '@penji-demos/types';
+import { BARGE_CARGO, COMPANY_FIELD, CREW_FIELD, DEFINITION_KIND, FLEET_FORM, FLEET_POSITION, SUPPLY_CATEGORY, TOILET_FLUSH, VESSEL_FIELD, VESSEL_KIND, WANT_ITEM_FIELD } from '@penji-demos/constants';
+import { FieldDefinition, FormDefinition, ValueOf, toDefinitionId } from '@penji-demos/types';
 
-// M1: the fleet's own forms, read by the same form engine as the program
-// forms.  They collect a vessel's profile and a want-list item in plain terms;
-// the company's policies reach them through their rules.
+// M1: the fleet's own forms, read by the same form engine as the program's
+// forms.  They collect a company, a person, a vessel's profile and a want-list
+// item in plain terms; the company's policies reach them through their rules.
 
 const PLATFORM_SOURCE = { title: 'Penji demos: fleet records', url: 'https://github.com/seanpatrickrodriguez/penji-demos' };
 const V = VESSEL_FIELD;
@@ -11,6 +11,28 @@ const W = WANT_ITEM_FIELD;
 
 const isTug = { kind: 'equals' as const, field: V.KIND, value: VESSEL_KIND.TUG };
 const isTankBarge = { kind: 'oneOf' as const, field: V.CARGO, values: [BARGE_CARGO.FUEL, BARGE_CARGO.PROPANE] };
+
+const COMPANY_FIELDS: readonly FieldDefinition[] = [{ kind: 'text', key: COMPANY_FIELD.HOME_PORT, label: 'Home port', required: true }];
+
+const POSITION_LABEL: Readonly<Record<ValueOf<typeof FLEET_POSITION>, string>> = {
+  [FLEET_POSITION.CAPTAIN]: 'Captain',
+  [FLEET_POSITION.FIRST_MATE]: 'First mate',
+  [FLEET_POSITION.SECOND_MATE]: 'Second mate',
+  [FLEET_POSITION.CHIEF_ENGINEER]: 'Chief engineer',
+  [FLEET_POSITION.ASSISTANT_ENGINEER]: 'Assistant engineer',
+  [FLEET_POSITION.COOK]: 'Cook',
+  [FLEET_POSITION.TANKERMAN]: 'Tankerman',
+  [FLEET_POSITION.TANKERMAN_PIC]: 'Tankerman in charge',
+  [FLEET_POSITION.SUPPLY_MANAGER]: 'Supply manager',
+  [FLEET_POSITION.PORT_ENGINEER]: 'Port engineer',
+  [FLEET_POSITION.OWNER_REPRESENTATIVE]: "Owner's representative",
+  [FLEET_POSITION.SENIOR_WELDER]: 'Senior welder',
+  [FLEET_POSITION.SENIOR_ELECTRICIAN]: 'Senior electrician',
+};
+
+const CREW_FIELDS: readonly FieldDefinition[] = [
+  { kind: 'choice', key: CREW_FIELD.POSITION, label: 'Position', required: true, options: Object.values(FLEET_POSITION).map((value) => ({ value, label: POSITION_LABEL[value] })) },
+];
 
 const VESSEL_PROFILE_FIELDS: readonly FieldDefinition[] = [
   { kind: 'text', key: V.NAME, label: 'Vessel name', required: true, maxLength: 60 },
@@ -94,19 +116,7 @@ const form = (id: string, title: string, description: string, fields: readonly F
   rules: [],
 });
 
+export const COMPANY_FORM = form(FLEET_FORM.COMPANY, 'Company', 'A company in the fleet: the owner, or the shop that keeps its vessels running.', COMPANY_FIELDS);
+export const CREW_FORM = form(FLEET_FORM.CREW, 'Person', 'What the company keeps about a person who works the want lists.', CREW_FIELDS);
 export const VESSEL_PROFILE_FORM = form(FLEET_FORM.VESSEL_PROFILE, 'Vessel profile', 'What the shop keeps on file for one vessel.', VESSEL_PROFILE_FIELDS);
 export const WANT_ITEM_FORM = form(FLEET_FORM.WANT_ITEM, 'Want-list item', 'One thing a vessel needs from the shop.', WANT_ITEM_FIELDS);
-
-// Labels for every fact a fleet rule or grant can read: the form fields, and
-// the facts worked out from records.
-export const FLEET_FACT_LABELS: Readonly<Record<string, string>> = {
-  ...Object.fromEntries([...VESSEL_PROFILE_FIELDS, ...WANT_ITEM_FIELDS].map((field) => [field.key, field.label])),
-  [W.STATUS]: 'Status',
-  [W.REQUESTED_BY]: 'Added by',
-  [W.ADDED_DATE]: 'Added on',
-  [FLEET_FACT.AS_OF_DATE]: 'As of',
-  [FLEET_FACT.HAS_SENDING_OFFICER]: 'Someone aboard can send the want list',
-  [FLEET_FACT.ACTOR_ID]: 'You',
-  [FLEET_FACT.ON_THIS_VESSEL]: 'You are aboard this vessel',
-  [FLEET_FACT.APPROVED]: 'Approved for purchase',
-};

@@ -1,22 +1,23 @@
-import { DEFINITION_KIND, FLEET_FACT, FLEET_PERMISSION, FLEET_POSITION, FLEET_ROLE, SUPPLY_STATUS, WANT_ITEM_FIELD } from '@penji-demos/constants';
-import { AccessPolicyDefinition, Condition, FleetPosition, PermissionGrant, toDefinitionId } from '@penji-demos/types';
+import { DEFINITION_KIND, FLEET_PERMISSION, FLEET_ROLE, PLATFORM_FACT, SUPPLY_STATUS } from '@penji-demos/constants';
+import { AccessPolicyDefinition, Condition, PermissionGrant, toDefinitionId } from '@penji-demos/types';
 import { FLEET_POLICY_SOURCE } from './fleet-policy-source';
 
-// M1: who may do what with a vessel's want list.  The same workflow engine
-// that would run an article review reads this policy; the conditions on the
-// grants are the platform's condition language, read over the actor's facts
-// and the item's values together.
+// M1: who may do what with a vessel and its want list.  Where a role applies
+// comes from each person's assignments: crew are assigned to the vessel they
+// rotate aboard and hold nothing while off rotation; the shop's people are
+// assigned at the company, over every vessel.  The conditions on the grants
+// are the platform's condition language, read over the vessel, the item and
+// who is acting.
 
 const P = FLEET_PERMISSION;
-const W = WANT_ITEM_FIELD;
 
 const always = (permission: string): PermissionGrant => ({ permission, when: null });
 const when = (permission: string, condition: Condition): PermissionGrant => ({ permission, when: condition });
 
-const aboard: Condition = { kind: 'equals', field: FLEET_FACT.ON_THIS_VESSEL, value: true };
-const addedByActor: Condition = { kind: 'sameAs', field: FLEET_FACT.ACTOR_ID, other: W.REQUESTED_BY };
-const notYetSent: Condition = { kind: 'equals', field: W.STATUS, value: SUPPLY_STATUS.NEW };
-const awaitingApproval: Condition = { kind: 'equals', field: W.STATUS, value: SUPPLY_STATUS.APPROVAL_REQUEST };
+const addedByActor: Condition = { kind: 'sameAs', field: PLATFORM_FACT.ACTOR_ID, other: PLATFORM_FACT.ENTRY_AUTHOR };
+const notYetSent: Condition = { kind: 'equals', field: PLATFORM_FACT.ENTRY_STATUS, value: SUPPLY_STATUS.NEW };
+const awaitingApproval: Condition = { kind: 'equals', field: PLATFORM_FACT.ENTRY_STATUS, value: SUPPLY_STATUS.APPROVAL_REQUEST };
+const ownUnsentItem: Condition = { kind: 'all', conditions: [addedByActor, notYetSent] };
 
 export const FLEET_ACCESS_POLICY: AccessPolicyDefinition = {
   kind: DEFINITION_KIND.ACCESS_POLICY,
@@ -34,24 +35,21 @@ export const FLEET_ACCESS_POLICY: AccessPolicyDefinition = {
     { id: P.REQUEST_APPROVAL, label: 'Ask the port engineer to approve' },
     { id: P.DECIDE, label: 'Approve or deny an item' },
     { id: P.CONFIRM_RECEIPT, label: 'Confirm what arrived' },
+    { id: P.EDIT_ITEM, label: 'Edit an item' },
     { id: P.EDIT_PROFILE, label: 'Edit the vessel profile' },
   ],
   roles: [
     {
       id: FLEET_ROLE.CREW_MEMBER,
       label: 'Crew member',
-      description: 'Anyone aboard: adds to the list, removes their own items before the list is sent, and confirms what arrived.',
-      grants: [
-        when(P.ADD_ITEM, aboard),
-        when(P.REMOVE_ITEM, { kind: 'all', conditions: [aboard, addedByActor, notYetSent] }),
-        when(P.CONFIRM_RECEIPT, aboard),
-      ],
+      description: 'Anyone aboard: adds to the list, changes or removes their own items before the list is sent, and confirms what arrived.',
+      grants: [always(P.ADD_ITEM), when(P.EDIT_ITEM, ownUnsentItem), when(P.REMOVE_ITEM, ownUnsentItem), always(P.CONFIRM_RECEIPT)],
     },
     {
       id: FLEET_ROLE.SENDING_OFFICER,
       label: 'Sending officer',
       description: 'The captain, first mate, chief engineer or tankerman in charge: sends the list to the shop and keeps the profile current.',
-      grants: [when(P.SEND_LIST, aboard), when(P.REMOVE_ITEM, { kind: 'all', conditions: [aboard, notYetSent] }), when(P.EDIT_PROFILE, aboard)],
+      grants: [always(P.SEND_LIST), when(P.EDIT_ITEM, notYetSent), when(P.REMOVE_ITEM, notYetSent), always(P.EDIT_PROFILE)],
     },
     {
       id: FLEET_ROLE.SHOP_STAFF,
@@ -69,6 +67,7 @@ export const FLEET_ACCESS_POLICY: AccessPolicyDefinition = {
         always(P.BACK_ORDER),
         always(P.REQUEST_APPROVAL),
         when(P.DECIDE, { kind: 'not', condition: awaitingApproval }),
+        always(P.EDIT_ITEM),
         always(P.EDIT_PROFILE),
       ],
     },
@@ -85,21 +84,4 @@ export const FLEET_ACCESS_POLICY: AccessPolicyDefinition = {
       grants: [when(P.DECIDE, awaitingApproval)],
     },
   ],
-};
-
-// The roles each position holds.  Officers who send the list are crew members too.
-export const POSITION_ROLES: Readonly<Record<FleetPosition, readonly string[]>> = {
-  [FLEET_POSITION.CAPTAIN]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [FLEET_POSITION.FIRST_MATE]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [FLEET_POSITION.SECOND_MATE]: [FLEET_ROLE.CREW_MEMBER],
-  [FLEET_POSITION.CHIEF_ENGINEER]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [FLEET_POSITION.ASSISTANT_ENGINEER]: [FLEET_ROLE.CREW_MEMBER],
-  [FLEET_POSITION.COOK]: [FLEET_ROLE.CREW_MEMBER],
-  [FLEET_POSITION.TANKERMAN]: [FLEET_ROLE.CREW_MEMBER],
-  [FLEET_POSITION.TANKERMAN_PIC]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [FLEET_POSITION.SUPPLY_MANAGER]: [FLEET_ROLE.SUPPLY_MANAGER],
-  [FLEET_POSITION.PORT_ENGINEER]: [FLEET_ROLE.PORT_ENGINEER],
-  [FLEET_POSITION.OWNER_REPRESENTATIVE]: [FLEET_ROLE.OWNER_REPRESENTATIVE],
-  [FLEET_POSITION.SENIOR_WELDER]: [FLEET_ROLE.SHOP_STAFF],
-  [FLEET_POSITION.SENIOR_ELECTRICIAN]: [FLEET_ROLE.SHOP_STAFF],
 };

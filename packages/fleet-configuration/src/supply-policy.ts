@@ -1,6 +1,8 @@
-import { DEFINITION_KIND, FLEET_FORM, FLEET_STREAM, RULE_CHECK_KIND, RULE_SCOPE, SUPPLY_CATEGORY, SUPPLY_STATUS, VALIDATION_SEVERITY, WANT_ITEM_FIELD } from '@penji-demos/constants';
-import { ComplianceStandardDefinition, Condition, toDefinitionId } from '@penji-demos/types';
-import { FLEET_POLICY_SOURCE, fleetPolicySection } from './fleet-policy-source';
+import { DEFINITION_KIND, FLEET_FORM, FLEET_STREAM, PLATFORM_FACT, RULE_CHECK_KIND, RULE_SCOPE, SUPPLY_CATEGORY, SUPPLY_STATUS, VALIDATION_SEVERITY, WANT_ITEM_FIELD } from '@penji-demos/constants';
+import { ComplianceStandardDefinition, Condition, SourceReference, toDefinitionId } from '@penji-demos/types';
+import { FLEET_POLICY_SOURCE } from './fleet-policy-source';
+
+const fleetPolicySection = (section: string): SourceReference => ({ ...FLEET_POLICY_SOURCE, section });
 import { APPROVAL_REQUIRED_TOTAL_DOLLARS, ESCALATION_SUGGESTED, ESCALATION_SUGGESTED_TOTAL_DOLLARS, IS_APPROVED, NEEDS_PORT_ENGINEER } from './supply-escalation';
 
 // M1: the company's supply policy, written as a ComplianceStandardDefinition.
@@ -14,8 +16,8 @@ const MOORING_REQUESTS_PER_WINDOW = 2;
 const MOORING_WINDOW_DAYS = 90;
 const dollars = (amount: number) => `$${amount.toLocaleString('en-US')}`;
 
-const atTheShop: Condition = { kind: 'oneOf', field: W.STATUS, values: [S.SUBMITTED, S.ACKNOWLEDGED, S.BACK_ORDERED] };
-const notEscalatedYet: Condition = { kind: 'oneOf', field: W.STATUS, values: [S.SUBMITTED, S.ACKNOWLEDGED] };
+const atTheShop: Condition = { kind: 'oneOf', field: PLATFORM_FACT.ENTRY_STATUS, values: [S.SUBMITTED, S.ACKNOWLEDGED, S.BACK_ORDERED] };
+const notEscalatedYet: Condition = { kind: 'oneOf', field: PLATFORM_FACT.ENTRY_STATUS, values: [S.SUBMITTED, S.ACKNOWLEDGED] };
 const holdsUnless = (applies: Condition): Condition => ({ kind: 'not', condition: applies });
 
 export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
@@ -77,7 +79,7 @@ export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
       check: {
         kind: RULE_CHECK_KIND.REQUIRED_WHEN,
         field: W.UNIT_COST,
-        when: { kind: 'oneOf', field: W.STATUS, values: [S.ACKNOWLEDGED, S.APPROVAL_REQUEST, S.BACK_ORDERED] },
+        when: { kind: 'oneOf', field: PLATFORM_FACT.ENTRY_STATUS, values: [S.ACKNOWLEDGED, S.APPROVAL_REQUEST, S.BACK_ORDERED] },
       },
       severity: VALIDATION_SEVERITY.WARNING,
       blocks: false,
@@ -93,7 +95,7 @@ export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
       scope: RULE_SCOPE.EVENT,
       stream: FLEET_STREAM.WANT_LIST,
       appliesWhen: null,
-      check: { kind: RULE_CHECK_KIND.CONDITION, condition: { kind: 'not', condition: { kind: 'equals', field: W.STATUS, value: S.NOT_RECEIVED } }, describes: [W.DESCRIPTION] },
+      check: { kind: RULE_CHECK_KIND.CONDITION, condition: { kind: 'not', condition: { kind: 'equals', field: PLATFORM_FACT.ENTRY_STATUS, value: S.NOT_RECEIVED } }, describes: [W.DESCRIPTION] },
       severity: VALIDATION_SEVERITY.WARNING,
       blocks: false,
       bypassable: true,

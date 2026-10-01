@@ -1,115 +1,148 @@
-import { BARGE_CARGO, FLEET_PERMISSION, FLEET_POSITION, SUPPLY_CATEGORY, SUPPLY_STATUS, TOILET_FLUSH, VESSEL_KIND, WANT_LIST_TRANSITION } from '@penji-demos/constants';
-import { applyItemTransition, isAboard, isPermittedOnVessel } from '@penji-demos/fleet-standard';
+import {
+  ACCESS_SCOPE_KIND,
+  BARGE_CARGO,
+  COMPANY_FIELD,
+  CREW_FIELD,
+  FLEET_ENTITY,
+  FLEET_PERMISSION,
+  FLEET_POSITION,
+  FLEET_ROLE,
+  FLEET_STREAM,
+  FLEET_TENANT_KIND,
+  SUPPLY_CATEGORY,
+  TOILET_FLUSH,
+  VESSEL_FIELD,
+  VESSEL_KIND,
+  WANT_ITEM_FIELD,
+  WANT_LIST_TRANSITION,
+} from '@penji-demos/constants';
+import { FLEET_CONFIGURATION } from '@penji-demos/fleet-configuration';
+import { RecordChange, addEntry, applyEntryTransition, isPermittedOnRecord, readMember, resolveOpaqueId } from '@penji-demos/record-engine';
 import { resolveDaysLater, toPlainDate } from '@penji-demos/time';
 import {
-  CompanyRecord,
-  FleetData,
-  FleetPosition,
-  PersonRecord,
+  ActorId,
+  ActorRecord,
+  Answers,
+  EntityRecord,
   PlainDate,
-  SupplyCategory,
-  VesselId,
-  VesselProfile,
-  VesselRecord,
-  WantItemRecord,
-  toCompanyId,
-  toPersonId,
-  toVesselId,
-  toWantItemId,
+  PlatformData,
+  RoleAssignment,
+  TenantRecord,
+  ValueOf,
+  toActorId,
+  toAssignmentId,
+  toDefinitionId,
+  toEntityId,
+  toEntryId,
+  toTenantId,
 } from '@penji-demos/types';
 
 // M0: a made-up tug and barge company and the shop that keeps its vessels
-// running.  Every name is invented.  Every item's history is replayed through
-// the want-list workflow, so the seed holds only steps the policy allows, and
-// each policy rule has a case that fires.
+// running, written as the platform's records.  Every name is invented.  Crew
+// are assigned to the vessel they rotate aboard, active while aboard; the
+// shop's people are assigned over the company.  Every want-list item is added
+// and moved through its workflow by the record engine, as the person the plan
+// names, so the seed holds only what the access policy and the workflow allow,
+// and each policy rule has a case that fires.
 
-const AS_OF = toPlainDate('2026-09-15');
+type FleetPosition = ValueOf<typeof FLEET_POSITION>;
+type SupplyCategory = ValueOf<typeof SUPPLY_CATEGORY>;
+
+// The date the fleet's records are read on.
+export const FLEET_AS_OF: PlainDate = toPlainDate('2026-09-15');
 const P = FLEET_POSITION;
 const T = WANT_LIST_TRANSITION;
+const V = VESSEL_FIELD;
+const W = WANT_ITEM_FIELD;
 
-// Opaque IDs from a multiplicative hash, the same on every build.
-const opaqueId = (prefix: string, index: number) => `${prefix}${(Math.imul(index + 1, 2654435761) >>> 0).toString(36)}`;
-
-const OWNER: CompanyRecord = { companyId: toCompanyId('c7xq2m'), name: 'Kestrel Tug & Barge', parentId: null };
-const SHOP: CompanyRecord = { companyId: toCompanyId('c4hn8w'), name: 'Kestrel Marine Shop', parentId: OWNER.companyId };
+export const FLEET_OWNER_ID = toTenantId('c7xq2m');
+export const FLEET_SHOP_ID = toTenantId('c4hn8w');
+const TENANTS: readonly TenantRecord[] = [
+  { tenantId: FLEET_OWNER_ID, kind: toDefinitionId(FLEET_TENANT_KIND.COMPANY), parentId: null, name: 'Kestrel Tug & Barge', values: { [COMPANY_FIELD.HOME_PORT]: 'Kestrel Harbor' } },
+  { tenantId: FLEET_SHOP_ID, kind: toDefinitionId(FLEET_TENANT_KIND.COMPANY), parentId: FLEET_OWNER_ID, name: 'Kestrel Marine Shop', values: { [COMPANY_FIELD.HOME_PORT]: 'Kestrel Harbor' } },
+];
 
 const date = (value: string): PlainDate => toPlainDate(value);
-const profile = (values: Partial<VesselProfile>): VesselProfile => ({
-  mainEngines: '',
-  generatorEngines: '',
-  generators: '',
-  potableWaterPump: '',
-  potableWaterGallons: null,
-  toiletFlush: null,
-  lastAnnualInspection: null,
-  lastDryDock: null,
-  lastTankMaintenance: null,
-  ...values,
+
+const vessel = (id: string, name: string, kind: ValueOf<typeof VESSEL_KIND>, cargo: ValueOf<typeof BARGE_CARGO> | null, inService: boolean, profile: Answers): EntityRecord => ({
+  entityId: toEntityId(id),
+  kind: toDefinitionId(FLEET_ENTITY.VESSEL),
+  tenantId: FLEET_OWNER_ID,
+  parentId: null,
+  values: { [V.NAME]: name, [V.KIND]: kind, [V.CARGO]: cargo, [V.IN_SERVICE]: inService, ...profile },
 });
 
-const vessel = (id: string, name: string, kind: VesselRecord['kind'], cargo: VesselRecord['cargo'], inService: boolean, values: Partial<VesselProfile>): VesselRecord => ({
-  vesselId: toVesselId(id),
-  ownerId: OWNER.companyId,
-  name,
-  kind,
-  cargo,
-  inService,
-  profile: profile(values),
-});
-
-const TUG_ENGINES = { generatorEngines: '2 × John Deere 4045', generators: '2 × 99 kW', potableWaterPump: 'Centrifugal, 1 hp' };
+const TUG_ENGINES = { [V.GENERATOR_ENGINES]: '2 × John Deere 4045', [V.GENERATORS]: '2 × 99 kW', [V.POTABLE_WATER_PUMP]: 'Centrifugal, 1 hp' };
 
 export const FLEET_VESSELS = {
   TERN: vessel('v2k9fq', 'Tern', VESSEL_KIND.TUG, null, true, {
     ...TUG_ENGINES,
-    mainEngines: '2 × EMD 16-645',
-    potableWaterGallons: 1500,
-    toiletFlush: TOILET_FLUSH.SALTWATER,
-    lastAnnualInspection: date('2025-12-10'),
-    lastDryDock: date('2023-04-02'),
+    [V.MAIN_ENGINES]: '2 × EMD 16-645',
+    [V.POTABLE_WATER_GALLONS]: 1500,
+    [V.TOILET_FLUSH]: TOILET_FLUSH.SALTWATER,
+    [V.LAST_ANNUAL_INSPECTION]: date('2025-12-10'),
+    [V.LAST_DRY_DOCK]: date('2023-04-02'),
   }),
   PETREL: vessel('v8m3za', 'Petrel', VESSEL_KIND.TUG, null, true, {
     ...TUG_ENGINES,
-    mainEngines: '2 × MTU 12V4000',
-    potableWaterGallons: 1200,
-    toiletFlush: TOILET_FLUSH.FRESHWATER,
-    lastAnnualInspection: date('2025-08-01'),
-    lastDryDock: date('2021-03-15'),
+    [V.MAIN_ENGINES]: '2 × MTU 12V4000',
+    [V.POTABLE_WATER_GALLONS]: 1200,
+    [V.TOILET_FLUSH]: TOILET_FLUSH.FRESHWATER,
+    [V.LAST_ANNUAL_INSPECTION]: date('2025-08-01'),
+    [V.LAST_DRY_DOCK]: date('2021-03-15'),
   }),
   SHEARWATER: vessel('v5t7nc', 'Shearwater', VESSEL_KIND.TUG, null, true, {
     ...TUG_ENGINES,
-    potableWaterGallons: 1000,
-    lastAnnualInspection: date('2025-09-30'),
-    lastDryDock: date('2024-06-18'),
+    [V.POTABLE_WATER_GALLONS]: 1000,
+    [V.LAST_ANNUAL_INSPECTION]: date('2025-09-30'),
+    [V.LAST_DRY_DOCK]: date('2024-06-18'),
   }),
   KESTREL_201: vessel('v1q6rd', 'Kestrel 201', VESSEL_KIND.BARGE, BARGE_CARGO.SAND, true, {
-    lastDryDock: date('2022-10-11'),
+    [V.LAST_DRY_DOCK]: date('2022-10-11'),
   }),
   KESTREL_305: vessel('v9w4hs', 'Kestrel 305', VESSEL_KIND.BARGE, BARGE_CARGO.FUEL, true, {
-    generatorEngines: '1 × Cummins QSB',
-    generators: '1 × 60 kW',
-    lastAnnualInspection: date('2026-05-05'),
-    lastDryDock: date('2023-01-24'),
-    lastTankMaintenance: date('2021-01-20'),
+    [V.GENERATOR_ENGINES]: '1 × Cummins QSB',
+    [V.GENERATORS]: '1 × 60 kW',
+    [V.LAST_ANNUAL_INSPECTION]: date('2026-05-05'),
+    [V.LAST_DRY_DOCK]: date('2023-01-24'),
+    [V.LAST_TANK_MAINTENANCE]: date('2021-01-20'),
   }),
   KESTREL_410: vessel('v6c2jy', 'Kestrel 410', VESSEL_KIND.BARGE, BARGE_CARGO.PROPANE, true, {
-    generatorEngines: '1 × Cummins QSB',
-    generators: '1 × 60 kW',
-    lastAnnualInspection: date('2026-03-01'),
-    lastDryDock: date('2024-02-08'),
-    lastTankMaintenance: date('2016-05-02'),
+    [V.GENERATOR_ENGINES]: '1 × Cummins QSB',
+    [V.GENERATORS]: '1 × 60 kW',
+    [V.LAST_ANNUAL_INSPECTION]: date('2026-03-01'),
+    [V.LAST_DRY_DOCK]: date('2024-02-08'),
+    [V.LAST_TANK_MAINTENANCE]: date('2016-05-02'),
   }),
   KESTREL_512: vessel('v3p8ue', 'Kestrel 512', VESSEL_KIND.BARGE, BARGE_CARGO.CONTAINERS, false, {}),
-} satisfies Readonly<Record<string, VesselRecord>>;
+} satisfies Readonly<Record<string, EntityRecord>>;
 
 const FIRST_NAMES = ['Leilani', 'Keoni', 'Malia', 'Sione', 'Tevita', 'Ana', 'Mateo', 'Noelani', 'Kai', 'Lani', 'Iosefa', 'Mele', 'Rafael', 'Grace', 'Daniel', 'Rosa', 'Kekoa', 'Tomas', 'Lose', 'Henry', 'Alana', 'Paulo', 'Kaimana', 'Joseph', 'Marisol'];
 const LAST_NAMES = ['Akana', 'Fonoti', 'Santos', 'Mahoe', 'Tupou', 'Kealoha', 'Ramos', 'Faleolo', 'Nakamura', 'Pereira', 'Kahale', 'Taufa', 'Cabral', 'Lui', 'Moana', 'Ortiz', 'Palakiko', 'Silva', 'Tanaka', 'Vaifale', 'Keola', 'Baptiste', 'Navarro', 'Hoapili', 'Lemalu'];
 const nameAt = (index: number) =>
   `${FIRST_NAMES[index % FIRST_NAMES.length] ?? ''} ${LAST_NAMES[(index * 7 + Math.floor(index / LAST_NAMES.length)) % LAST_NAMES.length] ?? ''}`;
 
-interface Assignment {
+// The roles each position holds.  Officers who send the list are crew members too.
+const POSITION_ROLES: Readonly<Record<FleetPosition, readonly string[]>> = {
+  [P.CAPTAIN]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
+  [P.FIRST_MATE]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
+  [P.SECOND_MATE]: [FLEET_ROLE.CREW_MEMBER],
+  [P.CHIEF_ENGINEER]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
+  [P.ASSISTANT_ENGINEER]: [FLEET_ROLE.CREW_MEMBER],
+  [P.COOK]: [FLEET_ROLE.CREW_MEMBER],
+  [P.TANKERMAN]: [FLEET_ROLE.CREW_MEMBER],
+  [P.TANKERMAN_PIC]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
+  [P.SUPPLY_MANAGER]: [FLEET_ROLE.SUPPLY_MANAGER],
+  [P.PORT_ENGINEER]: [FLEET_ROLE.PORT_ENGINEER],
+  [P.OWNER_REPRESENTATIVE]: [FLEET_ROLE.OWNER_REPRESENTATIVE],
+  [P.SENIOR_WELDER]: [FLEET_ROLE.SHOP_STAFF],
+  [P.SENIOR_ELECTRICIAN]: [FLEET_ROLE.SHOP_STAFF],
+};
+
+// Where a person works: the vessels they rotate aboard, and whether they are aboard now.  Shop staff work over the whole fleet.
+interface Placement {
   readonly position: FleetPosition;
-  readonly vessels: readonly VesselRecord[];
+  readonly vessels: readonly EntityRecord[];
   readonly aboard: boolean;
 }
 
@@ -117,10 +150,10 @@ const TUG_POSITIONS: readonly FleetPosition[] = [P.CAPTAIN, P.FIRST_MATE, P.SECO
 const TUGS = [FLEET_VESSELS.TERN, FLEET_VESSELS.PETREL, FLEET_VESSELS.SHEARWATER];
 
 // Twelve people rotate through each tug's six positions, one of each pair aboard at a time.
-const tugCrews: readonly Assignment[] = TUGS.flatMap((tug) => TUG_POSITIONS.flatMap((position) => [true, false].map((aboard) => ({ position, vessels: [tug], aboard }))));
+const tugCrews: readonly Placement[] = TUGS.flatMap((tug) => TUG_POSITIONS.flatMap((position) => [true, false].map((aboard) => ({ position, vessels: [tug], aboard }))));
 
 // Tankermen rotate through the tank barges.  Both of the propane barge's tankermen in charge are off this rotation.
-const tankermen: readonly Assignment[] = [
+const tankermen: readonly Placement[] = [
   { position: P.TANKERMAN_PIC, vessels: [FLEET_VESSELS.KESTREL_305], aboard: true },
   { position: P.TANKERMAN_PIC, vessels: [FLEET_VESSELS.KESTREL_305], aboard: false },
   { position: P.TANKERMAN, vessels: [FLEET_VESSELS.KESTREL_305], aboard: true },
@@ -131,20 +164,40 @@ const tankermen: readonly Assignment[] = [
   { position: P.TANKERMAN, vessels: [FLEET_VESSELS.KESTREL_410], aboard: false },
 ];
 
-const shop: readonly Assignment[] = [P.SUPPLY_MANAGER, P.PORT_ENGINEER, P.OWNER_REPRESENTATIVE, P.SENIOR_WELDER, P.SENIOR_ELECTRICIAN].map((position) => ({
+const shop: readonly Placement[] = [P.SUPPLY_MANAGER, P.PORT_ENGINEER, P.OWNER_REPRESENTATIVE, P.SENIOR_WELDER, P.SENIOR_ELECTRICIAN].map((position) => ({
   position,
   vessels: [],
   aboard: false,
 }));
 
-const PEOPLE: readonly PersonRecord[] = [...tugCrews, ...tankermen, ...shop].map((assignment, index) => ({
-  personId: toPersonId(opaqueId('u', index)),
+const PLACEMENTS: readonly Placement[] = [...tugCrews, ...tankermen, ...shop];
+const ACTORS: readonly ActorRecord[] = PLACEMENTS.map((placement, index) => ({
+  actorId: toActorId(resolveOpaqueId('u', index)),
+  tenantId: placement.vessels.length > 0 ? FLEET_OWNER_ID : FLEET_SHOP_ID,
   name: nameAt(index),
-  position: assignment.position,
-  companyId: assignment.vessels.length > 0 ? OWNER.companyId : SHOP.companyId,
-  vesselIds: assignment.vessels.map((each) => each.vesselId),
-  aboard: assignment.aboard,
+  values: { [CREW_FIELD.POSITION]: placement.position },
 }));
+
+let assignmentCount = 0;
+const assignment = (actorId: ActorId, roleId: string, scope: RoleAssignment['scope'], active: boolean): RoleAssignment => ({
+  assignmentId: toAssignmentId(resolveOpaqueId('s', assignmentCount++)),
+  actorId,
+  roleId,
+  scope,
+  active,
+});
+const ASSIGNMENTS: readonly RoleAssignment[] = PLACEMENTS.flatMap((placement, index) => {
+  const actor = ACTORS[index];
+  if (!actor) return [];
+  const roles = POSITION_ROLES[placement.position];
+  return placement.vessels.length > 0
+    ? placement.vessels.flatMap((each) => roles.map((roleId) => assignment(actor.actorId, roleId, { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: each.entityId }, placement.aboard)))
+    : roles.map((roleId) => assignment(actor.actorId, roleId, { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: FLEET_OWNER_ID }, true));
+});
+
+const positionOf = (actor: ActorRecord): FleetPosition | null => readMember(actor.values, CREW_FIELD.POSITION, FLEET_POSITION);
+const isAboard = (actorId: ActorId, vesselEntity: EntityRecord): boolean =>
+  ASSIGNMENTS.some((each) => each.actorId === actorId && each.active && each.scope.kind === ACCESS_SCOPE_KIND.ENTITY && each.scope.entityId === vesselEntity.entityId);
 
 // Who takes a step: the person who added the item, an officer aboard who can
 // send, or someone at the shop by position.
@@ -159,7 +212,7 @@ interface PlannedStep {
 
 interface PlannedItem {
   readonly id: string;
-  readonly vessel: VesselRecord;
+  readonly vessel: EntityRecord;
   readonly requester: FleetPosition;
   readonly added: string;
   readonly description: string;
@@ -209,51 +262,52 @@ const PLANNED_ITEMS: readonly PlannedItem[] = [
   { id: 'w1dm8h', vessel: FLEET_VESSELS.KESTREL_410, requester: P.TANKERMAN, added: '2026-09-12', description: 'Relief valve rebuild kit', category: SUPPLY_CATEGORY.ENGINE, quantity: 1, unitCost: 980, steps: [] },
 ];
 
-const firstAboard = (vesselId: VesselId, matches: (person: PersonRecord) => boolean): PersonRecord | undefined =>
-  PEOPLE.find((person) => isAboard(person, vesselId) && matches(person));
+const changed = (change: RecordChange, what: string): PlatformData => {
+  if (!change.ok) throw new Error(`${what}: ${change.problems.join(' ')}`);
+  return change.data;
+};
 
-function resolveActor(by: Actor, item: PlannedItem, requester: PersonRecord): PersonRecord {
-  const vesselId = item.vessel.vesselId;
+function resolveActor(data: PlatformData, by: Actor, item: PlannedItem, requester: ActorId): ActorId {
   const actor =
     by === 'requester'
-      ? requester
+      ? ACTORS.find((candidate) => candidate.actorId === requester)
       : by === 'sender'
-        ? firstAboard(vesselId, (person) => isPermittedOnVessel(person, vesselId, FLEET_PERMISSION.SEND_LIST))
-        : PEOPLE.find((person) => person.position === by);
+        ? ACTORS.find((candidate) => isAboard(candidate.actorId, item.vessel) && isPermittedOnRecord(FLEET_CONFIGURATION, data, candidate.actorId, FLEET_PERMISSION.SEND_LIST, item.vessel))
+        : ACTORS.find((candidate) => positionOf(candidate) === by);
   if (!actor) throw new Error(`No one can act as ${by} on item ${item.id}.`);
-  return actor;
+  return actor.actorId;
 }
 
-function buildItem(plan: PlannedItem): WantItemRecord {
-  const requester = firstAboard(plan.vessel.vesselId, (person) => person.position === plan.requester);
+function recordItem(data: PlatformData, plan: PlannedItem): PlatformData {
+  const requester = ACTORS.find((candidate) => positionOf(candidate) === plan.requester && isAboard(candidate.actorId, plan.vessel));
   if (!requester) throw new Error(`No ${plan.requester} is aboard for item ${plan.id}.`);
   const added = toPlainDate(plan.added);
-  const start: WantItemRecord = {
-    itemId: toWantItemId(plan.id),
-    vesselId: plan.vessel.vesselId,
-    requestedBy: requester.personId,
-    addedDate: added,
-    description: plan.description,
-    category: plan.category,
-    quantity: plan.quantity,
-    unitCost: plan.unitCost,
-    limited: plan.limited ?? false,
-    status: SUPPLY_STATUS.NEW,
-    history: [],
+  const values: Answers = {
+    [W.DESCRIPTION]: plan.description,
+    [W.CATEGORY]: plan.category,
+    [W.QUANTITY]: plan.quantity,
+    [W.UNIT_COST]: plan.unitCost,
+    [W.LIMITED]: plan.limited ?? false,
   };
-  return plan.steps.reduce((item, planned) => {
-    const result = applyItemTransition(resolveActor(planned.by, plan, requester), item, planned.transition, resolveDaysLater(added, planned.daysLater), planned.note ?? '');
-    if (!result.ok) throw new Error(`Item ${plan.id} cannot ${planned.transition}: ${result.problems.join(' ')}`);
-    return result.item;
-  }, start);
+  const entryId = toEntryId(plan.id);
+  const withItem = changed(addEntry(FLEET_CONFIGURATION, data, { actorId: requester.actorId, entityId: plan.vessel.entityId, streamId: FLEET_STREAM.WANT_LIST, entryId, values, date: added }), `Item ${plan.id} cannot be added`);
+  return plan.steps.reduce(
+    (current, planned) =>
+      changed(
+        applyEntryTransition(FLEET_CONFIGURATION, current, {
+          actorId: resolveActor(current, planned.by, plan, requester.actorId),
+          entryId,
+          transitionId: planned.transition,
+          date: resolveDaysLater(added, planned.daysLater),
+          note: planned.note ?? '',
+        }),
+        `Item ${plan.id} cannot ${planned.transition}`,
+      ),
+    withItem,
+  );
 }
 
-export function buildSyntheticFleet(): FleetData {
-  return {
-    asOfDate: AS_OF,
-    companies: [OWNER, SHOP],
-    vessels: Object.values(FLEET_VESSELS),
-    people: PEOPLE,
-    wantItems: PLANNED_ITEMS.map(buildItem),
-  };
+export function buildSyntheticFleet(): PlatformData {
+  const empty: PlatformData = { tenants: TENANTS, actors: ACTORS, assignments: ASSIGNMENTS, entities: Object.values(FLEET_VESSELS), entries: [] };
+  return PLANNED_ITEMS.reduce(recordItem, empty);
 }
