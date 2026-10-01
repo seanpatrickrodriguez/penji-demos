@@ -26,7 +26,7 @@ Its foundation serves any organization that tracks people or things over time ag
 - **2019 to 2020:** The web rebuild began in React and moved to Angular.
 - **May 2025:** The current Penji repository began.
 - **Early 2026:** Penji had grown its own abstraction ladder: implementation code at the bottom, meta-primitives above it (forms, workflows and contexts as configuration), and a self-describing schema at the top.
-- **Feb to Mar 2026:** I recognized that ladder in the OMG Meta Object Facility and adopted the standard's layers, names and rules.  Repository inheritance gave way to definitions, and by March the platform was checking its own definitions against the standard.
+- **Feb to Mar 2026:** I recognized that ladder in the OMG Meta Object Facility and adopted the standard's layers, names and rules.  Repository inheritance gave way to definitions, and by late March every definition saved to the platform was checked against the standard's seven structural layers, with any that did not conform rolled back.
 
 The layering grew out of the work.  The standard gave it names and rules other engineers already know.
 
