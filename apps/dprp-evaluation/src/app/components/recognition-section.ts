@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { DemoStore, RECOGNITION_STANDARD } from '../state/demo-store';
 import { STATUS_LABEL } from '../view/format';
-import { formatWindow, resolveCohortRows, resolveRequirementRows, resolveSubmissionViews, resolveTierViews } from '../view/recognition-view';
+import { formatWindow, resolveCohortRows, resolveRequirementRows, resolveSubmissionViews, resolveTierGroups } from '../view/recognition-view';
 
 @Component({
   selector: 'app-recognition-section',
@@ -14,7 +14,7 @@ export class RecognitionSection {
   protected readonly submissions = computed(() => resolveSubmissionViews(this.store.timeline()));
   protected readonly current = computed(() => this.submissions()[this.store.selectedSequence() - 1]);
   protected readonly requirements = computed(() => resolveRequirementRows(this.store.selected()));
-  protected readonly tiers = computed(() => resolveTierViews(RECOGNITION_STANDARD, this.store.selected()));
+  protected readonly tiers = computed(() => resolveTierGroups(RECOGNITION_STANDARD, this.store.selected()));
   protected readonly cohorts = computed(() => resolveCohortRows(this.store.data().cohorts, this.store.selected()));
   protected readonly window = computed(() => formatWindow(this.store.selected()));
   protected readonly evaluatedLabel = computed(() => STATUS_LABEL[this.store.selected().evaluation.status]);

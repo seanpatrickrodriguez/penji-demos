@@ -32,6 +32,7 @@ export function resolveSubmissionViews(timeline: readonly SubmissionResult[]): r
 
 export interface RequirementRow {
   readonly id: string;
+  readonly reference: string;
   readonly label: string;
   readonly measured: string;
   readonly threshold: string;
@@ -47,6 +48,7 @@ export function resolveRequirementRows(entry: SubmissionResult): readonly Requir
   const labels = new Map(entry.evaluation.requirements.map((result) => [result.requirement.id, result.requirement.label]));
   return entry.evaluation.requirements.map(({ requirement, measured, outcome }, index, all) => ({
     id: requirement.id,
+    reference: requirement.reference,
     label: requirement.label,
     measured: outcome === REQUIREMENT_OUTCOME.NOT_EVALUATED ? 'Not calculated' : formatMeasured(requirement, measured),
     threshold: formatThreshold(requirement),
@@ -58,26 +60,54 @@ export function resolveRequirementRows(entry: SubmissionResult): readonly Requir
   }));
 }
 
-export interface TierView {
+export interface TierRequirementView {
+  readonly mark: string;
+  readonly reference: string;
   readonly label: string;
-  readonly reached: boolean;
-  // False when a requirement of the tier cannot be measured at this submission, as the early route to Preliminary after Sequence 2.
-  readonly open: boolean;
-  readonly metCount: number;
-  readonly requires: readonly { readonly label: string; readonly met: boolean }[];
+  readonly outcome: RequirementOutcome;
+  readonly outcomeLabel: string;
 }
 
-export function resolveTierViews(standard: RecognitionStandardDefinition, entry: SubmissionResult): readonly TierView[] {
+export interface TierRouteView {
+  readonly route: string | null;
+  readonly reached: boolean;
+  // False when the route is not offered at this submission, as option 3 after Sequence 2.
+  readonly open: boolean;
+  readonly requires: readonly TierRequirementView[];
+}
+
+export interface TierGroupView {
+  readonly status: RecognitionStatus;
+  readonly label: string;
+  readonly reached: boolean;
+  readonly routes: readonly TierRouteView[];
+}
+
+const OUTCOME_MARK: Readonly<Record<RequirementOutcome, string>> = {
+  [REQUIREMENT_OUTCOME.MET]: '✓',
+  [REQUIREMENT_OUTCOME.NOT_MET]: '✗',
+  [REQUIREMENT_OUTCOME.UNMEASURED]: '–',
+  [REQUIREMENT_OUTCOME.NOT_EVALUATED]: '–',
+};
+
+// Tiers grouped by the status they award, highest first, each route with the
+// requirements it needs.  A status reached by any one route is reached.
+export function resolveTierGroups(standard: RecognitionStandardDefinition, entry: SubmissionResult): readonly TierGroupView[] {
   const results = new Map(entry.evaluation.requirements.map((result) => [result.requirement.id, result]));
-  return standard.tiers
-    .filter((tier) => tier.requires.length > 0)
-    .map((tier) => {
-      const requires = tier.requires.map((id) => ({ label: results.get(id)?.requirement.label ?? id, met: results.get(id)?.outcome === REQUIREMENT_OUTCOME.MET }));
-      // A count with no value at all (no denominator either) is a route this submission does not offer.
-      const isClosed = (id: string) => results.get(id)?.outcome === REQUIREMENT_OUTCOME.UNMEASURED && results.get(id)?.measured.denominator === null;
-      const open = !tier.requires.some(isClosed);
-      return { label: tier.label, reached: requires.every((requirement) => requirement.met), open, metCount: requires.filter((requirement) => requirement.met).length, requires };
+  const groups: TierGroupView[] = [];
+  for (const tier of standard.tiers.filter((candidate) => candidate.requires.length > 0)) {
+    const requires = tier.requires.flatMap((id) => {
+      const result = results.get(id);
+      return result ? [{ mark: OUTCOME_MARK[result.outcome], reference: result.requirement.reference, label: result.requirement.label, outcome: result.outcome, outcomeLabel: OUTCOME_LABEL[result.outcome] }] : [];
     });
+    // A count with no value at all (no denominator either) is a route this submission does not offer.
+    const open = !tier.requires.some((id) => results.get(id)?.outcome === REQUIREMENT_OUTCOME.UNMEASURED && results.get(id)?.measured.denominator === null);
+    const route: TierRouteView = { route: tier.route, reached: requires.every((requirement) => requirement.outcome === REQUIREMENT_OUTCOME.MET), open, requires };
+    const existing = groups.find((group) => group.status === tier.status);
+    if (existing) groups[groups.indexOf(existing)] = { ...existing, reached: existing.reached || route.reached, routes: [...existing.routes, route] };
+    else groups.push({ status: tier.status, label: STATUS_LABEL[tier.status], reached: route.reached, routes: [route] });
+  }
+  return groups;
 }
 
 export interface CohortRow {

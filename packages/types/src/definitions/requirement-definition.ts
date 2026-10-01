@@ -9,6 +9,8 @@ export type Comparator = ValueOf<typeof COMPARATOR>;
 // the threshold, and says nothing about how the metric is calculated.
 export interface RequirementDefinition {
   readonly id: string;
+  // How the source refers to it, such as "Requirement 5a".
+  readonly reference: string;
   readonly label: string;
   readonly metric: MetricKey;
   readonly comparator: Comparator;
@@ -33,5 +35,7 @@ export interface StatusPersistence<Status extends string> {
 export interface TierDefinition<Status extends string> {
   readonly status: Status;
   readonly label: string;
+  // Which of the source's routes to this status the tier is, when there is more than one.
+  readonly route: string | null;
   readonly requires: readonly string[];
 }

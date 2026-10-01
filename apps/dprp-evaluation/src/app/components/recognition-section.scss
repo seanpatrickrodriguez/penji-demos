@@ -92,16 +92,19 @@ a.note {
 
 .tiers {
   list-style: none;
-  margin: 0 0 var(--space-4);
+  margin: 0 0 var(--space-2);
   padding: 0;
 }
 
-.tiers li {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0 var(--space-2);
+.tier {
   padding: var(--space-2) 0;
   border-top: 1px solid var(--rule);
+}
+
+.tier-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
 }
 
 .tier-name {
@@ -112,15 +115,70 @@ a.note {
   color: var(--text-muted);
 }
 
-.tiers li.reached .tier-state {
+.tier.reached .tier-state {
   color: var(--ok);
   font-weight: 600;
 }
 
-.tier-needs {
-  grid-column: 1 / -1;
+.route {
+  margin-top: var(--space-1);
+}
+
+.route-name {
+  margin: var(--space-1) 0 0;
   font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.or {
   color: var(--text-muted);
+}
+
+.route-note {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.route.closed .route-requirements {
+  color: var(--text-muted);
+}
+
+.route-requirements {
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.route-requirements li {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: var(--space-1);
+  margin-bottom: 0.125rem;
+}
+
+.route-requirements .met .mark {
+  color: var(--ok);
+}
+
+.route-requirements .notMet .mark {
+  color: var(--error);
+}
+
+.reference {
+  display: inline-block;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+th[scope='row'] .reference {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: 0.875rem;
 }
 
 .cohorts {

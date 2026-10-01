@@ -22,6 +22,7 @@ const registry: MetricRegistry<Context> = {
 
 const requirement = (id: string, metric: MetricKey, threshold: number, evaluatedAfter: readonly string[] = []): RequirementDefinition => ({
   id,
+  reference: id,
   label: id,
   metric,
   comparator: COMPARATOR.AT_LEAST,
@@ -37,9 +38,9 @@ const REQUIREMENTS = [
   requirement('outcomes', METRIC_KEY.RISK_REDUCTION_SHARE_OF_COMPLETERS, 0.6, ['enough', 'retained']),
 ];
 const TIERS: readonly TierDefinition<'gold' | 'silver' | 'base'>[] = [
-  { status: 'gold', label: 'Gold', requires: ['enough', 'retained', 'outcomes'] },
-  { status: 'silver', label: 'Silver', requires: ['enough', 'retained'] },
-  { status: 'base', label: 'Base', requires: [] },
+  { status: 'gold', label: 'Gold', route: null, requires: ['enough', 'retained', 'outcomes'] },
+  { status: 'silver', label: 'Silver', route: null, requires: ['enough', 'retained'] },
+  { status: 'base', label: 'Base', route: null, requires: [] },
 ];
 
 describe('evaluateRequirements', () => {
@@ -74,7 +75,7 @@ describe('validateRequirementDefinitions', () => {
   it('reports missing calculators, unknown prerequisites and out-of-order prerequisites', () => {
     const { eligibleParticipants: _omitted, ...partial } = registry;
     const broken = [requirement('late', METRIC_KEY.ELIGIBLE_PARTICIPANTS, 1, ['later', 'missing']), requirement('later', METRIC_KEY.COMPLETER_SHARE_OF_ELIGIBLE, 1)];
-    expect(validateRequirementDefinitions(broken, [{ status: 'base', label: 'Base', requires: ['nope'] }], partial)).toEqual([
+    expect(validateRequirementDefinitions(broken, [{ status: 'base', label: 'Base', route: null, requires: ['nope'] }], partial)).toEqual([
       'Requirement "late" names metric "eligibleParticipants", which has no calculator.',
       'Requirement "late" waits on "later", which is listed after it.',
       'Requirement "late" waits on "missing", which is not a requirement.',

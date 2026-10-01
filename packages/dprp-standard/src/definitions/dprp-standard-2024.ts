@@ -352,6 +352,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
   requirements: [
     {
       id: R.ELIGIBLE_PARTICIPANTS,
+      reference: 'Requirement 5a',
       label: 'At least 5 eligible participants in the evaluation cohort',
       metric: METRIC_KEY.ELIGIBLE_PARTICIPANTS,
       comparator: COMPARATOR.AT_LEAST,
@@ -362,6 +363,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     },
     {
       id: R.COMPLETERS,
+      reference: 'Requirement 5b',
       label: 'At least 30% of eligible participants are completers',
       metric: METRIC_KEY.COMPLETER_SHARE_OF_ELIGIBLE,
       comparator: COMPARATOR.AT_LEAST,
@@ -372,6 +374,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     },
     {
       id: R.RISK_REDUCTION,
+      reference: 'Requirement 6',
       label: 'At least 60% of completers reduced their risk',
       metric: METRIC_KEY.RISK_REDUCTION_SHARE_OF_COMPLETERS,
       comparator: COMPARATOR.AT_LEAST,
@@ -382,6 +385,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     },
     {
       id: R.BLOOD_TEST_ELIGIBILITY,
+      reference: 'Requirement 7',
       label: 'At least 35% of completers eligible by blood test or gestational diabetes',
       metric: METRIC_KEY.BLOOD_TEST_OR_GDM_SHARE_OF_COMPLETERS,
       comparator: COMPARATOR.AT_LEAST,
@@ -392,6 +396,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     },
     {
       id: R.RETENTION_MONTH_4,
+      reference: 'Retention, month 4',
       label: 'At least 50% of eligible participants retained at the start of month 4',
       metric: METRIC_KEY.RETAINED_SHARE_AT_MONTH_4,
       comparator: COMPARATOR.AT_LEAST,
@@ -402,6 +407,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     },
     {
       id: R.RETENTION_MONTH_7,
+      reference: 'Retention, month 7',
       label: 'At least 40% of eligible participants retained at the start of month 7',
       metric: METRIC_KEY.RETAINED_SHARE_AT_MONTH_7,
       comparator: COMPARATOR.AT_LEAST,
@@ -412,6 +418,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     },
     {
       id: R.RETENTION_MONTH_10,
+      reference: 'Retention, month 10',
       label: 'At least 30% of eligible participants retained at the start of month 10',
       metric: METRIC_KEY.RETAINED_SHARE_AT_MONTH_10,
       comparator: COMPARATOR.AT_LEAST,
@@ -422,6 +429,7 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     },
     {
       id: R.EARLY_PRELIMINARY,
+      reference: 'Preliminary option 3',
       label: 'At a Sequence 1 or 2 submission, at least 5 eligible participants attended at least 8 sessions',
       metric: METRIC_KEY.ELIGIBLE_WITH_MINIMUM_CORE_SESSIONS,
       comparator: COMPARATOR.AT_LEAST,
@@ -436,12 +444,13 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     {
       status: RECOGNITION_STATUS.FULL_PLUS,
       label: 'Full Plus',
+      route: null,
       requires: [R.ELIGIBLE_PARTICIPANTS, R.COMPLETERS, R.RISK_REDUCTION, R.BLOOD_TEST_ELIGIBILITY, R.RETENTION_MONTH_4, R.RETENTION_MONTH_7, R.RETENTION_MONTH_10],
     },
-    { status: RECOGNITION_STATUS.FULL, label: 'Full', requires: [R.ELIGIBLE_PARTICIPANTS, R.COMPLETERS, R.RISK_REDUCTION, R.BLOOD_TEST_ELIGIBILITY] },
-    { status: RECOGNITION_STATUS.PRELIMINARY, label: 'Preliminary', requires: [R.ELIGIBLE_PARTICIPANTS, R.COMPLETERS] },
-    { status: RECOGNITION_STATUS.PRELIMINARY, label: 'Preliminary (option 3)', requires: [R.EARLY_PRELIMINARY] },
-    { status: RECOGNITION_STATUS.PENDING, label: 'Pending', requires: [] },
+    { status: RECOGNITION_STATUS.FULL, label: 'Full', route: null, requires: [R.ELIGIBLE_PARTICIPANTS, R.COMPLETERS, R.RISK_REDUCTION, R.BLOOD_TEST_ELIGIBILITY] },
+    { status: RECOGNITION_STATUS.PRELIMINARY, label: 'Preliminary', route: 'Option 4: retaining participants to completer status', requires: [R.ELIGIBLE_PARTICIPANTS, R.COMPLETERS] },
+    { status: RECOGNITION_STATUS.PRELIMINARY, label: 'Preliminary', route: 'Option 3: early attendance, at the Sequence 1 or 2 submission', requires: [R.EARLY_PRELIMINARY] },
+    { status: RECOGNITION_STATUS.PENDING, label: 'Pending', route: null, requires: [] },
   ],
 
   statusOrder: [RECOGNITION_STATUS.PENDING, RECOGNITION_STATUS.PRELIMINARY, RECOGNITION_STATUS.FULL, RECOGNITION_STATUS.FULL_PLUS],

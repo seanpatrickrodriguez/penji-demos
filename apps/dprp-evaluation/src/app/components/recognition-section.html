@@ -39,6 +39,7 @@
           @for (row of requirements(); track row.id) {
             <tr>
               <th scope="row">
+                <span class="reference">{{ row.reference }}</span>
                 {{ row.label }}
                 @if (row.waitsOn) { <span class="note">{{ row.waitsOn }}</span> }
                 @if (row.citation) { <a class="note" [href]="row.citationUrl">{{ row.citation }}</a> }
@@ -55,15 +56,33 @@
 
   <div class="side">
     <h3>Recognition tiers</h3>
+    <p class="muted small">Highest first.  A tier is reached when every requirement on one of its routes is met.</p>
     <ol class="tiers">
-      @for (tier of tiers(); track tier.label) {
-        <li [class.reached]="tier.reached">
-          <span class="tier-name">{{ tier.label }}</span>
-          <span class="tier-state">{{ tier.reached ? 'Reached' : tier.open ? 'Not reached' : 'Not open' }}</span>
-          <span class="tier-needs">{{ tier.open ? tier.requires.length + ' requirement' + (tier.requires.length === 1 ? '' : 's') + ', ' + tier.metCount + ' met' : 'Only at Sequence 1 and 2 submissions' }}</span>
+      @for (group of tiers(); track group.status) {
+        <li class="tier" [class.reached]="group.reached">
+          <div class="tier-head">
+            <span class="tier-name">{{ group.label }}</span>
+            <span class="tier-state">{{ group.reached ? 'Reached' : 'Not reached' }}</span>
+          </div>
+          @for (route of group.routes; track $index; let first = $first) {
+            <div class="route" [class.closed]="!route.open">
+              @if (route.route) {
+                <p class="route-name">@if (!first) { <span class="or">Or </span> }{{ route.route }}@if (!route.open) { <span class="route-note">: not open at this submission</span> }</p>
+              }
+              <ul class="route-requirements">
+                @for (requirement of route.requires; track requirement.reference) {
+                  <li [class]="requirement.outcome">
+                    <span class="mark" aria-hidden="true">{{ requirement.mark }}</span>
+                    <span><span class="reference">{{ requirement.reference }}</span> {{ requirement.label }}<span class="visually-hidden">: {{ requirement.outcomeLabel }}</span></span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
         </li>
       }
     </ol>
+    <p class="muted small">Preliminary options 1 and 2 are decided when an organization applies (a high-vulnerability county, or an added delivery mode), not from its records, so they are not evaluated here.</p>
 
     <h3>Evaluation cohort</h3>
     <p class="muted">{{ window() }}.</p>
