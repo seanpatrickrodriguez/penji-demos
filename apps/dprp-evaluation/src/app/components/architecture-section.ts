@@ -24,6 +24,19 @@ const PACKAGES: readonly PackageView[] = [
   selector: 'app-architecture-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <h3>Why it is built this way</h3>
+    <p>Penji started as a data system for one program.  To become a platform, it had to take on a new program, a new standard or a new kind of organization as definitions, with the engines that read them left unchanged.  This structure is how it does that, and it is the architecture Penji's current major version is built on.</p>
+    <p>Its foundation serves any organization that tracks people or things over time against a standard: tenants and their hierarchy, registrations, longitudinal records, compliance checks, and role-based access.  A marine engineering company's supply requests, equipment and vessel maintenance fit the same structure, with vessels and crews where the cohorts and participants are, maintenance logs as the longitudinal record, and inspection requirements as the compliance standard.</p>
+    <h3>How it got here</h3>
+    <ol class="history">
+      <li><span class="when">2018</span><span>Benji, built in Google Sheets and Apps Script, took 11 organizations from paper to digital.  It was version 0, where the workflows took shape.</span></li>
+      <li><span class="when">2019 to 2020</span><span>The web rebuild began in React and moved to Angular.</span></li>
+      <li><span class="when">May 2025</span><span>The current Penji repository began.</span></li>
+      <li><span class="when">Early 2026</span><span>Penji had grown its own abstraction ladder: implementation code at the bottom, meta-primitives above it (forms, workflows and contexts as configuration), and a self-describing schema at the top.</span></li>
+      <li><span class="when">Feb to Mar 2026</span><span>I recognized that ladder in the OMG Meta Object Facility and adopted the standard's layers, names and rules.  Repository inheritance gave way to definitions, and by March the platform was checking its own definitions against the standard.</span></li>
+    </ol>
+    <p>The layering grew out of the work.  The standard gave it names and rules other engineers already know.</p>
+    <h3>The layers</h3>
     <div class="table-scroll" tabindex="0" role="region" aria-label="The four layers">
       <table class="data-table layers">
         <thead><tr><th scope="col">Layer</th><th scope="col">What it is</th><th scope="col">Here</th></tr></thead>
@@ -47,6 +60,14 @@ const PACKAGES: readonly PackageView[] = [
   `,
   styles: `
     :host { display: block; }
+    h3 { margin-top: var(--space-5); }
+    h3:first-child { margin-top: 0; }
+    .history { list-style: none; margin: 0 0 var(--space-3); padding: 0; }
+    .history li { padding: var(--space-2) 0; border-top: 1px solid var(--rule); }
+    .when { display: block; color: var(--text-muted); font-variant-numeric: tabular-nums; }
+    @media (min-width: 48rem) {
+      .history li { display: grid; grid-template-columns: 10.5rem minmax(0, 1fr); column-gap: var(--space-4); }
+    }
     .layers th[scope='row'] { font-family: var(--font-heading); font-weight: 600; }
     .packages { list-style: none; margin: var(--space-5) 0 0; padding: 0; display: grid; gap: var(--space-3); }
     @media (min-width: 48rem) { .packages { grid-template-columns: repeat(2, minmax(0, 1fr)); } }

@@ -14,6 +14,22 @@ A synthetic organization's participant records, evaluated against the [2024 CDC 
 - **Rules delivered to the platform's forms.**  The enrollment and session forms are the platform's own.  Every standard that applies to a participant adds its rules to them, and each field shows which standard asked for what.  Set Medicare Part B to yes and the MDPP's rules join.
 - **The submission file.**  Records become Table 5's columns and codes only when the file is made.
 
+## Why it is built this way
+
+Penji started as a data system for one program.  To become a platform, it had to take on a new program, a new standard or a new kind of organization as definitions, with the engines that read them left unchanged.  This structure is how it does that, and it is the architecture Penji's current major version is built on.
+
+Its foundation serves any organization that tracks people or things over time against a standard: tenants and their hierarchy, registrations, longitudinal records, compliance checks, and role-based access.  A marine engineering company's supply requests, equipment and vessel maintenance fit the same structure, with vessels and crews where the cohorts and participants are, maintenance logs as the longitudinal record, and inspection requirements as the compliance standard.
+
+### How it got here
+
+- **2018:** Benji, built in Google Sheets and Apps Script, took 11 organizations from paper to digital.  It was version 0, where the workflows took shape.
+- **2019 to 2020:** The web rebuild began in React and moved to Angular.
+- **May 2025:** The current Penji repository began.
+- **Early 2026:** Penji had grown its own abstraction ladder: implementation code at the bottom, meta-primitives above it (forms, workflows and contexts as configuration), and a self-describing schema at the top.
+- **Feb to Mar 2026:** I recognized that ladder in the OMG Meta Object Facility and adopted the standard's layers, names and rules.  Repository inheritance gave way to definitions, and by March the platform was checking its own definitions against the standard.
+
+The layering grew out of the work.  The standard gave it names and rules other engineers already know.
+
 ## Architecture
 
 The repository follows the four layers of the OMG Meta Object Facility.  Each layer is described by the one above it, and code at each layer reads the layer above instead of repeating it.
