@@ -3,6 +3,7 @@ export * from './primitives/branded-ids';
 export * from './primitives/plain-date';
 export * from './definitions/definition';
 export * from './definitions/requirement-definition';
+export * from './definitions/compliance-definition';
 export * from './definitions/standard-definition';
 export * from './definitions/data-element-definition';
 export * from './definitions/form-definition';

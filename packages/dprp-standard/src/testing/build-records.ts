@@ -1,4 +1,4 @@
-import { DELIVERY_MODE } from '@penji-demos/constants';
+import { COHORT_KIND, DELIVERY_MODE, RESULT_SOURCE } from '@penji-demos/constants';
 import { resolveDaysLater, toPlainDate } from '@penji-demos/time';
 import {
   CohortRecord,
@@ -17,24 +17,42 @@ import {
 
 export const ORGANIZATION_CODE = toOrganizationCode('DEMO1');
 
-export function buildCohort(id: string, firstSessionDate: string, kind: CohortRecord['kind'] = 'group'): CohortRecord {
+export function buildCohort(id: string, firstSessionDate: string, kind: CohortRecord['kind'] = COHORT_KIND.GROUP): CohortRecord {
   return { cohortId: toCohortId(id), organizationCode: ORGANIZATION_CODE, kind, firstSessionDate: toPlainDate(firstSessionDate) };
 }
 
+// By default: a 52-year-old enrolled on 2025-01-02 with a lab fasting glucose of 112 from December.
 export function buildEnrollment(overrides: Partial<Enrollment> = {}): Enrollment {
   return {
+    enrollmentDate: toPlainDate('2025-01-02'),
     ageYears: 52,
     heightInches: 66,
     identifiesAsAsian: false,
-    prediabetesByBloodTest: true,
-    prediabetesByGestationalDiabetes: false,
-    prediabetesByRiskTest: false,
-    diabetesDiagnosedBeforeEnrollment: false,
-    pregnantAtEnrollment: false,
-    initialA1c: null,
+    a1cPercent: null,
+    a1cTestDate: null,
+    a1cReportedDate: null,
+    fastingGlucoseMgDl: 112,
+    fastingGlucoseTestDate: toPlainDate('2024-12-10'),
+    oralGlucoseToleranceMgDl: null,
+    oralGlucoseToleranceTestDate: null,
+    bloodTestSource: RESULT_SOURCE.LAB,
+    gestationalDiabetesHistory: false,
+    riskTestPositive: false,
+    diabetesDiagnosed: false,
+    pregnant: false,
+    medicarePartB: false,
+    endStageRenalDisease: false,
+    priorMdpp: false,
     ...overrides,
   };
 }
+
+// No blood test on record: eligible for the DPRP only through the risk test or gestational diabetes.
+export const NO_BLOOD_TEST: Partial<Enrollment> = {
+  fastingGlucoseMgDl: null,
+  fastingGlucoseTestDate: null,
+  bloodTestSource: null,
+};
 
 export function buildSession(sessionDate: PlainDate, weightPounds: number | null, activityMinutes = 0, isMakeUp = false): SessionRecord {
   return { sessionDate, isMakeUp, deliveryMode: DELIVERY_MODE.IN_PERSON, weightPounds, activityMinutes };

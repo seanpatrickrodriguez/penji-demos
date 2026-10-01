@@ -1,6 +1,6 @@
-import { DEFINITION_KIND, OUTCOME_PATHWAY, RECOGNITION_STATUS } from '@penji-demos/constants';
+import { OUTCOME_PATHWAY, RECOGNITION_STATUS } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
-import { Definition } from './definition';
+import { ComplianceStandardDefinition } from './compliance-definition';
 import { RequirementDefinition, TierDefinition } from './requirement-definition';
 
 export type RecognitionStatus = ValueOf<typeof RECOGNITION_STATUS>;
@@ -9,17 +9,6 @@ export type OutcomePathway = ValueOf<typeof OUTCOME_PATHWAY>;
 export interface InclusiveRange {
   readonly min: number;
   readonly max: number;
-}
-
-// M2: who may be enrolled and evaluated.
-export interface EligibilityDefinition {
-  readonly minimumAgeYears: number;
-  readonly minimumBmi: number;
-  readonly minimumBmiAsian: number;
-  readonly fastingGlucoseMgDl: InclusiveRange;
-  readonly oralGlucoseToleranceMgDl: InclusiveRange;
-  readonly a1cPercent: InclusiveRange;
-  readonly bloodTestMaximumAgeDays: number;
 }
 
 // M2: the shape of the program year.
@@ -48,14 +37,10 @@ export interface OutcomePathwayDefinition {
   readonly minimumA1cReductionPoints: number | null;
 }
 
-// M2: rules on how sessions are held and recorded.
-export interface SessionRulesDefinition {
-  readonly groupJoinWindowDays: number;
-  readonly makeUpSessionsPerWeek: number;
-}
-
 // M2: what makes an A1C pair usable for the A1C outcome.
 export interface A1cOutcomeDefinition {
+  readonly initialRange: InclusiveRange;
+  readonly initialTestedWithinDaysBeforeFirstSession: number;
   readonly initialReportedWithinDaysOfFirstSession: number;
   readonly finalTestProgramMonths: InclusiveRange;
 }
@@ -77,19 +62,14 @@ export interface RetentionCheckpoint {
   readonly programMonth: number;
 }
 
-// An ambiguous clause of the source text and how this standard definition reads it.
-export interface Interpretation {
-  readonly clause: string;
-  readonly reading: string;
-}
-
-// M2: a recognition standard, complete enough to evaluate an organization.
-export interface StandardDefinition extends Definition<typeof DEFINITION_KIND.STANDARD> {
+// M2: a recognition standard: a compliance standard that also measures
+// outcomes over a program year and awards recognition to an organization.
+export interface RecognitionStandardDefinition extends ComplianceStandardDefinition {
   readonly edition: string;
-  readonly eligibility: EligibilityDefinition;
   readonly program: ProgramDefinition;
   readonly completer: CompleterDefinition;
-  readonly sessions: SessionRulesDefinition;
+  // The eligibility bases that count toward Requirement 7: a blood test or a history of gestational diabetes.
+  readonly laboratoryBases: readonly string[];
   readonly a1cOutcome: A1cOutcomeDefinition;
   readonly outcomePathways: readonly OutcomePathwayDefinition[];
   readonly evaluationCohort: EvaluationCohortDefinition;
@@ -98,5 +78,4 @@ export interface StandardDefinition extends Definition<typeof DEFINITION_KIND.ST
   readonly submissionIntervalMonths: number;
   readonly requirements: readonly RequirementDefinition[];
   readonly tiers: readonly TierDefinition<RecognitionStatus>[];
-  readonly interpretations: readonly Interpretation[];
 }

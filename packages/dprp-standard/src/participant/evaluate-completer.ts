@@ -1,10 +1,10 @@
 import { PROGRAM_PHASE } from '@penji-demos/constants';
 import { calculateFullMonthsBetween } from '@penji-demos/time';
-import { Determination, PlainDate, ProgramSession, StandardDefinition } from '@penji-demos/types';
+import { Determination, PlainDate, ProgramSession, RecognitionStandardDefinition } from '@penji-demos/types';
 
 // A completer attended enough Core-phase sessions and stayed long enough.
 export function evaluateCompleter(
-  standard: StandardDefinition,
+  standard: RecognitionStandardDefinition,
   cohortStart: PlainDate,
   counted: readonly ProgramSession[],
 ): Determination & { readonly corePhaseSessions: number; readonly fullMonthsFirstToLast: number } {

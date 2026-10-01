@@ -1,9 +1,9 @@
-import { INELIGIBILITY_EVENT, OUTCOME_PATHWAY, PREDIABETES_BASIS, PROGRAM_PHASE } from '@penji-demos/constants';
+import { DPRP_ELIGIBILITY_BASIS, INELIGIBILITY_EVENT, OUTCOME_PATHWAY, PROGRAM_PHASE } from '@penji-demos/constants';
 import { resolveDaysLater, toPlainDate } from '@penji-demos/time';
 import { OutcomePathway, ParticipantEvaluation } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
 import { DPRP_STANDARD_2024 } from '../definitions/dprp-standard-2024';
-import { FULL_SCHEDULE, buildCohort, buildEnrollment, buildParticipant, buildSession, buildSessions } from '../testing/build-records';
+import { FULL_SCHEDULE, NO_BLOOD_TEST, buildCohort, buildEnrollment, buildParticipant, buildSession, buildSessions } from '../testing/build-records';
 import { evaluateParticipant } from './evaluate-participant';
 
 const STANDARD = DPRP_STANDARD_2024;
@@ -38,10 +38,16 @@ describe('eligibility', () => {
 
   it('needs a basis for prediabetes and records which one', () => {
     const sessions = buildSessions(START, [0], 200, 200);
-    const none = buildParticipant('P1', COHORT, sessions, { enrollment: buildEnrollment({ prediabetesByBloodTest: false }) });
+    const none = buildParticipant('P1', COHORT, sessions, { enrollment: buildEnrollment(NO_BLOOD_TEST) });
     expect(evaluateParticipant(STANDARD, none, COHORT).eligibility.met).toBe(false);
-    const riskTest = buildParticipant('P2', COHORT, sessions, { enrollment: buildEnrollment({ prediabetesByBloodTest: false, prediabetesByRiskTest: true }) });
-    expect(evaluateParticipant(STANDARD, riskTest, COHORT).eligibility.bases).toEqual([PREDIABETES_BASIS.RISK_TEST]);
+    const riskTest = buildParticipant('P2', COHORT, sessions, { enrollment: buildEnrollment({ ...NO_BLOOD_TEST, riskTestPositive: true }) });
+    expect(evaluateParticipant(STANDARD, riskTest, COHORT).eligibility.basesMet).toEqual([DPRP_ELIGIBILITY_BASIS.RISK_TEST]);
+  });
+
+  it('counts a blood test only within a year before enrollment', () => {
+    const sessions = buildSessions(START, [0], 200, 200);
+    const stale = buildParticipant('P1', COHORT, sessions, { enrollment: buildEnrollment({ fastingGlucoseTestDate: toPlainDate('2023-12-01') }) });
+    expect(evaluateParticipant(STANDARD, stale, COHORT).eligibility.met).toBe(false);
   });
 
   it('drops a participant recoded as ineligible during the program', () => {
@@ -96,9 +102,9 @@ describe('risk-reduction outcomes', () => {
 
   it('accepts a 0.2 point A1C reduction only with a timely initial test and a final test in months 9-12', () => {
     const sessions = buildSessions(START, [0, 7, 280], 200, 199);
-    const initialA1c = { percent: 6.2, testDate: toPlainDate('2024-12-01'), reportedDate: day(5) };
-    const timely = buildParticipant('P1', COHORT, sessions, { enrollment: buildEnrollment({ initialA1c }), finalA1c: { percent: 6.0, testDate: day(280), reportedDate: day(281) } });
-    const earlyFinal = buildParticipant('P2', COHORT, sessions, { enrollment: buildEnrollment({ initialA1c }), finalA1c: { percent: 6.0, testDate: day(200), reportedDate: day(201) } });
+    const initialA1c = { a1cPercent: 6.2, a1cTestDate: toPlainDate('2024-12-01'), a1cReportedDate: day(5) };
+    const timely = buildParticipant('P1', COHORT, sessions, { enrollment: buildEnrollment(initialA1c), finalA1c: { percent: 6.0, testDate: day(280), reportedDate: day(281) } });
+    const earlyFinal = buildParticipant('P2', COHORT, sessions, { enrollment: buildEnrollment(initialA1c), finalA1c: { percent: 6.0, testDate: day(200), reportedDate: day(201) } });
     expect(outcome(evaluateParticipant(STANDARD, timely, COHORT), OUTCOME_PATHWAY.A1C_REDUCTION)?.met).toBe(true);
     expect(outcome(evaluateParticipant(STANDARD, earlyFinal, COHORT), OUTCOME_PATHWAY.A1C_REDUCTION)?.met).toBe(false);
   });
@@ -112,11 +118,21 @@ describe('retention', () => {
   });
 });
 
-describe('record checks', () => {
+describe('record rules', () => {
+  const ruleIds = (sessions: ReturnType<typeof buildSessions>) =>
+    evaluateParticipant(STANDARD, buildParticipant('P1', COHORT, sessions), COHORT).standards[0]?.findings.map((finding) => finding.ruleId);
+
   it('flags an impossible weight and two regular sessions on one date', () => {
-    const sessions = [buildSession(day(0), 200), buildSession(day(7), 1999), buildSession(day(14), 199), buildSession(day(14), 199)];
-    const messages = evaluateParticipant(STANDARD, buildParticipant('P1', COHORT, sessions), COHORT).issues.map((issue) => issue.message);
-    expect(messages.some((message) => message.startsWith('Weight 1999 lb is outside 70-997'))).toBe(true);
-    expect(messages.some((message) => message.startsWith('More than one record on this date'))).toBe(true);
+    const ids = ruleIds([buildSession(day(0), 200), buildSession(day(7), 1999), buildSession(day(14), 199), buildSession(day(14), 199)]);
+    expect(ids).toContain('dprp-weight-range');
+    expect(ids).toContain('dprp-one-regular-session-per-date');
+  });
+
+  it('flags a make-up session recording a different weight on the same date as a regular session', () => {
+    expect(ruleIds([buildSession(day(0), 200), buildSession(day(7), 199), buildSession(day(7), 197, 0, true)])).toContain('dprp-same-date-weight');
+  });
+
+  it('notes a session after the program year without blocking', () => {
+    expect(ruleIds(buildSessions(START, [0, 7, 370], 200, 199))).toEqual(['dprp-session-within-program-year']);
   });
 });

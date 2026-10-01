@@ -1,5 +1,5 @@
 import { calculateDaysBetween, resolveProgramMonth } from '@penji-demos/time';
-import { ActivitySummary, OutcomePathwayDefinition, OutcomeResult, ParticipantRecord, PlainDate, ProgramSession, StandardDefinition, WeightChange } from '@penji-demos/types';
+import { ActivitySummary, OutcomePathwayDefinition, OutcomeResult, ParticipantRecord, PlainDate, ProgramSession, RecognitionStandardDefinition, WeightChange } from '@penji-demos/types';
 
 interface OutcomeEvidence {
   readonly weightChange: WeightChange | null;
@@ -11,20 +11,20 @@ interface OutcomeEvidence {
 
 // The A1C reduction a participant can claim, or null with the reason it cannot be used.
 export function calculateA1cReduction(
-  standard: StandardDefinition,
+  standard: RecognitionStandardDefinition,
   participant: ParticipantRecord,
   cohortStart: PlainDate,
   counted: readonly ProgramSession[],
 ): { readonly points: number | null; readonly detail: string } {
-  const initial = participant.enrollment.initialA1c;
+  const { a1cPercent: initialPercent, a1cTestDate: initialTested, a1cReportedDate: initialReported } = participant.enrollment;
   const final = participant.finalA1c;
   const firstAttended = counted[0]?.sessionDate;
-  const range = standard.eligibility.a1cPercent;
-  if (!initial || !final || !firstAttended) return { points: null, detail: 'No initial and final A1C pair' };
-  if (initial.percent < range.min || initial.percent > range.max) return { points: null, detail: `Initial A1C ${initial.percent} is outside ${range.min}-${range.max}` };
-  const testAge = calculateDaysBetween(initial.testDate, firstAttended);
-  if (testAge < 0 || testAge > standard.eligibility.bloodTestMaximumAgeDays) return { points: null, detail: 'Initial A1C was not tested within the year before the first session' };
-  const { initialReportedWithinDaysOfFirstSession: reportDays, finalTestProgramMonths: months } = standard.a1cOutcome;
+  const { initialRange: range, initialTestedWithinDaysBeforeFirstSession: testDays, initialReportedWithinDaysOfFirstSession: reportDays, finalTestProgramMonths: months } = standard.a1cOutcome;
+  if (initialPercent === null || !initialTested || !initialReported || !final || !firstAttended) return { points: null, detail: 'No initial and final A1C pair' };
+  if (initialPercent < range.min || initialPercent > range.max) return { points: null, detail: `Initial A1C ${initialPercent} is outside ${range.min}-${range.max}` };
+  const testAge = calculateDaysBetween(initialTested, firstAttended);
+  if (testAge < 0 || testAge > testDays) return { points: null, detail: 'Initial A1C was not tested within the year before the first session' };
+  const initial = { percent: initialPercent, reportedDate: initialReported };
   if (calculateDaysBetween(firstAttended, initial.reportedDate) > reportDays) return { points: null, detail: `Initial A1C was reported more than ${reportDays} days after the first session` };
   const finalMonth = resolveProgramMonth(cohortStart, final.testDate);
   if (finalMonth < months.min || finalMonth > months.max) return { points: null, detail: `Final A1C was tested in program month ${finalMonth}, outside months ${months.min}-${months.max}` };
@@ -65,6 +65,6 @@ export function evaluateOutcomePathway(pathway: OutcomePathwayDefinition, eviden
   };
 }
 
-export function evaluateOutcomes(standard: StandardDefinition, evidence: OutcomeEvidence): readonly OutcomeResult[] {
+export function evaluateOutcomes(standard: RecognitionStandardDefinition, evidence: OutcomeEvidence): readonly OutcomeResult[] {
   return standard.outcomePathways.map((pathway) => evaluateOutcomePathway(pathway, evidence));
 }

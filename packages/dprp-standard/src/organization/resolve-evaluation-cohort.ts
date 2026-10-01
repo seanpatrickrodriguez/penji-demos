@@ -1,8 +1,8 @@
 import { isBefore, isOnOrAfter, resolveFirstOfMonth, resolveMonthsLater } from '@penji-demos/time';
-import { CohortRecord, CohortWindow, PlainDate, StandardDefinition } from '@penji-demos/types';
+import { CohortRecord, CohortWindow, PlainDate, RecognitionStandardDefinition } from '@penji-demos/types';
 
 // The window of first-session dates an evaluation looks at, counted back from the submission due month.
-export function resolveCohortWindow(standard: StandardDefinition, submissionMonth: PlainDate): CohortWindow {
+export function resolveCohortWindow(standard: RecognitionStandardDefinition, submissionMonth: PlainDate): CohortWindow {
   const dueMonth = resolveFirstOfMonth(submissionMonth);
   return {
     firstSessionOnOrAfter: resolveMonthsLater(dueMonth, -standard.evaluationCohort.maximumMonthsBeforeSubmission),

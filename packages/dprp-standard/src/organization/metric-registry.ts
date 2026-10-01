@@ -1,10 +1,10 @@
-import { METRIC_KEY, PREDIABETES_BASIS } from '@penji-demos/constants';
+import { METRIC_KEY } from '@penji-demos/constants';
 import { MetricRegistry } from '@penji-demos/rule-engine';
-import { MetricValue, ParticipantEvaluation, StandardDefinition } from '@penji-demos/types';
+import { MetricValue, ParticipantEvaluation, RecognitionStandardDefinition } from '@penji-demos/types';
 
 // What the DPRP metrics are calculated from.
 export interface RecognitionContext {
-  readonly standard: StandardDefinition;
+  readonly standard: RecognitionStandardDefinition;
   // Participants in the evaluation cohort.
   readonly evaluationCohort: readonly ParticipantEvaluation[];
   // Every participant on record, for requirements that look beyond the evaluation cohort.
@@ -39,7 +39,8 @@ export const DPRP_METRIC_REGISTRY: MetricRegistry<RecognitionContext> = {
   },
   [METRIC_KEY.BLOOD_TEST_OR_GDM_SHARE_OF_COMPLETERS]: (context) => {
     const completers = completersIn(context.evaluationCohort);
-    return share(completers.filter((participant) => participant.eligibility.bases.some((basis) => basis !== PREDIABETES_BASIS.RISK_TEST)).length, completers.length);
+    const laboratory = new Set(context.standard.laboratoryBases);
+    return share(completers.filter((participant) => participant.eligibility.basesMet.some((basis) => laboratory.has(basis))).length, completers.length);
   },
   [METRIC_KEY.RETAINED_SHARE_AT_MONTH_4]: retainedShare(4),
   [METRIC_KEY.RETAINED_SHARE_AT_MONTH_7]: retainedShare(7),

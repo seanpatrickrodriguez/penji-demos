@@ -1,14 +1,12 @@
-import { METRIC_KEY, OUTCOME_PATHWAY, RECOGNITION_STATUS, REQUIREMENT_OUTCOME, SESSION_TYPE_CODE, SUBMISSION_COLUMN, DPRP_REQUIREMENT_ID } from '@penji-demos/constants';
-import { validateDefinition } from '@penji-demos/form-engine';
+import { DPRP_REQUIREMENT_ID, METRIC_KEY, OUTCOME_PATHWAY, RECOGNITION_STATUS, REQUIREMENT_OUTCOME, RULE_CHECK_KIND, SESSION_FIELD, SESSION_TYPE_CODE, SUBMISSION_COLUMN } from '@penji-demos/constants';
 import { validateRequirementDefinitions } from '@penji-demos/rule-engine';
 import { toPlainDate } from '@penji-demos/time';
-import { StandardDefinition } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
 import { resolveDataElement } from '../definitions/data-dictionary-2024';
 import { DPRP_STANDARD_2024 } from '../definitions/dprp-standard-2024';
-import { resolveSessionLogForm } from '../definitions/session-log-form';
 import { resolveSubmissionCsv, resolveSubmissionRows } from '../submission/resolve-submission-rows';
-import { FULL_SCHEDULE, buildCohort, buildEnrollment, buildOrganization, buildParticipant, buildSessions } from '../testing/build-records';
+import { FULL_SCHEDULE, NO_BLOOD_TEST, buildCohort, buildEnrollment, buildOrganization, buildParticipant, buildSessions } from '../testing/build-records';
 import { evaluateRecognition } from './evaluate-recognition';
 import { DPRP_METRIC_REGISTRY } from './metric-registry';
 import { resolveCohortWindow } from './resolve-evaluation-cohort';
@@ -68,7 +66,7 @@ describe('recognition', () => {
 
   it('needs 35% of completers eligible by blood test or gestational diabetes', () => {
     const data = buildDefaultOrganization();
-    const riskTestOnly = data.participants.map((participant) => ({ ...participant, enrollment: buildEnrollment({ prediabetesByBloodTest: false, prediabetesByRiskTest: true }) }));
+    const riskTestOnly = data.participants.map((participant) => ({ ...participant, enrollment: buildEnrollment({ ...NO_BLOOD_TEST, riskTestPositive: true }) }));
     const evaluation = evaluateRecognition(STANDARD, { ...data, participants: riskTestOnly }, SUBMISSION);
     expect(result(evaluation, DPRP_REQUIREMENT_ID.BLOOD_TEST_ELIGIBILITY)?.outcome).toBe(REQUIREMENT_OUTCOME.NOT_MET);
     expect(evaluation.status).toBe(RECOGNITION_STATUS.PRELIMINARY);
@@ -84,7 +82,7 @@ describe('the standard is data', () => {
 
   it('evaluates a different edition with no change to the engine', () => {
     // A hypothetical edition: 5% weight loss is the only outcome, and Requirement 6 needs 80% of completers.
-    const strict: StandardDefinition = {
+    const strict: RecognitionStandardDefinition = {
       ...STANDARD,
       version: 'test-strict',
       outcomePathways: STANDARD.outcomePathways.filter((pathway) => pathway.pathway === OUTCOME_PATHWAY.WEIGHT_LOSS),
@@ -95,11 +93,10 @@ describe('the standard is data', () => {
     expect(evaluateRecognition(strict, data, SUBMISSION).status).toBe(RECOGNITION_STATUS.PRELIMINARY);
   });
 
-  it('resolves the session form from the data dictionary', () => {
-    const form = resolveSessionLogForm();
-    const weight = form.fields.find((field) => field.key === 'weightPounds');
-    expect(validateDefinition(form)).toEqual([]);
-    expect(weight?.kind === 'number' ? [weight.min, weight.max] : null).toEqual([resolveDataElement(SUBMISSION_COLUMN.WEIGHT).range?.min, resolveDataElement(SUBMISSION_COLUMN.WEIGHT).range?.max]);
+  it("keeps the weight rule's range in step with the data dictionary", () => {
+    const weightRule = STANDARD.rules.find((rule) => rule.check.kind === RULE_CHECK_KIND.RANGE && rule.check.field === SESSION_FIELD.WEIGHT_POUNDS);
+    const element = resolveDataElement(SUBMISSION_COLUMN.WEIGHT);
+    expect(weightRule?.check.kind === RULE_CHECK_KIND.RANGE ? { min: weightRule.check.min, max: weightRule.check.max } : null).toEqual(element.range);
   });
 });
 

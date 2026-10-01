@@ -26,8 +26,17 @@
       "@penji-demos/rule-engine": [
         "packages/rule-engine/src/index.ts"
       ],
+      "@penji-demos/compliance-engine": [
+        "packages/compliance-engine/src/index.ts"
+      ],
+      "@penji-demos/program-records": [
+        "packages/program-records/src/index.ts"
+      ],
       "@penji-demos/dprp-standard": [
         "packages/dprp-standard/src/index.ts"
+      ],
+      "@penji-demos/mdpp-standard": [
+        "packages/mdpp-standard/src/index.ts"
       ],
       "@penji-demos/form-engine": [
         "packages/form-engine/src/index.ts"

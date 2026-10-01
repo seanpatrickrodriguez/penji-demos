@@ -1,4 +1,4 @@
-import { DELIVERY_MODE, INELIGIBILITY_EVENT } from '@penji-demos/constants';
+import { COHORT_KIND, DELIVERY_MODE, INELIGIBILITY_EVENT, RESULT_SOURCE } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
 import { CoachId, CohortId, OrganizationCode, ParticipantId } from '../primitives/branded-ids';
 import { PlainDate } from '../primitives/plain-date';
@@ -19,26 +19,41 @@ export interface OrganizationRecord {
 export interface CohortRecord {
   readonly cohortId: CohortId;
   readonly organizationCode: OrganizationCode;
-  readonly kind: 'group' | 'individual';
+  readonly kind: ValueOf<typeof COHORT_KIND>;
   readonly firstSessionDate: PlainDate;
 }
 
+export type ResultSource = ValueOf<typeof RESULT_SOURCE>;
+
+// The facts gathered at enrollment.  Each standard decides what they mean:
+// the same fasting glucose of 105 is prediabetes for the DPRP and not for the MDPP.
+export interface Enrollment {
+  readonly enrollmentDate: PlainDate;
+  readonly ageYears: number;
+  readonly heightInches: number;
+  readonly identifiesAsAsian: boolean;
+  readonly a1cPercent: number | null;
+  readonly a1cTestDate: PlainDate | null;
+  readonly a1cReportedDate: PlainDate | null;
+  readonly fastingGlucoseMgDl: number | null;
+  readonly fastingGlucoseTestDate: PlainDate | null;
+  readonly oralGlucoseToleranceMgDl: number | null;
+  readonly oralGlucoseToleranceTestDate: PlainDate | null;
+  readonly bloodTestSource: ResultSource | null;
+  readonly gestationalDiabetesHistory: boolean;
+  readonly riskTestPositive: boolean;
+  readonly diabetesDiagnosed: boolean;
+  readonly pregnant: boolean;
+  readonly medicarePartB: boolean;
+  readonly endStageRenalDisease: boolean;
+  readonly priorMdpp: boolean;
+}
+
+// An A1C result recorded after enrollment, such as the final test for the A1C outcome.
 export interface A1cResult {
   readonly percent: number;
   readonly testDate: PlainDate;
   readonly reportedDate: PlainDate;
-}
-
-export interface Enrollment {
-  readonly ageYears: number;
-  readonly heightInches: number;
-  readonly identifiesAsAsian: boolean;
-  readonly prediabetesByBloodTest: boolean;
-  readonly prediabetesByGestationalDiabetes: boolean;
-  readonly prediabetesByRiskTest: boolean;
-  readonly diabetesDiagnosedBeforeEnrollment: boolean;
-  readonly pregnantAtEnrollment: boolean;
-  readonly initialA1c: A1cResult | null;
 }
 
 export interface SessionRecord {

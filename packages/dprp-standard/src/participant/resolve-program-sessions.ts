@@ -1,10 +1,10 @@
 import { PROGRAM_PHASE } from '@penji-demos/constants';
 import { calculateDaysBetween, resolveProgramMonth } from '@penji-demos/time';
-import { PlainDate, ProgramSession, SessionRecord, StandardDefinition } from '@penji-demos/types';
+import { PlainDate, ProgramSession, SessionRecord, RecognitionStandardDefinition } from '@penji-demos/types';
 
 // Places each session on its cohort's program calendar: its program month and
 // phase.  Sessions are returned in date order.
-export function resolveProgramSessions(standard: StandardDefinition, cohortStart: PlainDate, sessions: readonly SessionRecord[]): readonly ProgramSession[] {
+export function resolveProgramSessions(standard: RecognitionStandardDefinition, cohortStart: PlainDate, sessions: readonly SessionRecord[]): readonly ProgramSession[] {
   return [...sessions]
     .sort((a, b) => (a.sessionDate < b.sessionDate ? -1 : a.sessionDate > b.sessionDate ? 1 : Number(a.isMakeUp) - Number(b.isMakeUp)))
     .map((session) => {

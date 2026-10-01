@@ -28,13 +28,6 @@ export const PROGRAM_PHASE = {
   AFTER_PROGRAM_YEAR: 'afterProgramYear',
 } as const;
 
-// How serious a problem in a record is: an error keeps the record from being
-// submitted as is; a warning is something a reviewer should confirm.
-export const ISSUE_SEVERITY = {
-  ERROR: 'error',
-  WARNING: 'warning',
-} as const;
-
 // How a session was delivered, stored readable and coded as DMODE on export.
 export const DELIVERY_MODE = {
   IN_PERSON: 'inPerson',
@@ -58,4 +51,18 @@ export const DPRP_REQUIREMENT_ID = {
   RETENTION_MONTH_7: 'retention-month-7',
   RETENTION_MONTH_10: 'retention-month-10',
   EARLY_PRELIMINARY: 'preliminary-option-3',
+} as const;
+
+// The DPRP's ways of qualifying as having prediabetes, by eligibility basis ID.
+export const DPRP_ELIGIBILITY_BASIS = {
+  BLOOD_TEST: 'dprp-blood-test',
+  GESTATIONAL_DIABETES: 'dprp-gestational-diabetes',
+  RISK_TEST: 'dprp-risk-test',
+} as const;
+
+// The MDPP's ways of qualifying, by eligibility basis ID.
+export const MDPP_ELIGIBILITY_BASIS = {
+  A1C: 'mdpp-a1c',
+  FASTING_GLUCOSE: 'mdpp-fasting-glucose',
+  ORAL_GLUCOSE_TOLERANCE: 'mdpp-oral-glucose-tolerance',
 } as const;

@@ -11,10 +11,19 @@ export type AnswerValue = string | number | boolean | null;
 
 export type Answers = Readonly<Record<FieldKey, AnswerValue>>;
 
+// One condition language for the whole platform: it decides when a form
+// question shows, when a rule applies, and whether an eligibility criterion holds.
 export type Condition =
   | { readonly kind: 'equals'; readonly field: FieldKey; readonly value: AnswerValue }
   | { readonly kind: 'oneOf'; readonly field: FieldKey; readonly values: readonly AnswerValue[] }
   | { readonly kind: 'answered'; readonly field: FieldKey }
+  | { readonly kind: 'atLeast'; readonly field: FieldKey; readonly value: number }
+  | { readonly kind: 'between'; readonly field: FieldKey; readonly min: number; readonly max: number }
+  // A date no more than `days` before another date, and not after it.
+  | { readonly kind: 'withinDaysBefore'; readonly field: FieldKey; readonly anchor: FieldKey; readonly days: number }
+  // A date on or after another date, and no more than `days` after it.
+  | { readonly kind: 'withinDaysAfter'; readonly field: FieldKey; readonly anchor: FieldKey; readonly days: number }
+  | { readonly kind: 'not'; readonly condition: Condition }
   | { readonly kind: 'all'; readonly conditions: readonly Condition[] }
   | { readonly kind: 'any'; readonly conditions: readonly Condition[] };
 

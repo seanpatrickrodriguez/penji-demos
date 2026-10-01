@@ -1,14 +1,13 @@
-import { ISSUE_SEVERITY, PREDIABETES_BASIS, PROGRAM_PHASE, REQUIREMENT_OUTCOME } from '@penji-demos/constants';
+import { PROGRAM_PHASE, REQUIREMENT_OUTCOME } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
 import { CohortId, ParticipantId } from '../primitives/branded-ids';
 import { PlainDate } from '../primitives/plain-date';
 import { RequirementDefinition } from '../definitions/requirement-definition';
+import { RuleFinding } from '../definitions/compliance-definition';
 import { OutcomePathway, RecognitionStatus } from '../definitions/standard-definition';
 import { SessionRecord } from '../records/records';
 
 export type ProgramPhase = ValueOf<typeof PROGRAM_PHASE>;
-export type PrediabetesBasis = ValueOf<typeof PREDIABETES_BASIS>;
-export type IssueSeverity = ValueOf<typeof ISSUE_SEVERITY>;
 export type RequirementOutcome = ValueOf<typeof REQUIREMENT_OUTCOME>;
 
 // One criterion checked, whether it held, and what it was checked against.
@@ -24,10 +23,17 @@ export interface Determination {
   readonly findings: readonly Finding[];
 }
 
-export interface RecordIssue {
-  readonly severity: IssueSeverity;
-  readonly sessionDate: PlainDate | null;
-  readonly message: string;
+// Eligibility under one standard: the criteria checked and the bases that held.
+export interface EligibilityDetermination extends Determination {
+  readonly basesMet: readonly string[];
+}
+
+// What one standard makes of one participant.
+export interface StandardEvaluation {
+  readonly standardShortName: string;
+  readonly applies: boolean;
+  readonly eligibility: EligibilityDetermination;
+  readonly findings: readonly RuleFinding[];
 }
 
 // A session placed on the program calendar of its cohort.
@@ -62,14 +68,15 @@ export interface ParticipantEvaluation {
   readonly sessions: readonly ProgramSession[];
   // Sessions on or after the cohort's first session and within the program year.
   readonly sessionsAttended: number;
-  readonly eligibility: Determination & { readonly bases: readonly PrediabetesBasis[] };
+  // Eligibility and record findings under every standard on record; the recognition standard's come first.
+  readonly standards: readonly StandardEvaluation[];
+  readonly eligibility: EligibilityDetermination;
   readonly completer: Determination & { readonly corePhaseSessions: number; readonly fullMonthsFirstToLast: number };
   readonly weightChange: WeightChange | null;
   readonly activity: ActivitySummary;
   readonly outcomes: readonly OutcomeResult[];
   readonly riskReduced: boolean;
   readonly retainedAtProgramMonth: Readonly<Record<number, boolean>>;
-  readonly issues: readonly RecordIssue[];
 }
 
 // A metric's value, with the counts behind a share so the page can show them.

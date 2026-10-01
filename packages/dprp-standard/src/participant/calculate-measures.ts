@@ -2,11 +2,6 @@ import { CALENDAR } from '@penji-demos/constants';
 import { calculateDaysBetween } from '@penji-demos/time';
 import { ActivitySummary, ProgramSession, WeightChange } from '@penji-demos/types';
 
-// Body mass index from pounds and inches.
-export function calculateBmi(weightPounds: number, heightInches: number): number {
-  return (703 * weightPounds) / (heightInches * heightInches);
-}
-
 // First and last reported weights among the counted sessions, and the percent lost between them.
 export function calculateWeightChange(counted: readonly ProgramSession[]): WeightChange | null {
   const weighed = counted.filter((session): session is ProgramSession & { weightPounds: number } => session.weightPounds !== null);
