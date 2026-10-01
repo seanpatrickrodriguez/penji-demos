@@ -158,8 +158,14 @@
                 <td>{{ row.weight }}</td>
                 <td>{{ row.minutes }}</td>
                 <td class="row-actions">
-                  <button type="button" class="link-button" (click)="editSession(row.index)">Edit<span class="visually-hidden"> session of {{ row.date }}</span></button>
-                  <button type="button" class="link-button" (click)="removeSession(row.index)">Remove<span class="visually-hidden"> session of {{ row.date }}</span></button>
+                  @if (confirmingRemoval() === row.index) {
+                    <span role="alert">Remove this session?</span>
+                    <button type="button" class="link-button" (click)="removeSession(row.index)">Yes, remove<span class="visually-hidden"> the session of {{ row.date }}</span></button>
+                    <button type="button" class="link-button" (click)="confirmingRemoval.set(null)">Keep it</button>
+                  } @else {
+                    <button type="button" class="link-button" (click)="editSession(row.index)">Edit<span class="visually-hidden"> session of {{ row.date }}</span></button>
+                    <button type="button" class="link-button" (click)="confirmingRemoval.set(row.index)">Remove<span class="visually-hidden"> session of {{ row.date }}</span></button>
+                  }
                 </td>
               </tr>
             }

@@ -44,6 +44,7 @@ export class ParticipantPanel {
   protected readonly chartSize = CHART;
   protected readonly editing = signal<Editing | null>(null);
   protected readonly accepting = signal<string | null>(null);
+  protected readonly confirmingRemoval = signal<number | null>(null);
   protected readonly acceptNote = signal('');
   protected readonly acceptProblems = signal<readonly string[]>([]);
   // Enrollment answers while the form is open, so rules that depend on them (Medicare) apply as they change.
@@ -156,6 +157,7 @@ export class ParticipantPanel {
   protected removeSession(index: number): void {
     const participant = this.participant();
     if (participant) this.store.removeSession(participant.participantId, index);
+    this.confirmingRemoval.set(null);
   }
 
   protected draftChanged(answers: Answers): void {

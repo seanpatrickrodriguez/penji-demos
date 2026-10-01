@@ -59,8 +59,8 @@
       @for (tier of tiers(); track tier.label) {
         <li [class.reached]="tier.reached">
           <span class="tier-name">{{ tier.label }}</span>
-          <span class="tier-state">{{ tier.reached ? 'Reached' : 'Not reached' }}</span>
-          <span class="tier-needs">{{ tier.requires.length }} requirement{{ tier.requires.length === 1 ? '' : 's' }}, {{ tier.metCount }} met</span>
+          <span class="tier-state">{{ tier.reached ? 'Reached' : tier.open ? 'Not reached' : 'Not open' }}</span>
+          <span class="tier-needs">{{ tier.open ? tier.requires.length + ' requirement' + (tier.requires.length === 1 ? '' : 's') + ', ' + tier.metCount + ' met' : 'Only at Sequence 1 and 2 submissions' }}</span>
         </li>
       }
     </ol>

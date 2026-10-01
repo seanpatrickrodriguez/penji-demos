@@ -61,6 +61,8 @@ export function resolveRequirementRows(entry: SubmissionResult): readonly Requir
 export interface TierView {
   readonly label: string;
   readonly reached: boolean;
+  // False when a requirement of the tier cannot be measured at this submission, as the early route to Preliminary after Sequence 2.
+  readonly open: boolean;
   readonly metCount: number;
   readonly requires: readonly { readonly label: string; readonly met: boolean }[];
 }
@@ -71,7 +73,10 @@ export function resolveTierViews(standard: RecognitionStandardDefinition, entry:
     .filter((tier) => tier.requires.length > 0)
     .map((tier) => {
       const requires = tier.requires.map((id) => ({ label: results.get(id)?.requirement.label ?? id, met: results.get(id)?.outcome === REQUIREMENT_OUTCOME.MET }));
-      return { label: tier.label, reached: requires.every((requirement) => requirement.met), metCount: requires.filter((requirement) => requirement.met).length, requires };
+      // A count with no value at all (no denominator either) is a route this submission does not offer.
+      const isClosed = (id: string) => results.get(id)?.outcome === REQUIREMENT_OUTCOME.UNMEASURED && results.get(id)?.measured.denominator === null;
+      const open = !tier.requires.some(isClosed);
+      return { label: tier.label, reached: requires.every((requirement) => requirement.met), open, metCount: requires.filter((requirement) => requirement.met).length, requires };
     });
 }
 
