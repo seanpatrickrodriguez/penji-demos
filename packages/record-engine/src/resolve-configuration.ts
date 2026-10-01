@@ -33,11 +33,26 @@ export const resolveEntityDefinition = (configuration: PlatformConfiguration, ki
 export const resolveStreamDefinition = (configuration: PlatformConfiguration, streamId: string): StreamDefinition | null =>
   configuration.entities.flatMap((entity) => entity.streams).find((stream) => stream.id === streamId) ?? null;
 
+// What a permission is called, as the access policy names it.
+export const resolvePermissionLabel = (configuration: PlatformConfiguration, permission: string): string =>
+  configuration.accessPolicy.permissions.find((candidate) => candidate.id === permission)?.label ?? permission;
+
 export const resolveEntityStandards = (configuration: PlatformConfiguration, entity: EntityDefinition) =>
   configuration.standards.filter((standard) => entity.standardIds.includes(standard.id));
 
-// Every field of every form in the bundle, so a value can be shown the way its form presents it.
-export const resolveFieldDefinitions = (configuration: PlatformConfiguration): readonly FieldDefinition[] => configuration.forms.flatMap((form) => form.fields);
+// An entry's workflow state, read like a choice whose options are the states of every workflow in the bundle.
+function resolveEntryStatusField(configuration: PlatformConfiguration): FieldDefinition | null {
+  const states = configuration.workflows.flatMap((workflow) => workflow.states);
+  if (states.length === 0) return null;
+  const options = states.filter((state, index) => states.findIndex((candidate) => candidate.id === state.id) === index).map((state) => ({ value: state.id, label: state.label }));
+  return { kind: 'choice', key: PLATFORM_FACT.ENTRY_STATUS, label: PLATFORM_FACT_LABELS[PLATFORM_FACT.ENTRY_STATUS], options };
+}
+
+// Every field of every form in the bundle, and an entry's status, so a value can be shown the way its form or workflow presents it.
+export function resolveFieldDefinitions(configuration: PlatformConfiguration): readonly FieldDefinition[] {
+  const status = resolveEntryStatusField(configuration);
+  return [...configuration.forms.flatMap((form) => form.fields), ...(status ? [status] : [])];
+}
 
 // A label for every key a condition or rule can read: form fields, worked-out facts and the platform's own facts.
 export function resolveFieldLabels(configuration: PlatformConfiguration): Readonly<Record<string, string>> {

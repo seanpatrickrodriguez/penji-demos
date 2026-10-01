@@ -17,9 +17,9 @@ import {
   toTenantId,
 } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
-import { resolveEntryOptions, isPermittedOnRecord } from './resolve-access';
+import { resolveEntryOptions, isPermittedOnRecord, resolvePermissionOption } from './resolve-access';
 import { resolveDataAsOf } from './resolve-as-of';
-import { evaluateEntity } from './evaluate-entity';
+import { describeRecordValue, evaluateEntity } from './evaluate-entity';
 import { addEntry, applyEntryTransition, removeEntry } from './record-changes';
 import { resolveEntityFacts, resolveEntryAnswers } from './resolve-subject';
 import { validateConfiguration } from './validate-configuration';
@@ -277,6 +277,12 @@ describe('scope', () => {
     expect(isPermittedOnRecord(CONFIGURATION, DATA, VOLUNTEER, 'borrow', entity('m-south'))).toBe(false);
   });
 
+  it('says why an action is not available, in the access policy’s words', () => {
+    const own = entry(DATA, 'l1');
+    expect(resolvePermissionOption(CONFIGURATION, DATA, VOLUNTEER, 'removeLoan', entity('m-north'), own)).toEqual({ permission: 'removeLoan', available: true, reason: null });
+    expect(resolvePermissionOption(CONFIGURATION, DATA, RESTING, 'removeLoan', entity('m-north'), own)).toEqual({ permission: 'removeLoan', available: false, reason: 'Needs permission to remove a loan.' });
+  });
+
   it('grants nothing through an inactive assignment', () => {
     expect(isPermittedOnRecord(CONFIGURATION, DATA, RESTING, 'borrow', entity('m-north'))).toBe(false);
   });
@@ -290,6 +296,10 @@ describe('facts', () => {
 
   it('counts only the people assigned to the entity itself when the fact says so', () => {
     expect(resolveEntityFacts(CONFIGURATION, DATA, entity('m-south'), date('2026-04-01'))).toMatchObject({ lenderOnDuty: true, borrowerAssigned: false });
+  });
+
+  it('names an entry’s status the way its workflow does', () => {
+    expect(describeRecordValue(CONFIGURATION, PLATFORM_FACT.ENTRY_STATUS, 'out')).toBe('Out');
   });
 
   it('works out an entry’s calculated fields and the platform’s entry facts', () => {

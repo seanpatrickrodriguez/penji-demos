@@ -4,10 +4,9 @@ import { resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/co
 import { ENROLLMENT_FORM, SESSION_FORM } from '@penji-demos/dprp-configuration';
 import { resolveEntityFacts, resolveFieldDefinitions, resolveFieldLabels } from '@penji-demos/record-engine';
 import { Answers, EntryId, GuidanceItem } from '@penji-demos/types';
-import { DefinitionForm, GuidanceList, ResolveGuidance } from '@penji-demos/ui';
+import { DefinitionForm, GuidanceList, ResolveGuidance, formatDate } from '@penji-demos/ui';
 import { ALL_STANDARDS, CONFIGURATION, DemoStore, RECOGNITION_STANDARD, THROUGH_MONTH } from '../state/demo-store';
 import { CHART, resolveWeightChart } from '../view/chart-view';
-import { formatDate } from '../view/format';
 import { resolveSessionRows } from '../view/participant-view';
 
 type Editing =

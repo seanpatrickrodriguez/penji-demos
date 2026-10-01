@@ -311,3 +311,29 @@ export function buildSyntheticFleet(): PlatformData {
   const empty: PlatformData = { tenants: TENANTS, actors: ACTORS, assignments: ASSIGNMENTS, entities: Object.values(FLEET_VESSELS), entries: [] };
   return PLANNED_ITEMS.reduce(recordItem, empty);
 }
+
+// People worth viewing the fleet as, each with what their assignments let them do.
+export interface FleetWalkthroughStop {
+  readonly actorId: ActorId;
+  readonly does: string;
+}
+
+const placed = (position: FleetPosition, vesselEntity: EntityRecord | null, aboard: boolean): ActorId => {
+  const index = PLACEMENTS.findIndex(
+    (placement) => placement.position === position && placement.aboard === aboard && (vesselEntity === null ? placement.vessels.length === 0 : placement.vessels.includes(vesselEntity)),
+  );
+  const actor = ACTORS[index];
+  if (!actor) throw new Error(`The seed has no ${position} for the walkthrough.`);
+  return actor.actorId;
+};
+
+export const FLEET_WALKTHROUGH: readonly FleetWalkthroughStop[] = [
+  { actorId: placed(P.COOK, FLEET_VESSELS.TERN, true), does: 'Adds to the Tern’s want list, and changes or removes their own items until the list is sent.' },
+  { actorId: placed(P.CAPTAIN, FLEET_VESSELS.TERN, true), does: 'Sends the Tern’s list to the shop and keeps its profile current.' },
+  { actorId: placed(P.CAPTAIN, FLEET_VESSELS.TERN, false), does: 'Off rotation: assigned to the Tern, holding nothing until back aboard.' },
+  { actorId: placed(P.TANKERMAN_PIC, FLEET_VESSELS.KESTREL_305, true), does: 'The tankerman in charge: sends the fuel barge’s list.' },
+  { actorId: placed(P.SUPPLY_MANAGER, null, false), does: 'Works every vessel’s list.  Cannot stock a mooring line or a costly item until it is approved.' },
+  { actorId: placed(P.PORT_ENGINEER, null, false), does: 'Every permission, on every vessel.' },
+  { actorId: placed(P.OWNER_REPRESENTATIVE, null, false), does: 'Decides on items sent for approval, and nothing else.' },
+  { actorId: placed(P.SENIOR_WELDER, null, false), does: 'Shop staff: stocks what the shop has and keeps vessel profiles current.' },
+];

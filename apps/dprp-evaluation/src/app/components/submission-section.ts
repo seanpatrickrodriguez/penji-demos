@@ -3,7 +3,7 @@ import { SUBMISSION_COLUMN } from '@penji-demos/constants';
 import { resolveSubmissionCsv, resolveSubmissionRows } from '@penji-demos/dprp-recognition';
 import { resolveDataAsOf } from '@penji-demos/record-engine';
 import { CONFIGURATION, DemoStore, ORGANIZATION_ID, RECOGNITION_STANDARD } from '../state/demo-store';
-import { formatMonth } from '../view/format';
+import { formatMonth } from '@penji-demos/ui';
 
 const PREVIEW_ROWS = 8;
 

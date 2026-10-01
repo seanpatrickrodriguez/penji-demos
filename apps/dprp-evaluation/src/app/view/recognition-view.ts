@@ -3,7 +3,8 @@ import { SubmissionResult } from '@penji-demos/dprp-recognition';
 import { COHORT_FIELD } from '@penji-demos/constants';
 import { readDate, readText } from '@penji-demos/record-engine';
 import { EntityRecord, RecognitionStandardDefinition, RecognitionStatus, RequirementOutcome } from '@penji-demos/types';
-import { OUTCOME_LABEL, STATUS_LABEL, formatDate, formatMeasured, formatMonth, formatShortMonth, formatThreshold } from './format';
+import { formatDate, formatMonth, formatShortMonth } from '@penji-demos/ui';
+import { OUTCOME_LABEL, STATUS_LABEL, formatMeasured, formatThreshold } from './format';
 
 export interface SubmissionView {
   readonly sequence: number;

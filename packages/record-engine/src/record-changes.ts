@@ -2,7 +2,7 @@ import { applyTransition } from '@penji-demos/workflow-engine';
 import { ActorId, Answers, EntityId, EntryId, PlainDate, PlatformConfiguration, PlatformData, StreamEntry } from '@penji-demos/types';
 import { readDate } from './read-values';
 import { resolveStreamDefinition, resolveWorkflow } from './resolve-configuration';
-import { isPermittedOnRecord, resolveActorContext } from './resolve-access';
+import { isPermittedOnRecord, resolveActorContext, resolveMissingPermission } from './resolve-access';
 
 // Every change to the records goes through these functions, and each one
 // checks the person's permission first.  A change returns the new records,
@@ -11,9 +11,7 @@ import { isPermittedOnRecord, resolveActorContext } from './resolve-access';
 export type RecordChange = { readonly ok: true; readonly data: PlatformData } | { readonly ok: false; readonly problems: readonly string[] };
 
 const refuse = (problem: string): RecordChange => ({ ok: false, problems: [problem] });
-const permissionLabel = (configuration: PlatformConfiguration, permission: string) =>
-  (configuration.accessPolicy.permissions.find((candidate) => candidate.id === permission)?.label ?? permission).toLowerCase();
-const needs = (configuration: PlatformConfiguration, permission: string) => refuse(`Needs permission to ${permissionLabel(configuration, permission)}.`);
+const needs = (configuration: PlatformConfiguration, permission: string) => refuse(resolveMissingPermission(configuration, permission));
 
 export interface AddEntryRequest {
   readonly actorId: ActorId;
