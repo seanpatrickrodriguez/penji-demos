@@ -17,6 +17,8 @@ export type Condition =
   | { readonly kind: 'equals'; readonly field: FieldKey; readonly value: AnswerValue }
   | { readonly kind: 'oneOf'; readonly field: FieldKey; readonly values: readonly AnswerValue[] }
   | { readonly kind: 'answered'; readonly field: FieldKey }
+  // Two fields hold the same value, such as the actor and the person who created a record.
+  | { readonly kind: 'sameAs'; readonly field: FieldKey; readonly other: FieldKey }
   | { readonly kind: 'atLeast'; readonly field: FieldKey; readonly value: number }
   | { readonly kind: 'between'; readonly field: FieldKey; readonly min: number; readonly max: number }
   // A date no more than `days` before another date, and not after it.

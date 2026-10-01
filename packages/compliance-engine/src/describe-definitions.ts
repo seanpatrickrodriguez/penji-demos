@@ -16,6 +16,8 @@ export function describeCondition(condition: Condition, labels: FieldLabels): st
       return `${label(condition.field)} is ${condition.values.map(describeAnswer).join(' or ')}`;
     case 'answered':
       return `${label(condition.field)} is recorded`;
+    case 'sameAs':
+      return `${label(condition.field)} is the same as ${label(condition.other)}`;
     case 'atLeast':
       return `${label(condition.field)} is at least ${condition.value}`;
     case 'between':

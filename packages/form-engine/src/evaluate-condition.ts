@@ -29,6 +29,8 @@ export function evaluateCondition(condition: Condition, answers: Answers): boole
       return condition.values.includes(answers[condition.field] ?? null);
     case 'answered':
       return isAnswered(answers[condition.field]);
+    case 'sameAs':
+      return isAnswered(answers[condition.field]) && answers[condition.field] === answers[condition.other];
     case 'atLeast': {
       const value = numberAt(answers, condition.field);
       return value !== null && value >= condition.value;
@@ -65,6 +67,8 @@ export function resolveConditionFields(condition: Condition): readonly string[] 
     case 'withinDaysBefore':
     case 'withinDaysAfter':
       return [condition.field, condition.anchor];
+    case 'sameAs':
+      return [condition.field, condition.other];
     default:
       return [condition.field];
   }

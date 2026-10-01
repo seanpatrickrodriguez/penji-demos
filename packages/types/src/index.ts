@@ -7,5 +7,7 @@ export * from './definitions/compliance-definition';
 export * from './definitions/standard-definition';
 export * from './definitions/data-element-definition';
 export * from './definitions/form-definition';
+export * from './definitions/access-definition';
+export * from './definitions/workflow-definition';
 export * from './records/records';
 export * from './evaluation/evaluation';

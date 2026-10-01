@@ -22,6 +22,8 @@ export const RECORD_REVIEW = {
 // The kinds of definition the platform knows.  Adding a kind is an M3 change.
 export const DEFINITION_KIND = {
   STANDARD: 'standard',
+  ACCESS_POLICY: 'accessPolicy',
+  WORKFLOW: 'workflow',
   DATA_ELEMENT: 'dataElement',
   FORM: 'form',
 } as const;

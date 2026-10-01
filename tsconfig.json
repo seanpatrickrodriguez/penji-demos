@@ -29,6 +29,9 @@
       "@penji-demos/compliance-engine": [
         "packages/compliance-engine/src/index.ts"
       ],
+      "@penji-demos/workflow-engine": [
+        "packages/workflow-engine/src/index.ts"
+      ],
       "@penji-demos/program-records": [
         "packages/program-records/src/index.ts"
       ],
