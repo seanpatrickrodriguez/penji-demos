@@ -36,7 +36,7 @@ export interface RuleDefinition {
   readonly citation: SourceReference;
   readonly scope: RuleScope;
   readonly check: RuleCheck;
-  // The rule applies only when this holds for the participant; null means always.
+  // The rule applies only when this holds for the subject; null means always.
   readonly appliesWhen: Condition | null;
   readonly severity: ValidationSeverity;
   // True when an open finding blocks the record from being submitted.
@@ -49,7 +49,7 @@ export interface RuleDefinition {
   readonly fixTarget: FixTarget | null;
 }
 
-// M2: one condition a participant must meet, with the facts shown as evidence.
+// M2: one condition a subject must meet, with the facts shown as evidence.
 export interface CriterionDefinition {
   readonly id: string;
   readonly label: string;
@@ -71,13 +71,14 @@ export interface Interpretation {
   readonly reading: string;
 }
 
-// M2: a compliance standard.  It applies to the participants its condition
-// selects, judges their eligibility and checks their records, and it reaches
-// the forms only through its rules.
+// M2: a compliance standard.  It applies to the subjects its condition
+// selects, judges their eligibility where it admits subjects, and checks their
+// records.  It reaches the forms only through its rules.
 export interface ComplianceStandardDefinition extends Definition<typeof DEFINITION_KIND.STANDARD> {
   readonly shortName: string;
   readonly appliesWhen: Condition | null;
-  readonly eligibility: EligibilityRulesDefinition;
+  // Who the standard accepts; null for a standard that only checks records.
+  readonly eligibility: EligibilityRulesDefinition | null;
   readonly rules: readonly RuleDefinition[];
   readonly interpretations: readonly Interpretation[];
 }
@@ -87,6 +88,7 @@ export interface RuleFinding {
   readonly ruleId: string;
   readonly standardShortName: string;
   // The event the finding is about, or null for the subject's own record or its history.
+  readonly eventId: string | null;
   readonly eventDate: PlainDate | null;
   readonly message: string;
   readonly expected: string | null;
@@ -114,7 +116,7 @@ export interface GuidanceItem {
   readonly id: string;
   readonly rule: RuleDefinition;
   readonly finding: RuleFinding;
-  readonly target: (FixTarget & { readonly eventDate: PlainDate | null }) | null;
+  readonly target: (FixTarget & { readonly eventId: string | null; readonly eventDate: PlainDate | null }) | null;
   readonly requiresAction: boolean;
   readonly availableActions: readonly GuidanceAction[];
   readonly resolution: GuidanceResolution | null;

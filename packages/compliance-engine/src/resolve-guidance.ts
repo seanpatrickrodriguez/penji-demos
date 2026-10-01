@@ -3,7 +3,7 @@ import { GuidanceAction, GuidanceItem, GuidanceResolution, RuleDefinition, RuleF
 
 // A stable ID for a finding, so a resolution still matches it after the record is re-evaluated.
 export const resolveGuidanceId = (subjectId: string, finding: RuleFinding): string =>
-  [subjectId, finding.standardShortName, finding.ruleId, finding.eventDate ?? 'record'].join(':');
+  [subjectId, finding.standardShortName, finding.ruleId, finding.eventId ?? 'record'].join(':');
 
 // What a person can do about a finding.  Change is offered only where there is
 // a field to change, accept only where the rule allows the record to stand, and
@@ -27,7 +27,7 @@ export function resolveGuidanceItem(
     id,
     rule,
     finding,
-    target: rule.fixTarget ? { ...rule.fixTarget, eventDate: finding.eventDate } : null,
+    target: rule.fixTarget ? { ...rule.fixTarget, eventId: finding.eventId, eventDate: finding.eventDate } : null,
     requiresAction: rule.blocks,
     availableActions: resolveGuidanceActions(rule),
     resolution: resolutions.get(id) ?? null,

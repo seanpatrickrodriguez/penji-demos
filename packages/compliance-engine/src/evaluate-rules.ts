@@ -7,6 +7,7 @@ import {
   ComplianceStandardDefinition,
   CriterionDefinition,
   EligibilityDetermination,
+  EligibilityRulesDefinition,
   Finding,
   PlainDate,
   RuleDefinition,
@@ -41,12 +42,12 @@ function evaluateCriterion(criterion: CriterionDefinition, facts: Answers, label
 }
 
 // Eligibility under one standard: every criterion, and at least one basis.
-export function evaluateEligibility(standard: ComplianceStandardDefinition, facts: Answers, labels: FieldLabels): EligibilityDetermination {
-  const criteria = standard.eligibility.criteria.map((criterion) => evaluateCriterion(criterion, facts, labels));
-  const bases = standard.eligibility.bases.map((basis) => ({ basis, finding: evaluateCriterion(basis, facts, labels) }));
+export function evaluateEligibility(eligibility: EligibilityRulesDefinition, facts: Answers, labels: FieldLabels): EligibilityDetermination {
+  const criteria = eligibility.criteria.map((criterion) => evaluateCriterion(criterion, facts, labels));
+  const bases = eligibility.bases.map((basis) => ({ basis, finding: evaluateCriterion(basis, facts, labels) }));
   const basesMet = bases.filter(({ finding }) => finding.met).map(({ basis }) => basis.id);
   const basisFinding: Finding = {
-    criterion: standard.eligibility.basesLabel,
+    criterion: eligibility.basesLabel,
     met: basesMet.length > 0,
     detail: basesMet.length > 0 ? bases.filter(({ finding }) => finding.met).map(({ basis }) => basis.label).join('; ') : 'No basis holds',
   };
@@ -62,36 +63,37 @@ const asDate = (value: AnswerValue | undefined): PlainDate | null => (typeof val
 export function evaluateRule(rule: RuleDefinition, standardShortName: string, subject: ComplianceSubject, labels: FieldLabels): readonly RuleFinding[] {
   const { facts, events } = subject;
   if (!isRuleApplicable(rule, facts)) return [];
-  const finding = (eventDate: PlainDate | null, values: Readonly<Record<string, string>>, expected: string | null, actual: string | null): RuleFinding => ({
+  const finding = (event: SubjectEvent | null, values: Readonly<Record<string, string>>, expected: string | null, actual: string | null): RuleFinding => ({
     ruleId: rule.id,
     standardShortName,
-    eventDate,
+    eventId: event?.eventId ?? null,
+    eventDate: event?.eventDate ?? null,
     message: resolveMessage(rule.issue, values),
     expected,
     actual,
   });
   // A rule on one record runs on the subject's facts, or on each event with the facts behind it.
-  const records: readonly { eventDate: PlainDate | null; answers: Answers }[] =
-    rule.scope === RULE_SCOPE.EVENT ? events.map((event) => ({ eventDate: event.eventDate, answers: eventAnswers(event, facts) })) : [{ eventDate: null, answers: facts }];
+  const records: readonly { event: SubjectEvent | null; answers: Answers }[] =
+    rule.scope === RULE_SCOPE.EVENT ? events.map((event) => ({ event, answers: eventAnswers(event, facts) })) : [{ event: null, answers: facts }];
   const { check } = rule;
 
   switch (check.kind) {
     case RULE_CHECK_KIND.RANGE:
-      return records.flatMap(({ eventDate, answers }) => {
+      return records.flatMap(({ event, answers }) => {
         const value = answers[check.field];
         if (typeof value !== 'number' || (value >= check.min && value <= check.max)) return [];
         const expected = `${check.min}-${check.max} ${check.unit}`;
-        return [finding(eventDate, { value: describeValue(value), min: String(check.min), max: String(check.max), unit: check.unit, expected }, expected, `${describeValue(value)} ${check.unit}`)];
+        return [finding(event, { value: describeValue(value), min: String(check.min), max: String(check.max), unit: check.unit, expected }, expected, `${describeValue(value)} ${check.unit}`)];
       });
     case RULE_CHECK_KIND.REQUIRED:
-      return records.flatMap(({ eventDate, answers }) => (isAnswered(answers[check.field]) ? [] : [finding(eventDate, {}, labels[check.field] ?? check.field, 'not recorded')]));
+      return records.flatMap(({ event, answers }) => (isAnswered(answers[check.field]) ? [] : [finding(event, {}, labels[check.field] ?? check.field, 'not recorded')]));
     case RULE_CHECK_KIND.REQUIRED_WHEN:
-      return records.flatMap(({ eventDate, answers }) =>
-        evaluateCondition(check.when, answers) && !isAnswered(answers[check.field]) ? [finding(eventDate, {}, labels[check.field] ?? check.field, 'not recorded')] : [],
+      return records.flatMap(({ event, answers }) =>
+        evaluateCondition(check.when, answers) && !isAnswered(answers[check.field]) ? [finding(event, {}, labels[check.field] ?? check.field, 'not recorded')] : [],
       );
     case RULE_CHECK_KIND.CONDITION:
-      return records.flatMap(({ eventDate, answers }) =>
-        evaluateCondition(check.condition, answers) ? [] : [finding(eventDate, { value: describeFacts(check.describes, answers, labels) }, null, describeFacts(check.describes, answers, labels))],
+      return records.flatMap(({ event, answers }) =>
+        evaluateCondition(check.condition, answers) ? [] : [finding(event, { value: describeFacts(check.describes, answers, labels) }, null, describeFacts(check.describes, answers, labels))],
       );
     case RULE_CHECK_KIND.SAME_DATE_VALUES_MATCH: {
       const byDate = new Map<string, SubjectEvent[]>();
@@ -101,7 +103,7 @@ export function evaluateRule(rule: RuleDefinition, standardShortName: string, su
         const first = sameDay[0];
         if (!first || new Set(values).size <= 1) return [];
         const actual = values.map(describeValue).join(' and ');
-        return [finding(first.eventDate, { value: actual }, 'the same value', actual)];
+        return [finding(first, { value: actual }, 'the same value', actual)];
       });
     }
     case RULE_CHECK_KIND.AT_MOST_PER_WINDOW: {
@@ -110,7 +112,7 @@ export function evaluateRule(rule: RuleDefinition, standardShortName: string, su
         const inWindow = counted.slice(0, index + 1).filter((earlier) => calculateDaysBetween(earlier.eventDate, event.eventDate) < check.windowDays);
         if (inWindow.length <= check.max) return [];
         const expected = `at most ${check.max} in ${check.windowDays} days`;
-        return [finding(event.eventDate, { value: String(inWindow.length), max: String(check.max), expected }, expected, `${inWindow.length} in ${check.windowDays} days`)];
+        return [finding(event, { value: String(inWindow.length), max: String(check.max), expected }, expected, `${inWindow.length} in ${check.windowDays} days`)];
       });
     }
     case RULE_CHECK_KIND.WITHIN_DAYS_OF_ANCHOR: {
@@ -119,12 +121,12 @@ export function evaluateRule(rule: RuleDefinition, standardShortName: string, su
       if (!date || !anchor) return [];
       const days = calculateDaysBetween(anchor, date);
       if (days <= check.days) return [];
-      return [finding(date, { value: String(days), max: String(check.days), expected: `within ${check.days} days` }, `within ${check.days} days`, `${days} days`)];
+      return [finding(null, { value: String(days), max: String(check.days), expected: `within ${check.days} days` }, `within ${check.days} days`, `${days} days`)];
     }
     case RULE_CHECK_KIND.NOT_BEFORE_ANCHOR: {
       const anchor = asDate(facts[check.anchor]);
       if (!anchor) return [];
-      return events.filter((event) => event.eventDate < anchor).map((event) => finding(event.eventDate, { value: event.eventDate, expected: `on or after ${anchor}` }, `on or after ${anchor}`, event.eventDate));
+      return events.filter((event) => event.eventDate < anchor).map((event) => finding(event, { value: event.eventDate, expected: `on or after ${anchor}` }, `on or after ${anchor}`, event.eventDate));
     }
     case RULE_CHECK_KIND.CHANGE_AT_MOST: {
       const measured = events.flatMap((event) => {
@@ -137,7 +139,7 @@ export function evaluateRule(rule: RuleDefinition, standardShortName: string, su
         const change = (Math.abs(value - previous.value) / previous.value) * 100;
         if (change <= check.percent) return [];
         const expected = `a change of at most ${check.percent}%`;
-        return [finding(event.eventDate, { value: `${change.toFixed(0)}%`, max: String(check.percent), expected }, expected, `${change.toFixed(0)}% since ${previous.event.eventDate}`)];
+        return [finding(event, { value: `${change.toFixed(0)}%`, max: String(check.percent), expected }, expected, `${change.toFixed(0)}% since ${previous.event.eventDate}`)];
       });
     }
   }
@@ -149,7 +151,7 @@ export function evaluateStandard(standard: ComplianceStandardDefinition, subject
   return {
     standardShortName: standard.shortName,
     applies,
-    eligibility: evaluateEligibility(standard, subject.facts, labels),
+    eligibility: standard.eligibility ? evaluateEligibility(standard.eligibility, subject.facts, labels) : null,
     findings: applies ? standard.rules.flatMap((rule) => evaluateRule(rule, standard.shortName, subject, labels)) : [],
   };
 }

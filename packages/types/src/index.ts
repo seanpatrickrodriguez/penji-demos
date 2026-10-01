@@ -9,5 +9,6 @@ export * from './definitions/data-element-definition';
 export * from './definitions/form-definition';
 export * from './definitions/access-definition';
 export * from './definitions/workflow-definition';
-export * from './records/records';
+export * from './records/program-records';
+export * from './records/fleet-records';
 export * from './evaluation/evaluation';

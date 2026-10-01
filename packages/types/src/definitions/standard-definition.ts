@@ -1,6 +1,6 @@
 import { OUTCOME_PATHWAY, RECOGNITION_STATUS } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
-import { ComplianceStandardDefinition } from './compliance-definition';
+import { ComplianceStandardDefinition, EligibilityRulesDefinition } from './compliance-definition';
 import { RequirementDefinition, StatusPersistence, TierDefinition } from './requirement-definition';
 
 export type RecognitionStatus = ValueOf<typeof RECOGNITION_STATUS>;
@@ -65,6 +65,7 @@ export interface RetentionCheckpoint {
 // M2: a recognition standard: a compliance standard that also measures
 // outcomes over a program year and awards recognition to an organization.
 export interface RecognitionStandardDefinition extends ComplianceStandardDefinition {
+  readonly eligibility: EligibilityRulesDefinition;
   readonly edition: string;
   readonly program: ProgramDefinition;
   readonly completer: CompleterDefinition;

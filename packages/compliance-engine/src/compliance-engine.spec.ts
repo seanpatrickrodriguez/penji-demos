@@ -57,7 +57,7 @@ const ONE_EXTRA_PER_WEEK = rule('extra-per-week', {
 const BASIC = standard('Basic', [LAP_RANGE, ONE_EXTRA_PER_WEEK]);
 const SQUAD = standard('Squad', [rule('squad-laps', { scope: RULE_SCOPE.EVENT, check: { kind: RULE_CHECK_KIND.RANGE, field: 'laps', min: 10, max: 120, unit: 'laps' } })], { kind: 'equals', field: 'squad', value: true });
 
-const event = (date: string, values: Record<string, number | boolean | null>) => ({ eventDate: toPlainDate(date), values: { eventDate: date, ...values } });
+const event = (date: string, values: Record<string, number | boolean | null>) => ({ eventId: date, eventDate: toPlainDate(date), values: { eventDate: date, ...values } });
 const SUBJECT: ComplianceSubject = {
   facts: { age: 10, swimTestPassed: false, tookLessons: true, squad: false },
   events: [event('2025-03-03', { laps: 40, extra: false }), event('2025-03-04', { laps: 400, extra: true }), event('2025-03-06', { laps: 30, extra: true })],
@@ -66,8 +66,8 @@ const SUBJECT: ComplianceSubject = {
 describe('evaluateStandard', () => {
   it('judges eligibility by every criterion and at least one basis', () => {
     const evaluation = evaluateStandard(BASIC, SUBJECT, {});
-    expect(evaluation.eligibility.met).toBe(true);
-    expect(evaluation.eligibility.basesMet).toEqual(['lessons']);
+    expect(evaluation.eligibility?.met).toBe(true);
+    expect(evaluation.eligibility?.basesMet).toEqual(['lessons']);
   });
 
   it('finds a value out of range on the session it belongs to', () => {

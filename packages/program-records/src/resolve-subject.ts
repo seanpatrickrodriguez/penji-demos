@@ -40,6 +40,6 @@ export function resolveParticipantFacts(participant: ParticipantRecord, cohort: 
 export function resolveComplianceSubject(participant: ParticipantRecord, cohort: CohortRecord): ComplianceSubject {
   return {
     facts: resolveParticipantFacts(participant, cohort),
-    events: participant.sessions.map((session) => ({ eventDate: session.sessionDate, values: resolveSessionAnswers(session) })),
+    events: participant.sessions.map((session) => ({ eventId: session.sessionDate, eventDate: session.sessionDate, values: resolveSessionAnswers(session) })),
   };
 }

@@ -27,14 +27,18 @@ interface RuleView {
   readonly json: string;
 }
 
+interface EligibilityView {
+  readonly criteria: readonly CriterionView[];
+  readonly basesLabel: string;
+  readonly bases: readonly CriterionView[];
+}
+
 interface StandardView {
   readonly shortName: string;
   readonly title: string;
   readonly url: string;
   readonly appliesTo: string;
-  readonly criteria: readonly CriterionView[];
-  readonly basesLabel: string;
-  readonly bases: readonly CriterionView[];
+  readonly eligibility: EligibilityView | null;
   readonly rules: readonly RuleView[];
   readonly interpretations: ComplianceStandardDefinition['interpretations'];
 }
@@ -68,9 +72,13 @@ const describeStandard = (standard: ComplianceStandardDefinition, labels: FieldL
   title: standard.title,
   url: standard.source.url,
   appliesTo: standard.appliesWhen ? `Records where ${describeCondition(standard.appliesWhen, labels)}` : 'Every record',
-  criteria: standard.eligibility.criteria.map((criterion) => describeCriterion(criterion, labels)),
-  basesLabel: standard.eligibility.basesLabel,
-  bases: standard.eligibility.bases.map((basis) => describeCriterion(basis, labels)),
+  eligibility: standard.eligibility
+    ? {
+        criteria: standard.eligibility.criteria.map((criterion) => describeCriterion(criterion, labels)),
+        basesLabel: standard.eligibility.basesLabel,
+        bases: standard.eligibility.bases.map((basis) => describeCriterion(basis, labels)),
+      }
+    : null,
   rules: standard.rules.map((rule) => describeRule(rule, labels, formTitles)),
   interpretations: standard.interpretations,
 });

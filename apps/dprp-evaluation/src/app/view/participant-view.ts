@@ -28,7 +28,7 @@ export function resolveParticipantRows(entry: SubmissionResult, blockingRuleIds:
       cohortId: participant.cohortId,
       inEvaluationCohort: inWindow.has(participant.cohortId),
       eligible: participant.eligibility.met,
-      mdpp: !mdpp?.applies ? 'notApplicable' : mdpp.eligibility.met ? 'eligible' : 'notEligible',
+      mdpp: !mdpp?.applies ? 'notApplicable' : mdpp.eligibility?.met ? 'eligible' : 'notEligible',
       completer: participant.completer.met,
       sessions: participant.sessionsAttended,
       weightChange: participant.weightChange ? `${participant.weightChange.lossPercent >= 0 ? '−' : '+'}${Math.abs(participant.weightChange.lossPercent).toFixed(1)}%` : '—',

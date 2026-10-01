@@ -1,4 +1,4 @@
-import { FieldLabels, evaluateStandard } from '@penji-demos/compliance-engine';
+import { FieldLabels, evaluateEligibility, evaluateStandard } from '@penji-demos/compliance-engine';
 import { FACT_LABELS, resolveComplianceSubject } from '@penji-demos/program-records';
 import { isOnOrAfter, resolveProgramMonthStart } from '@penji-demos/time';
 import { CohortRecord, ComplianceStandardDefinition, ParticipantEvaluation, ParticipantRecord, RecognitionStandardDefinition } from '@penji-demos/types';
@@ -19,8 +19,6 @@ export function evaluateParticipant(
   const start = cohort.firstSessionDate;
   const subject = resolveComplianceSubject(participant, cohort);
   const standards = [standard, ...otherStandards].map((each) => evaluateStandard(each, subject, labels));
-  const recognition = standards[0];
-  if (!recognition) throw new Error('The recognition standard was not evaluated.');
 
   const sessions = resolveProgramSessions(standard, start, participant.sessions);
   const counted = resolveCountedSessions(sessions);
@@ -41,7 +39,7 @@ export function evaluateParticipant(
     sessions,
     sessionsAttended: counted.length,
     standards,
-    eligibility: recognition.eligibility,
+    eligibility: evaluateEligibility(standard.eligibility, subject.facts, labels),
     completer: evaluateCompleter(standard, start, counted),
     weightChange,
     activity,

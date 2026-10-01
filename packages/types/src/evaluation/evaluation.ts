@@ -5,7 +5,7 @@ import { PlainDate } from '../primitives/plain-date';
 import { RequirementDefinition } from '../definitions/requirement-definition';
 import { RuleFinding } from '../definitions/compliance-definition';
 import { OutcomePathway, RecognitionStatus } from '../definitions/standard-definition';
-import { SessionRecord } from '../records/records';
+import { SessionRecord } from '../records/program-records';
 
 export type ProgramPhase = ValueOf<typeof PROGRAM_PHASE>;
 export type RequirementOutcome = ValueOf<typeof REQUIREMENT_OUTCOME>;
@@ -28,11 +28,12 @@ export interface EligibilityDetermination extends Determination {
   readonly basesMet: readonly string[];
 }
 
-// What one standard makes of one participant.
+// What one standard makes of one subject.
 export interface StandardEvaluation {
   readonly standardShortName: string;
   readonly applies: boolean;
-  readonly eligibility: EligibilityDetermination;
+  // Null when the standard only checks records.
+  readonly eligibility: EligibilityDetermination | null;
   readonly findings: readonly RuleFinding[];
 }
 

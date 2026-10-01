@@ -44,6 +44,15 @@
       "@penji-demos/form-engine": [
         "packages/form-engine/src/index.ts"
       ],
+      "@penji-demos/fleet-records": [
+        "packages/fleet-records/src/index.ts"
+      ],
+      "@penji-demos/fleet-standard": [
+        "packages/fleet-standard/src/index.ts"
+      ],
+      "@penji-demos/fleet-seed": [
+        "packages/fleet-seed/src/index.ts"
+      ],
       "@penji-demos/seed": [
         "packages/seed/src/index.ts"
       ],

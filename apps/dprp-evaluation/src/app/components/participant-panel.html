@@ -42,10 +42,10 @@
           <h4>{{ standard.standardShortName }} eligibility</h4>
           @if (!standard.applies) {
             <p class="muted">Does not apply: this participant is not enrolled in Medicare Part B.</p>
-          } @else {
-            <p class="verdict" [class.met]="standard.eligibility.met" [class.not-met]="!standard.eligibility.met">{{ standard.eligibility.met ? 'Eligible' : 'Not eligible' }}</p>
+          } @else if (standard.eligibility; as eligibility) {
+            <p class="verdict" [class.met]="eligibility.met" [class.not-met]="!eligibility.met">{{ eligibility.met ? 'Eligible' : 'Not eligible' }}</p>
             <ul class="findings">
-              @for (finding of standard.eligibility.findings; track finding.criterion) {
+              @for (finding of eligibility.findings; track finding.criterion) {
                 <li [class.met]="finding.met" [class.not-met]="!finding.met">
                   <span class="mark" aria-hidden="true">{{ finding.met ? '✓' : '✗' }}</span>
                   <span><span class="visually-hidden">{{ finding.met ? 'Met: ' : 'Not met: ' }}</span>{{ finding.criterion }}<br /><span class="detail">{{ finding.detail }}</span></span>

@@ -10,6 +10,8 @@ export interface ComplianceSubject {
 }
 
 export interface SubjectEvent {
+  // What identifies the event within its subject: a session's date, a want-list item's ID.
+  readonly eventId: string;
   readonly eventDate: PlainDate;
   readonly values: Answers;
 }

@@ -35,7 +35,7 @@ export function resolveSubmissionRows(standard: RecognitionStandardDefinition, d
     if (!cohort) return [];
     const ineligible = participant.ineligibleSince !== null;
     const { enrollment } = participant;
-    const bases = new Set(evaluateEligibility(standard, resolveParticipantFacts(participant, cohort), FACT_LABELS).basesMet);
+    const bases = new Set(evaluateEligibility(standard.eligibility, resolveParticipantFacts(participant, cohort), FACT_LABELS).basesMet);
     const determined = (basis: string) => determination(!ineligible && bases.has(basis));
     const sessions = resolveProgramSessions(standard, cohort.firstSessionDate, participant.sessions);
     return sessions.map((session, index): SubmissionRow => {

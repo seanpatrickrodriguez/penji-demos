@@ -27,14 +27,14 @@ const evaluate = (overrides: Partial<Enrollment>) => {
 describe('the DPRP and the MDPP on the same participant', () => {
   it('reads one fasting glucose of 105 as prediabetes for the DPRP and not for the MDPP', () => {
     const { dprp, mdpp } = evaluate({ ...MEDICARE, fastingGlucoseMgDl: 105 });
-    expect(dprp.eligibility.met).toBe(true);
-    expect(mdpp.eligibility.met).toBe(false);
+    expect(dprp.eligibility?.met).toBe(true);
+    expect(mdpp.eligibility?.met).toBe(false);
   });
 
   it('accepts a positive risk test for the DPRP only', () => {
     const { dprp, mdpp } = evaluate({ ...MEDICARE, fastingGlucoseMgDl: null, fastingGlucoseTestDate: null, bloodTestSource: null, riskTestPositive: true });
-    expect(dprp.eligibility.met).toBe(true);
-    expect(mdpp.eligibility.met).toBe(false);
+    expect(dprp.eligibility?.met).toBe(true);
+    expect(mdpp.eligibility?.met).toBe(false);
     expect(mdpp.findings.map((finding) => finding.ruleId)).toEqual(['mdpp-blood-test-source']);
   });
 
@@ -53,7 +53,7 @@ describe('the DPRP and the MDPP on the same participant', () => {
   it('measures the DPRP blood test window from enrollment and the MDPP window from the first core session', () => {
     // Tested 2024-01-04: 364 days before the 2025-01-02 enrollment, 368 before the 2025-01-06 first session.
     const { dprp, mdpp } = evaluate({ ...MEDICARE, fastingGlucoseMgDl: 115, fastingGlucoseTestDate: toPlainDate('2024-01-04') });
-    expect([dprp.eligibility.met, mdpp.eligibility.met]).toEqual([true, false]);
+    expect([dprp.eligibility?.met, mdpp.eligibility?.met]).toEqual([true, false]);
   });
 });
 
