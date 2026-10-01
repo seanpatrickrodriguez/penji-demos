@@ -11,7 +11,7 @@ A synthetic organization's participant records, evaluated against the [2024 CDC 
 - **Recognition over time.**  Every six-month submission is evaluated on the records that existed by its due month, on the cohorts that began 12 to 18 months earlier, and each status carries forward as the Standards allow.
 - **Every result with its evidence.**  Eligibility, completion, each risk-reduction pathway and each recognition requirement list what was checked, the values behind it and the section it comes from.
 - **Record review.**  Each rule a record breaks becomes a guidance item: what is wrong, the expected and recorded values, how to fix it, and the actions the rule allows.  "Fix this" opens the form at the field; accepting asks for a reason and keeps who and when.
-- **Rules delivered to the platform's forms.**  The enrollment and session forms are the platform's own.  Every standard that applies to a participant adds its rules to them, and each field shows which standard asked for what.  Set Medicare Part B to yes and the MDPP's rules join.
+- **Rules delivered to the platform's forms.**  The enrollment and session forms are the program's own.  Every standard that applies to a participant adds its rules to them, and each field shows which standard asked for what.  Set Medicare Part B to yes and the MDPP's rules join.
 - **The submission file.**  Records become Table 5's columns and codes only when the file is made.
 
 ## Why it is built this way
@@ -37,30 +37,64 @@ The repository follows the four layers of the OMG Meta Object Facility.  Each la
 | Layer | What it is | Where it lives |
 |---|---|---|
 | M3, meta-metamodel | What a definition is: a kind, an ID, a version and the source it was written from | `packages/types/src/definitions/definition.ts` |
-| M2, metamodels | The shape of each kind of definition: a compliance standard, a rule, a criterion, a requirement and tier, a form, a data element, a guidance item | `packages/types/src/definitions/` |
-| M1, models | Definitions in those shapes: the 2024 DPRP Standards, the MDPP regulation, the platform's enrollment and session forms | `packages/dprp-standard/`, `packages/mdpp-standard/`, `packages/program-records/` |
-| M0, instances | An organization's records and the resolutions people record | `packages/types/src/records/` (shapes), `packages/seed/` (synthetic data) |
+| M2, metamodels | The shape of each kind of definition: a product configuration, a tenant kind, an entity with its streams and facts, a form, a workflow, an access policy, a compliance standard and its rules, a requirement and tier, a data element | `packages/types/src/definitions/` |
+| M1, models | Definitions in those shapes: the diabetes prevention program's configuration, the 2024 DPRP Standards, the MDPP regulation, the fleet's configuration and policies | `packages/dprp-configuration/`, `packages/dprp-standard/`, `packages/mdpp-standard/`, `packages/fleet-configuration/` |
+| M0, instances | Tenants, staff and their role assignments, entities, stream entries, and the resolutions people record | `packages/types/src/records/` (shapes), `packages/dprp-seed/`, `packages/fleet-seed/` (synthetic data) |
+
+### One platform, two products
+
+The engines hold no product.  A product is a configuration bundle: its tenant kinds, the entities it keeps and the streams of dated entries recorded against them, its forms, workflows, access policy and standards.  The diabetes prevention program keeps cohorts and participants, with a session log on each participant.  The fleet keeps vessels, with a want list on each vessel whose items move through a workflow.  The same record engine works out each record's facts, decides who may do what, records every change and hands each record to the same compliance engine.
+
+Roles are assignments over a scope, and a scope covers everything beneath it.  A hub's data specialist is assigned at the hub and works every organization under it; the fleet's supply manager works for the shop and is assigned at the owning company, over every vessel.  Crew are assigned to the vessel they rotate aboard, and an assignment is inactive while they are off.
+
+`architecture/platform-boundaries.spec.ts` checks the boundary on every test run:
+
+| Package group | May import |
+|---|---|
+| Engines: `constants`, `types`, `time`, `form-engine`, `compliance-engine`, `rule-engine`, `workflow-engine`, `record-engine` | Engines only, and the engines that read definitions name no product value |
+| Diabetes prevention program: `dprp-configuration`, `dprp-standard`, `mdpp-standard`, `dprp-recognition`, `dprp-seed` | Engines and its own packages |
+| Fleet supply and maintenance: `fleet-configuration`, `fleet-seed` | Engines and its own packages |
+| Shared page parts: `ui` | Engines only |
+
+Both products reach the form, compliance, workflow and record engines, and the configuration packages export definitions and no code.
 
 ### Packages
 
-- **`@penji-demos/constants`:** every fixed value: MOF layers, rule kinds, severities, guidance actions, canonical field names, metric keys, DPRP codes and submission columns.
-- **`@penji-demos/types`:** branded IDs, the M3 and M2 definitions, the M0 records and the evaluation results.
+Engines:
+
+- **`@penji-demos/constants`:** every fixed value: MOF layers, platform facts, scope and fact kinds, rule kinds, severities, and each product's codes and field names.
+- **`@penji-demos/types`:** branded IDs, the M3 and M2 definitions, the platform's records and the evaluation results.
 - **`@penji-demos/time`:** calendar dates and program months.
-- **`@penji-demos/form-engine`:** renders and validates any form definition, and evaluates conditions.
-- **`@penji-demos/compliance-engine`:** evaluates any compliance standard's eligibility and rules over a participant's facts and session history, merges the active standards' rules onto a form with the source of each, and turns findings into guidance items.
-- **`@penji-demos/rule-engine`:** evaluates requirement definitions against a registry of metric calculators, awards tiers, and carries awarded statuses forward.
-- **`@penji-demos/program-records`:** the platform's own enrollment and session forms and the adapters between records, facts and form answers.
-- **`@penji-demos/dprp-standard`:** the 2024 Standards as data, its data dictionary, the recognition evaluation and the submission file.
+- **`@penji-demos/form-engine`:** renders and validates any form definition, evaluates conditions and calculates fields.
+- **`@penji-demos/compliance-engine`:** evaluates any compliance standard's eligibility and rules over a subject's facts and the entries in its streams, merges the active standards' rules onto a form with the source of each, and turns findings into guidance items.
+- **`@penji-demos/rule-engine`:** evaluates requirement definitions against a standard's registry of metric calculators, awards tiers, and carries awarded statuses forward.
+- **`@penji-demos/workflow-engine`:** checks permissions against an access policy and moves a record through any workflow definition.
+- **`@penji-demos/record-engine`:** reads any configuration's tenants, entities and streams: works out facts, resolves who may do what over the tenant and entity trees, records changes with a permission check on each, shows the records as of a date, and validates a configuration bundle.
+
+Diabetes prevention program:
+
+- **`@penji-demos/dprp-configuration`:** the program as configuration: hub and organization tenants, cohorts and participants, the session, A1C result and recode streams, the forms and the access roles.
+- **`@penji-demos/dprp-standard`:** the 2024 Standards and the Table 5 data dictionary as data.
 - **`@penji-demos/mdpp-standard`:** 42 CFR 410.79(c)(1) eligibility as data.
-- **`@penji-demos/seed`:** a deterministic synthetic organization with a case for every rule.
+- **`@penji-demos/dprp-recognition`:** the DPRP's metric calculators, recognition over the submissions, and the submission file.
+- **`@penji-demos/dprp-seed`:** a deterministic synthetic hub and organization with a case for every rule.
+
+Fleet supply and maintenance:
+
+- **`@penji-demos/fleet-configuration`:** a made-up tug and barge company's fleet as configuration: companies, vessels, the want list and its workflow, the forms, the access policy, the supply policy and the maintenance schedule.
+- **`@penji-demos/fleet-seed`:** a deterministic synthetic fleet with a case for every policy rule.
+
+Shared page parts:
+
+- **`@penji-demos/ui`:** the site's header, footer and theme, the definition-driven form, the guidance list and the standards explorer.
 
 ### Decisions
 
 - **Standards are data, delivered to the platform.**  A standard says who it applies to, who it accepts and what a record must hold.  The records and forms keep their own shape; the compliance engine brings each standard's rules to them.  Adding the MDPP took a definition and no engine change.
 - **One condition language.**  The same conditions decide when a form question shows, when a rule applies and whether an eligibility criterion holds.
-- **The engines never see the domain.**  The compliance and rule engines are tested on made-up domains (a swim program, a gold-silver-bronze standard).  Requirements name metric keys, and a registry maps each to its calculator; a drift test fails if the two fall out of step.
+- **The engines never see the domain.**  Each engine is tested on a made-up domain of its own: a swim program, a tool library, a newsroom, a gold-silver-bronze standard.  Requirements name metric keys, and each standard's registry maps them to its calculators; a drift test fails if the two fall out of step.
 - **Evidence over verdicts.**  Every determination lists what was checked and the values behind it.  A metric with no data is unmeasured, never a measured zero.
-- **Store canonical, morph on export.**  Records hold facts in plain terms (`weightPounds: null`, `fastingGlucoseMgDl: 105`).  The DPRP's codes (`WEIGHT 999`, `GLUCTEST 1`, `SESSTYPE MU-CM`) are worked out from the DPRP's own definitions when the file is made.
+- **Store canonical, morph on export.**  Records hold their values in plain terms (`weightPounds: null`, `fastingGlucoseMgDl: 105`).  The DPRP's codes (`WEIGHT 999`, `GLUCTEST 1`, `SESSTYPE MU-CM`) are worked out from the DPRP's own definitions when the file is made.
 - **Each submission sees its own past.**  Evaluations use only the records that existed when a submission was due.
 - **Ambiguous text is read out loud.**  Where a source leaves room, the reading is written into the definition's `interpretations` and shown on the page.
 - **Five verbs.**  Functions `validate` data against a constraint, `evaluate` a definition against evidence, `resolve` a context to a concrete artifact, `calculate` numbers, or answer `is`.
