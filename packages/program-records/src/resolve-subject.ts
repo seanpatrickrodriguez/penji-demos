@@ -1,4 +1,4 @@
-import { DERIVED_FACT, SESSION_FIELD } from '@penji-demos/constants';
+import { DERIVED_FACT, PROGRAM_STREAM, SESSION_FIELD } from '@penji-demos/constants';
 import { ComplianceSubject } from '@penji-demos/compliance-engine';
 import { isOnOrAfter } from '@penji-demos/time';
 import { Answers, CohortRecord, Enrollment, ParticipantRecord, SessionRecord } from '@penji-demos/types';
@@ -40,6 +40,6 @@ export function resolveParticipantFacts(participant: ParticipantRecord, cohort: 
 export function resolveComplianceSubject(participant: ParticipantRecord, cohort: CohortRecord): ComplianceSubject {
   return {
     facts: resolveParticipantFacts(participant, cohort),
-    events: participant.sessions.map((session) => ({ eventId: session.sessionDate, eventDate: session.sessionDate, values: resolveSessionAnswers(session) })),
+    events: participant.sessions.map((session) => ({ streamId: PROGRAM_STREAM.SESSION, eventId: session.sessionDate, eventDate: session.sessionDate, values: resolveSessionAnswers(session) })),
   };
 }

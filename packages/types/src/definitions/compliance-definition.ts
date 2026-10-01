@@ -35,6 +35,8 @@ export interface RuleDefinition {
   readonly title: string;
   readonly citation: SourceReference;
   readonly scope: RuleScope;
+  // The stream whose entries the rule reads, or null for a rule on the subject's own record.
+  readonly stream: string | null;
   readonly check: RuleCheck;
   // The rule applies only when this holds for the subject; null means always.
   readonly appliesWhen: Condition | null;

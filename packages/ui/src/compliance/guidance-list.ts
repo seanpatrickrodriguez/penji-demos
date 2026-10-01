@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { GUIDANCE_ACTION_TYPE, VALIDATION_SEVERITY } from '@penji-demos/constants';
 import { FieldLabels, describeRuleCheck, isGuidanceOpen } from '@penji-demos/compliance-engine';
-import { GuidanceActionType, GuidanceItem, PlainDate } from '@penji-demos/types';
+import { FieldDefinition, GuidanceActionType, GuidanceItem, PlainDate, RuleFinding } from '@penji-demos/types';
 import { SEVERITY_LABEL } from './labels';
 
 interface GuidanceView {
@@ -12,6 +12,7 @@ interface GuidanceView {
   readonly check: string;
   readonly open: boolean;
   readonly resolution: string;
+  readonly problems: readonly string[];
 }
 
 export type ResolveGuidance = (item: GuidanceItem, action: GuidanceActionType, note: string) => readonly string[];
@@ -31,7 +32,11 @@ export class GuidanceList {
   readonly eventLabel = input.required<string>();
   readonly recordLabel = input.required<string>();
   readonly blockingLabel = input('blocking');
+  // Form fields whose choices name the values in each rule's reading.
+  readonly fields = input<readonly FieldDefinition[]>([]);
   readonly formatDate = input.required<(date: PlainDate) => string>();
+  // Names an event in the subject's own terms ("Item: hand soap"); without it, an event is named by its date.
+  readonly describeEvent = input<((finding: RuleFinding) => string) | null>(null);
   readonly resolve = input.required<ResolveGuidance>();
   readonly fix = output<GuidanceItem>();
   readonly reopen = output<GuidanceItem>();
@@ -39,14 +44,17 @@ export class GuidanceList {
   protected readonly accepting = signal<string | null>(null);
   protected readonly acceptNote = signal('');
   protected readonly acceptProblems = signal<readonly string[]>([]);
+  // Problems from an action taken without a note, by guidance item ID.
+  protected readonly actionProblems = signal<ReadonlyMap<string, readonly string[]>>(new Map());
 
   protected readonly views = computed<readonly GuidanceView[]>(() =>
     this.items().map((item) => ({
       item,
       severity: SEVERITY_LABEL[item.rule.severity],
       severityClass: item.rule.severity,
-      when: item.finding.eventDate ? `${this.eventLabel()} of ${this.formatDate()(item.finding.eventDate)}` : this.recordLabel(),
-      check: describeRuleCheck(item.rule.check, this.labels()),
+      when: this.describeWhen(item),
+      problems: this.actionProblems().get(item.id) ?? [],
+      check: describeRuleCheck(item.rule.check, this.labels(), this.fields(), this.eventLabel().toLowerCase()),
       open: isGuidanceOpen(item),
       resolution: item.resolution
         ? `${item.resolution.action === GUIDANCE_ACTION_TYPE.ACCEPT ? 'Accepted' : 'Deferred'} by ${item.resolution.resolvedBy}, ${new Date(item.resolution.resolvedAt).toLocaleString()}${item.resolution.note ? `: "${item.resolution.note}"` : ''}`
@@ -72,7 +80,15 @@ export class GuidanceList {
       this.acceptProblems.set([]);
       return;
     }
-    this.resolve()(item, action, '');
+    const problems = this.resolve()(item, action, '');
+    this.actionProblems.update((all) => new Map(all).set(item.id, problems));
+  }
+
+  private describeWhen(item: GuidanceItem): string {
+    const { eventDate } = item.finding;
+    if (!eventDate) return this.recordLabel();
+    const describe = this.describeEvent();
+    return describe ? describe(item.finding) : `${this.eventLabel()} of ${this.formatDate()(eventDate)}`;
   }
 
   protected confirmAccept(item: GuidanceItem): void {

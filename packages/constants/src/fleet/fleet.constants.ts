@@ -141,3 +141,8 @@ export const FLEET_FORM = {
   VESSEL_PROFILE: 'vesselProfile',
   WANT_ITEM: 'wantItem',
 } as const;
+
+// The fleet's streams of dated entries on a vessel.
+export const FLEET_STREAM = {
+  WANT_LIST: 'wantList',
+} as const;

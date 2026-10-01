@@ -16,6 +16,7 @@ const rule = (id: string, overrides: Partial<RuleDefinition> & Pick<RuleDefiniti
   id,
   title: id,
   citation: SOURCE,
+  stream: overrides.scope === RULE_SCOPE.SUBJECT ? null : 'laps',
   appliesWhen: null,
   severity: VALIDATION_SEVERITY.ERROR,
   blocks: true,
@@ -57,10 +58,16 @@ const ONE_EXTRA_PER_WEEK = rule('extra-per-week', {
 const BASIC = standard('Basic', [LAP_RANGE, ONE_EXTRA_PER_WEEK]);
 const SQUAD = standard('Squad', [rule('squad-laps', { scope: RULE_SCOPE.EVENT, check: { kind: RULE_CHECK_KIND.RANGE, field: 'laps', min: 10, max: 120, unit: 'laps' } })], { kind: 'equals', field: 'squad', value: true });
 
-const event = (date: string, values: Record<string, number | boolean | null>) => ({ eventId: date, eventDate: toPlainDate(date), values: { eventDate: date, ...values } });
+const event = (date: string, values: Record<string, number | boolean | null>) => ({ streamId: 'laps', eventId: date, eventDate: toPlainDate(date), values: { eventDate: date, ...values } });
 const SUBJECT: ComplianceSubject = {
   facts: { age: 10, swimTestPassed: false, tookLessons: true, squad: false },
-  events: [event('2025-03-03', { laps: 40, extra: false }), event('2025-03-04', { laps: 400, extra: true }), event('2025-03-06', { laps: 30, extra: true })],
+  events: [
+    event('2025-03-03', { laps: 40, extra: false }),
+    event('2025-03-04', { laps: 400, extra: true }),
+    event('2025-03-06', { laps: 30, extra: true }),
+    // A medical note, in a stream no lap rule reads.
+    { streamId: 'notes', eventId: 'note-1', eventDate: toPlainDate('2025-03-05'), values: { laps: 999, extra: true } },
+  ],
 };
 
 describe('evaluateStandard', () => {
@@ -73,6 +80,11 @@ describe('evaluateStandard', () => {
   it('finds a value out of range on the session it belongs to', () => {
     const [finding] = evaluateStandard(BASIC, SUBJECT, {}).findings.filter((found) => found.ruleId === 'lap-range');
     expect(finding).toMatchObject({ eventDate: '2025-03-04', message: 'Value 400 is outside 1-200 laps.', actual: '400 laps' });
+  });
+
+  it('reads only the stream a rule names', () => {
+    const found = evaluateStandard(BASIC, SUBJECT, {}).findings.filter((finding) => finding.ruleId === 'lap-range');
+    expect(found.map((finding) => finding.eventId)).toEqual(['2025-03-04']);
   });
 
   it('counts across sessions within a window', () => {
@@ -99,7 +111,7 @@ describe('field constraints from several standards', () => {
   };
 
   it('merges ranges to the most restrictive and keeps where each came from', () => {
-    const constraints = resolveFieldConstraints(FORM, RULE_SCOPE.EVENT, [BASIC, SQUAD], { squad: true });
+    const constraints = resolveFieldConstraints(FORM, 'laps', [BASIC, SQUAD], { squad: true });
     expect(constraints).toHaveLength(1);
     expect(constraints[0]).toMatchObject({ min: 10, max: 120 });
     expect(constraints[0]?.sources.map((source) => source.standardShortName)).toEqual(['Basic', 'Squad']);
@@ -108,7 +120,7 @@ describe('field constraints from several standards', () => {
   });
 
   it('leaves out a standard that does not apply', () => {
-    expect(resolveFieldConstraints(FORM, RULE_SCOPE.EVENT, [BASIC, SQUAD], { squad: false })[0]).toMatchObject({ min: 1, max: 200 });
+    expect(resolveFieldConstraints(FORM, 'laps', [BASIC, SQUAD], { squad: false })[0]).toMatchObject({ min: 1, max: 200 });
   });
 });
 

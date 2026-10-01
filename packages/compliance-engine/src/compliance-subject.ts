@@ -10,7 +10,9 @@ export interface ComplianceSubject {
 }
 
 export interface SubjectEvent {
-  // What identifies the event within its subject: a session's date, a want-list item's ID.
+  // The stream the event was recorded in, so a rule reads only the events it names.
+  readonly streamId: string;
+  // What identifies the event within its subject.
   readonly eventId: string;
   readonly eventDate: PlainDate;
   readonly values: Answers;

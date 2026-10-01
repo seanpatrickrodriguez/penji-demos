@@ -1,5 +1,6 @@
 import {
   PROGRAM_FORM,
+  PROGRAM_STREAM,
   COHORT_KIND,
   COMPARATOR,
   DEFINITION_KIND,
@@ -57,7 +58,9 @@ const bloodTestInRange = (value: string, date: string, min: number, max: number)
 });
 
 // Rules default to a blocking error that must be fixed; each states what differs.
-const rule = (definition: Omit<RuleDefinition, 'appliesWhen' | 'severity' | 'blocks' | 'bypassable'> & Partial<Pick<RuleDefinition, 'appliesWhen' | 'severity' | 'blocks' | 'bypassable'>>): RuleDefinition => ({
+// A rule on the participant's own record reads no stream; every other rule reads their sessions.
+const rule = (definition: Omit<RuleDefinition, 'appliesWhen' | 'severity' | 'blocks' | 'bypassable' | 'stream'> & Partial<Pick<RuleDefinition, 'appliesWhen' | 'severity' | 'blocks' | 'bypassable'>>): RuleDefinition => ({
+  stream: definition.scope === RULE_SCOPE.SUBJECT ? null : PROGRAM_STREAM.SESSION,
   appliesWhen: null,
   severity: VALIDATION_SEVERITY.ERROR,
   blocks: true,

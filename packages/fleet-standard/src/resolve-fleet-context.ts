@@ -1,5 +1,5 @@
 import { ComplianceSubject, FieldLabels, evaluateStandard, resolveGuidanceItem } from '@penji-demos/compliance-engine';
-import { FLEET_FACT, FLEET_PERMISSION, SUPPLY_STATUS } from '@penji-demos/constants';
+import { FLEET_FACT, FLEET_PERMISSION, FLEET_STREAM, SUPPLY_STATUS } from '@penji-demos/constants';
 import { FLEET_FACT_LABELS, resolveVesselAnswers, resolveWantItemAnswers } from '@penji-demos/fleet-records';
 import { TransitionOption, applyTransition, isPermitted, resolveTransitionOptions } from '@penji-demos/workflow-engine';
 import {
@@ -88,7 +88,7 @@ export function resolveVesselSubject(data: FleetData, vessel: VesselRecord): Com
     events: data.wantItems
       .filter((item) => item.vesselId === vessel.vesselId)
       .sort((first, second) => first.addedDate.localeCompare(second.addedDate))
-      .map((item) => ({ eventId: item.itemId, eventDate: item.addedDate, values: resolveWantItemAnswers(item) })),
+      .map((item) => ({ streamId: FLEET_STREAM.WANT_LIST, eventId: item.itemId, eventDate: item.addedDate, values: resolveWantItemAnswers(item) })),
   };
 }
 

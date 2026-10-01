@@ -32,6 +32,9 @@
       "@penji-demos/workflow-engine": [
         "packages/workflow-engine/src/index.ts"
       ],
+      "@penji-demos/record-engine": [
+        "packages/record-engine/src/index.ts"
+      ],
       "@penji-demos/program-records": [
         "packages/program-records/src/index.ts"
       ],

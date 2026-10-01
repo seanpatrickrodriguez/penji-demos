@@ -1,3 +1,4 @@
+import { resolveCalculationFields } from './calculate-field';
 import { resolveConditionFields } from './evaluate-condition';
 import { FieldKey, FormDefinition } from './types';
 
@@ -27,7 +28,7 @@ export function validateDefinition(definition: FormDefinition): readonly string[
     for (const [, key] of field.label.matchAll(/\{\{(\w+)/g)) if (key) requireField(key, `The label of "${field.key}"`);
     if (field.kind === 'choice' && field.options.length === 0) problems.push(`"${field.key}" has no options.`);
     if (field.kind === 'calculated') {
-      const inputs = field.calculation.kind === 'product' ? field.calculation.fields : [field.calculation.from, field.calculation.to];
+      const inputs = resolveCalculationFields(field.calculation);
       for (const key of inputs) requireField(key, `The calculation for "${field.key}"`);
     }
   });

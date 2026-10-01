@@ -4,5 +4,6 @@ export * from './dprp/data-dictionary.constants';
 export * from './dprp/program.constants';
 export * from './fleet/fleet.constants';
 export * from './metrics/metric-key.constants';
+export * from './platform/platform.constants';
 export * from './records/canonical-field.constants';
 export * from './rules/rules.constants';

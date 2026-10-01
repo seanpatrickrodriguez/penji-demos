@@ -89,6 +89,7 @@ export const MDPP_STANDARD: ComplianceStandardDefinition = {
       title: 'Blood test source recorded for Medicare participants',
       citation: paragraph('(c)(1)(i)(D)'),
       scope: RULE_SCOPE.SUBJECT,
+      stream: null,
       appliesWhen: null,
       check: { kind: RULE_CHECK_KIND.REQUIRED, field: E.BLOOD_TEST_SOURCE },
       severity: VALIDATION_SEVERITY.ERROR,

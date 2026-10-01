@@ -58,3 +58,10 @@ export const PROGRAM_FORM = {
   ENROLLMENT: 'enrollment',
   SESSION: 'session',
 } as const;
+
+// The program's streams of dated entries on a participant.
+export const PROGRAM_STREAM = {
+  SESSION: 'sessions',
+  A1C_RESULT: 'a1cResults',
+  RECODE: 'recodes',
+} as const;

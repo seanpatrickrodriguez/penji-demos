@@ -1,6 +1,8 @@
 import { DEFINITION_KIND } from '@penji-demos/constants';
 import { FormDefinition, toDefinitionId } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
+import { calculateField } from './calculate-field';
+import { describeAnswer } from './describe-answer';
 import { evaluateCondition } from './evaluate-condition';
 import { resolveLabel, resolveSubmission, resolveVisibleFields } from './resolve-form';
 import { validateDefinition } from './validate-definition';
@@ -51,5 +53,29 @@ describe('forms from a definition', () => {
       '"a" depends on "b", which comes after it.',
       'The label of "a" refers to "nmae", which is not a field.',
     ]);
+  });
+});
+
+describe('describeAnswer', () => {
+  const field = (key: string) => FORM.fields.find((candidate) => candidate.key === key);
+  it('reads a value the way the form presents it', () => {
+    expect(describeAnswer(field('total'), 4200)).toBe('$4,200');
+    expect(describeAnswer(field('total'), 18.5)).toBe('$18.50');
+    expect(describeAnswer(field('urgent'), true)).toBe('yes');
+    expect(describeAnswer(field('quantity'), null)).toBe('not recorded');
+    expect(describeAnswer(undefined, 2.25)).toBe('2.3');
+  });
+  it('names a choice by its label', () => {
+    const choice = { kind: 'choice' as const, key: 'size', label: 'Size', options: [{ value: 'lg', label: 'Large' }] };
+    expect(describeAnswer(choice, 'lg')).toBe('Large');
+    expect(describeAnswer(choice, 'xl')).toBe('xl');
+  });
+});
+
+describe('calculations', () => {
+  it('divides the product of some answers by the product of others, rounded', () => {
+    const bodyMassIndex = { kind: 'quotient' as const, numerator: ['pounds'], denominator: ['inches', 'inches'], factor: 703, decimals: 1 };
+    expect(calculateField(bodyMassIndex, { pounds: 200, inches: 66 })).toBe(32.3);
+    expect(calculateField(bodyMassIndex, { pounds: 200, inches: null })).toBeNull();
   });
 });

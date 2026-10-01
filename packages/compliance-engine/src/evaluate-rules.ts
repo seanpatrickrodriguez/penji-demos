@@ -1,5 +1,5 @@
 import { RULE_CHECK_KIND, RULE_SCOPE } from '@penji-demos/constants';
-import { evaluateCondition, isAnswered } from '@penji-demos/form-engine';
+import { describeAnswer, evaluateCondition, isAnswered } from '@penji-demos/form-engine';
 import { calculateDaysBetween, isPlainDate, toPlainDate } from '@penji-demos/time';
 import {
   AnswerValue,
@@ -8,6 +8,7 @@ import {
   CriterionDefinition,
   EligibilityDetermination,
   EligibilityRulesDefinition,
+  FieldDefinition,
   Finding,
   PlainDate,
   RuleDefinition,
@@ -21,15 +22,12 @@ export const isStandardApplicable = (standard: ComplianceStandardDefinition, fac
 
 const isRuleApplicable = (rule: RuleDefinition, facts: Answers): boolean => rule.appliesWhen === null || evaluateCondition(rule.appliesWhen, facts);
 
-export function describeValue(value: AnswerValue | undefined): string {
-  if (value === null || value === undefined || value === '') return 'not recorded';
-  if (typeof value === 'boolean') return value ? 'yes' : 'no';
-  if (typeof value === 'number') return Number.isInteger(value) ? String(value) : value.toFixed(1);
-  return value;
-}
+export const describeValue = (value: AnswerValue | undefined): string => describeAnswer(undefined, value);
 
-export function describeFacts(fields: readonly string[], facts: Answers, labels: FieldLabels): string {
-  return fields.map((field) => `${labels[field] ?? field}: ${describeValue(facts[field])}`).join('; ');
+// Each field by its label with its value; `fields` are the form fields that
+// describe values, so a choice reads by its label and money in dollars.
+export function describeFacts(keys: readonly string[], facts: Answers, labels: FieldLabels, fields: readonly FieldDefinition[] = []): string {
+  return keys.map((key) => `${labels[key] ?? key}: ${describeAnswer(fields.find((field) => field.key === key), facts[key])}`).join('; ');
 }
 
 // Fills {placeholders} in an issue template.
@@ -37,14 +35,14 @@ export function resolveMessage(template: string, values: Readonly<Record<string,
   return template.replace(/\{(\w+)\}/g, (match, key: string) => values[key] ?? match);
 }
 
-function evaluateCriterion(criterion: CriterionDefinition, facts: Answers, labels: FieldLabels): Finding {
-  return { criterion: criterion.label, met: evaluateCondition(criterion.condition, facts), detail: describeFacts(criterion.describes, facts, labels) };
+function evaluateCriterion(criterion: CriterionDefinition, facts: Answers, labels: FieldLabels, fields: readonly FieldDefinition[]): Finding {
+  return { criterion: criterion.label, met: evaluateCondition(criterion.condition, facts), detail: describeFacts(criterion.describes, facts, labels, fields) };
 }
 
 // Eligibility under one standard: every criterion, and at least one basis.
-export function evaluateEligibility(eligibility: EligibilityRulesDefinition, facts: Answers, labels: FieldLabels): EligibilityDetermination {
-  const criteria = eligibility.criteria.map((criterion) => evaluateCriterion(criterion, facts, labels));
-  const bases = eligibility.bases.map((basis) => ({ basis, finding: evaluateCriterion(basis, facts, labels) }));
+export function evaluateEligibility(eligibility: EligibilityRulesDefinition, facts: Answers, labels: FieldLabels, fields: readonly FieldDefinition[] = []): EligibilityDetermination {
+  const criteria = eligibility.criteria.map((criterion) => evaluateCriterion(criterion, facts, labels, fields));
+  const bases = eligibility.bases.map((basis) => ({ basis, finding: evaluateCriterion(basis, facts, labels, fields) }));
   const basesMet = bases.filter(({ finding }) => finding.met).map(({ basis }) => basis.id);
   const basisFinding: Finding = {
     criterion: eligibility.basesLabel,
@@ -60,9 +58,10 @@ const eventAnswers = (event: SubjectEvent, facts: Answers): Answers => ({ ...fac
 const asDate = (value: AnswerValue | undefined): PlainDate | null => (typeof value === 'string' && isPlainDate(value) ? toPlainDate(value) : null);
 
 // What one rule finds in a subject.  A rule that does not apply finds nothing.
-export function evaluateRule(rule: RuleDefinition, standardShortName: string, subject: ComplianceSubject, labels: FieldLabels): readonly RuleFinding[] {
-  const { facts, events } = subject;
+export function evaluateRule(rule: RuleDefinition, standardShortName: string, subject: ComplianceSubject, labels: FieldLabels, fields: readonly FieldDefinition[] = []): readonly RuleFinding[] {
+  const { facts } = subject;
   if (!isRuleApplicable(rule, facts)) return [];
+  const events = subject.events.filter((event) => event.streamId === rule.stream);
   const finding = (event: SubjectEvent | null, values: Readonly<Record<string, string>>, expected: string | null, actual: string | null): RuleFinding => ({
     ruleId: rule.id,
     standardShortName,
@@ -93,7 +92,7 @@ export function evaluateRule(rule: RuleDefinition, standardShortName: string, su
       );
     case RULE_CHECK_KIND.CONDITION:
       return records.flatMap(({ event, answers }) =>
-        evaluateCondition(check.condition, answers) ? [] : [finding(event, { value: describeFacts(check.describes, answers, labels) }, null, describeFacts(check.describes, answers, labels))],
+        evaluateCondition(check.condition, answers) ? [] : [finding(event, { value: describeFacts(check.describes, answers, labels, fields) }, null, describeFacts(check.describes, answers, labels, fields))],
       );
     case RULE_CHECK_KIND.SAME_DATE_VALUES_MATCH: {
       const byDate = new Map<string, SubjectEvent[]>();
@@ -146,12 +145,12 @@ export function evaluateRule(rule: RuleDefinition, standardShortName: string, su
 }
 
 // Everything one standard makes of one subject.
-export function evaluateStandard(standard: ComplianceStandardDefinition, subject: ComplianceSubject, labels: FieldLabels): StandardEvaluation {
+export function evaluateStandard(standard: ComplianceStandardDefinition, subject: ComplianceSubject, labels: FieldLabels, fields: readonly FieldDefinition[] = []): StandardEvaluation {
   const applies = isStandardApplicable(standard, subject.facts);
   return {
     standardShortName: standard.shortName,
     applies,
-    eligibility: standard.eligibility ? evaluateEligibility(standard.eligibility, subject.facts, labels) : null,
-    findings: applies ? standard.rules.flatMap((rule) => evaluateRule(rule, standard.shortName, subject, labels)) : [],
+    eligibility: standard.eligibility ? evaluateEligibility(standard.eligibility, subject.facts, labels, fields) : null,
+    findings: applies ? standard.rules.flatMap((rule) => evaluateRule(rule, standard.shortName, subject, labels, fields)) : [],
   };
 }

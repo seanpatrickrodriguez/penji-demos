@@ -72,7 +72,10 @@ export interface YesNoField extends FieldBase {
 // A calculated field is never typed in; the engine works it out from other answers.
 export type Calculation =
   | { readonly kind: 'product'; readonly fields: readonly FieldKey[]; readonly factor?: number }
-  | { readonly kind: 'daysBetween'; readonly from: FieldKey; readonly to: FieldKey };
+  | { readonly kind: 'daysBetween'; readonly from: FieldKey; readonly to: FieldKey }
+  // The product of the numerator fields and the factor, over the product of the
+  // denominator fields, rounded to `decimals` places: BMI is 703 x weight / height².
+  | { readonly kind: 'quotient'; readonly numerator: readonly FieldKey[]; readonly denominator: readonly FieldKey[]; readonly factor: number; readonly decimals: number };
 
 export interface CalculatedField extends Omit<FieldBase, 'required'> {
   readonly kind: 'calculated';

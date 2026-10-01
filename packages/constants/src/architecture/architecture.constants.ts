@@ -26,4 +26,7 @@ export const DEFINITION_KIND = {
   WORKFLOW: 'workflow',
   DATA_ELEMENT: 'dataElement',
   FORM: 'form',
+  TENANT_KIND: 'tenantKind',
+  ENTITY: 'entity',
+  CONFIGURATION: 'configuration',
 } as const;

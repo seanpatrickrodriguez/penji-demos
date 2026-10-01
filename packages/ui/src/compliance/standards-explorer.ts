@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { FieldLabels, describeCondition, describeRuleCheck, resolveGuidanceActions } from '@penji-demos/compliance-engine';
-import { ComplianceStandardDefinition, CriterionDefinition, RuleDefinition } from '@penji-demos/types';
+import { ComplianceStandardDefinition, CriterionDefinition, FieldDefinition, RuleDefinition } from '@penji-demos/types';
 import { SEVERITY_LABEL } from './labels';
 
 interface CriterionView {
@@ -43,21 +43,31 @@ interface StandardView {
   readonly interpretations: ComplianceStandardDefinition['interpretations'];
 }
 
-const describeCriterion = (criterion: CriterionDefinition, labels: FieldLabels): CriterionView => ({
+// How the explorer names things: field labels, the fields whose choices name
+// values, form titles, what a blocking rule stops, and what one event is called.
+interface Vocabulary {
+  readonly labels: FieldLabels;
+  readonly fields: readonly FieldDefinition[];
+  readonly formTitles: Readonly<Record<string, string>>;
+  readonly blocksLabel: string;
+  readonly eventNoun: string;
+}
+
+const describeCriterion = (criterion: CriterionDefinition, vocabulary: Vocabulary): CriterionView => ({
   label: criterion.label,
-  reads: describeCondition(criterion.condition, labels),
+  reads: describeCondition(criterion.condition, vocabulary.labels, vocabulary.fields),
   citation: criterion.citation.section ?? criterion.citation.title,
   url: criterion.citation.url,
 });
 
-const describeRule = (rule: RuleDefinition, labels: FieldLabels, formTitles: Readonly<Record<string, string>>): RuleView => ({
+const describeRule = (rule: RuleDefinition, { labels, fields, formTitles, blocksLabel, eventNoun }: Vocabulary): RuleView => ({
   id: rule.id,
   title: rule.title,
-  check: describeRuleCheck(rule.check, labels),
-  appliesWhen: rule.appliesWhen ? describeCondition(rule.appliesWhen, labels) : 'Always',
+  check: describeRuleCheck(rule.check, labels, fields, eventNoun),
+  appliesWhen: rule.appliesWhen ? describeCondition(rule.appliesWhen, labels, fields) : 'Always',
   severity: SEVERITY_LABEL[rule.severity],
   severityClass: rule.severity,
-  blocks: rule.blocks ? 'Blocks submission' : rule.bypassable ? 'Can be accepted with a reason' : 'Does not block',
+  blocks: rule.blocks ? blocksLabel : rule.bypassable ? 'Can be accepted with a reason' : 'Does not block',
   issue: rule.issue,
   guidance: rule.guidance,
   fix: rule.fixTarget ? `${formTitles[rule.fixTarget.form] ?? rule.fixTarget.form} form, ${labels[rule.fixTarget.field] ?? rule.fixTarget.field}` : 'Nothing to change on a form',
@@ -67,19 +77,19 @@ const describeRule = (rule: RuleDefinition, labels: FieldLabels, formTitles: Rea
   json: JSON.stringify(rule, null, 2),
 });
 
-const describeStandard = (standard: ComplianceStandardDefinition, labels: FieldLabels, formTitles: Readonly<Record<string, string>>): StandardView => ({
+const describeStandard = (standard: ComplianceStandardDefinition, vocabulary: Vocabulary): StandardView => ({
   shortName: standard.shortName,
   title: standard.title,
   url: standard.source.url,
-  appliesTo: standard.appliesWhen ? `Records where ${describeCondition(standard.appliesWhen, labels)}` : 'Every record',
+  appliesTo: standard.appliesWhen ? `Records where ${describeCondition(standard.appliesWhen, vocabulary.labels, vocabulary.fields)}` : 'Every record',
   eligibility: standard.eligibility
     ? {
-        criteria: standard.eligibility.criteria.map((criterion) => describeCriterion(criterion, labels)),
+        criteria: standard.eligibility.criteria.map((criterion) => describeCriterion(criterion, vocabulary)),
         basesLabel: standard.eligibility.basesLabel,
-        bases: standard.eligibility.bases.map((basis) => describeCriterion(basis, labels)),
+        bases: standard.eligibility.bases.map((basis) => describeCriterion(basis, vocabulary)),
       }
     : null,
-  rules: standard.rules.map((rule) => describeRule(rule, labels, formTitles)),
+  rules: standard.rules.map((rule) => describeRule(rule, vocabulary)),
   interpretations: standard.interpretations,
 });
 
@@ -96,7 +106,11 @@ export class StandardsExplorer {
   readonly labels = input.required<FieldLabels>();
   // Form titles by form definition ID, for naming where "Fix this" leads.
   readonly formTitles = input<Readonly<Record<string, string>>>({});
-  protected readonly standards = computed(() => this.definitions().map((standard) => describeStandard(standard, this.labels(), this.formTitles())));
+  // What a blocking rule stops, in the domain's terms.
+  readonly blocksLabel = input('Blocks submission');
+  readonly fields = input<readonly FieldDefinition[]>([]);
+  readonly eventNoun = input('session');
+  protected readonly standards = computed(() => this.definitions().map((standard) => describeStandard(standard, { labels: this.labels(), fields: this.fields(), formTitles: this.formTitles(), blocksLabel: this.blocksLabel(), eventNoun: this.eventNoun() })));
   private readonly picked = signal<string | null>(null);
   protected readonly shown = computed(() => this.picked() ?? this.standards()[0]?.shortName ?? '');
 

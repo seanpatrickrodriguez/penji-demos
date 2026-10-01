@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { DELIVERY_MODE, PROGRAM_FORM, RULE_SCOPE, SESSION_FIELD } from '@penji-demos/constants';
+import { DELIVERY_MODE, PROGRAM_FORM, PROGRAM_STREAM, SESSION_FIELD } from '@penji-demos/constants';
 import { resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/compliance-engine';
 import {
   ENROLLMENT_FORM,
@@ -72,9 +72,9 @@ export class ParticipantPanel {
     return draft ? { ...facts, ...draft } : facts;
   });
 
-  protected readonly sessionConstraints = computed(() => resolveFieldConstraints(SESSION_FORM, RULE_SCOPE.EVENT, ALL_STANDARDS, this.facts()));
+  protected readonly sessionConstraints = computed(() => resolveFieldConstraints(SESSION_FORM, PROGRAM_STREAM.SESSION, ALL_STANDARDS, this.facts()));
   protected readonly sessionForm = computed(() => resolveConstrainedForm(SESSION_FORM, this.sessionConstraints()));
-  protected readonly enrollmentConstraints = computed(() => resolveFieldConstraints(ENROLLMENT_FORM, RULE_SCOPE.SUBJECT, ALL_STANDARDS, this.facts()));
+  protected readonly enrollmentConstraints = computed(() => resolveFieldConstraints(ENROLLMENT_FORM, null, ALL_STANDARDS, this.facts()));
   protected readonly enrollmentForm = computed(() => resolveConstrainedForm(ENROLLMENT_FORM, this.enrollmentConstraints()));
 
   protected readonly sessionInitial = computed<Answers>(() => {

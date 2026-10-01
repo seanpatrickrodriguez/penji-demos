@@ -1,15 +1,15 @@
-import { RULE_CHECK_KIND } from '@penji-demos/constants';
+import { RULE_CHECK_KIND, RULE_SCOPE } from '@penji-demos/constants';
 import { evaluateCondition } from '@penji-demos/form-engine';
-import { Answers, ComplianceStandardDefinition, CrossFieldRule, FieldDefinition, FormDefinition, ResolvedFieldConstraint, RuleScope } from '@penji-demos/types';
+import { Answers, ComplianceStandardDefinition, CrossFieldRule, FieldDefinition, FormDefinition, ResolvedFieldConstraint } from '@penji-demos/types';
 import { isStandardApplicable } from './evaluate-rules';
 
 // Every field constraint the active standards put on one form.  The caller
-// names the scope the form edits: the subject's own record or one event.
+// names what the form edits: the subject's own record (null) or an entry in a stream.
 // Ranges merge to the most restrictive; a field is required if any standard
 // requires it.  Each constraint keeps the standard, rule and citation behind it.
 export function resolveFieldConstraints(
   form: FormDefinition,
-  scope: RuleScope,
+  stream: string | null,
   standards: readonly ComplianceStandardDefinition[],
   facts: Answers,
 ): readonly ResolvedFieldConstraint[] {
@@ -19,7 +19,7 @@ export function resolveFieldConstraints(
   for (const standard of standards) {
     if (!isStandardApplicable(standard, facts)) continue;
     for (const rule of standard.rules) {
-      if (rule.scope !== scope || (rule.appliesWhen && !evaluateCondition(rule.appliesWhen, facts))) continue;
+      if (rule.stream !== stream || rule.scope === RULE_SCOPE.HISTORY || (rule.appliesWhen && !evaluateCondition(rule.appliesWhen, facts))) continue;
       const { check } = rule;
       if (check.kind !== RULE_CHECK_KIND.RANGE && check.kind !== RULE_CHECK_KIND.REQUIRED && check.kind !== RULE_CHECK_KIND.REQUIRED_WHEN) continue;
       if (!fieldKeys.has(check.field)) continue;

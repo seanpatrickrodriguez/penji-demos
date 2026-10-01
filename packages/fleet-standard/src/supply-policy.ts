@@ -1,4 +1,4 @@
-import { DEFINITION_KIND, FLEET_FORM, RULE_CHECK_KIND, RULE_SCOPE, SUPPLY_CATEGORY, SUPPLY_STATUS, VALIDATION_SEVERITY, WANT_ITEM_FIELD } from '@penji-demos/constants';
+import { DEFINITION_KIND, FLEET_FORM, FLEET_STREAM, RULE_CHECK_KIND, RULE_SCOPE, SUPPLY_CATEGORY, SUPPLY_STATUS, VALIDATION_SEVERITY, WANT_ITEM_FIELD } from '@penji-demos/constants';
 import { ComplianceStandardDefinition, Condition, toDefinitionId } from '@penji-demos/types';
 import { FLEET_POLICY_SOURCE, fleetPolicySection } from './fleet-policy-source';
 import { APPROVAL_REQUIRED_TOTAL_DOLLARS, ESCALATION_SUGGESTED, ESCALATION_SUGGESTED_TOTAL_DOLLARS, IS_APPROVED, NEEDS_PORT_ENGINEER } from './supply-escalation';
@@ -34,6 +34,7 @@ export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
       title: 'Port engineer approval before stocking',
       citation: fleetPolicySection('Supply 1'),
       scope: RULE_SCOPE.EVENT,
+      stream: FLEET_STREAM.WANT_LIST,
       appliesWhen: null,
       check: {
         kind: RULE_CHECK_KIND.CONDITION,
@@ -52,6 +53,7 @@ export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
       title: 'Limited and costlier items usually go for approval',
       citation: fleetPolicySection('Supply 2'),
       scope: RULE_SCOPE.EVENT,
+      stream: FLEET_STREAM.WANT_LIST,
       appliesWhen: null,
       check: {
         kind: RULE_CHECK_KIND.CONDITION,
@@ -70,6 +72,7 @@ export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
       title: 'Priced once the shop is working it',
       citation: fleetPolicySection('Supply 3'),
       scope: RULE_SCOPE.EVENT,
+      stream: FLEET_STREAM.WANT_LIST,
       appliesWhen: null,
       check: {
         kind: RULE_CHECK_KIND.REQUIRED_WHEN,
@@ -88,6 +91,7 @@ export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
       title: 'Items reported missing are followed up',
       citation: fleetPolicySection('Supply 4'),
       scope: RULE_SCOPE.EVENT,
+      stream: FLEET_STREAM.WANT_LIST,
       appliesWhen: null,
       check: { kind: RULE_CHECK_KIND.CONDITION, condition: { kind: 'not', condition: { kind: 'equals', field: W.STATUS, value: S.NOT_RECEIVED } }, describes: [W.DESCRIPTION] },
       severity: VALIDATION_SEVERITY.WARNING,
@@ -102,6 +106,7 @@ export const FLEET_SUPPLY_POLICY: ComplianceStandardDefinition = {
       title: 'Frequent mooring line requests are reviewed',
       citation: fleetPolicySection('Supply 5'),
       scope: RULE_SCOPE.HISTORY,
+      stream: FLEET_STREAM.WANT_LIST,
       appliesWhen: null,
       check: {
         kind: RULE_CHECK_KIND.AT_MOST_PER_WINDOW,
