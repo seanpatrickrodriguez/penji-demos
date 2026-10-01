@@ -1,0 +1,81 @@
+<p class="check" role="status">
+  @if (problems.length === 0) {
+    Configuration check: every form, workflow, permission, stream and field a definition names is in the bundle.
+  } @else {
+    Configuration check: {{ problems.join(' ') }}
+  }
+</p>
+
+<h3>What the fleet keeps</h3>
+@for (entity of entities; track entity.label) {
+  <div class="entity">
+    <p class="entity-name">{{ entity.label }}</p>
+    <dl class="facts">
+      <div><dt>Record</dt><dd>The {{ entity.form }} form: {{ entity.fields.join(', ') }}.  Edited with “{{ entity.edit }}”.</dd></div>
+      @for (stream of entity.streams; track stream.label) {
+        <div><dt>Stream</dt><dd>{{ stream.label }}: entries on the {{ stream.form }} form, moved by the {{ stream.workflow }} workflow.  Added with “{{ stream.add }}”, removed with “{{ stream.remove }}”.</dd></div>
+      }
+      <div><dt>Worked out</dt><dd>{{ entity.facts.join('; ') }}.</dd></div>
+      <div><dt>Evaluated by</dt><dd>{{ entity.standards.join(' and ') }}.</dd></div>
+    </dl>
+  </div>
+}
+
+<h3>Who may do what</h3>
+<p>Roles are assigned over a branch of the tree.  Crew are assigned to the vessel they rotate aboard, active only while aboard; the shop's people are assigned at the company, over every vessel.  A condition on a grant reads the vessel, the item and who is acting.</p>
+<div class="table-scroll" tabindex="0" role="region" aria-labelledby="access-caption">
+  <table class="data-table access">
+    <caption id="access-caption">The access policy: each permission, by role.</caption>
+    <thead>
+      <tr>
+        <th scope="col">Permission</th>
+        @for (role of access.roles; track role.id) { <th scope="col">{{ role.label }}</th> }
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of access.rows; track row.permission) {
+        <tr>
+          <th scope="row">{{ row.permission }}</th>
+          @for (cell of row.cells; track cell.role) { <td>{{ cell.grant }}</td> }
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+<ul class="roles">
+  @for (role of access.roles; track role.id) {
+    <li><strong>{{ role.label }}.</strong> {{ role.description }}</li>
+  }
+</ul>
+
+@for (workflow of workflows; track workflow.title) {
+  <h3>How an item moves: the {{ workflow.title.toLowerCase() }} workflow</h3>
+  <p>Every item starts as {{ workflow.initial }}.  States: @for (state of workflow.states; track state.label; let last = $last) {<strong>{{ state.label }}</strong>@if (state.closed) { (closed)}{{ last ? '.' : ', ' }}}</p>
+  <div class="table-scroll" tabindex="0" role="region" aria-label="Workflow steps">
+    <table class="data-table">
+      <thead>
+        <tr><th scope="col">Step</th><th scope="col">From</th><th scope="col">To</th><th scope="col">Needs</th><th scope="col">Guard</th></tr>
+      </thead>
+      <tbody>
+        @for (step of workflow.steps; track step.label) {
+          <tr>
+            <th scope="row">{{ step.label }}@if (step.note) { <span class="muted">(with a note)</span> }</th>
+            <td>{{ step.from }}</td>
+            <td>{{ step.to }}</td>
+            <td>{{ step.needs }}</td>
+            <td>{{ step.guard }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<h3>The policies</h3>
+<p>The maintenance schedule and the supply policy are compliance standards, in the same shape as the DPRP Standards in the other demo, read by the same compliance engine.</p>
+<app-standards-explorer [definitions]="configuration.standards" [labels]="labels" [fields]="fields" [formTitles]="formTitles" blocksLabel="Must be resolved" eventNoun="item" />
+
+<details class="json">
+  <summary>The whole configuration, as data</summary>
+  <pre tabindex="0" aria-label="The fleet configuration">{{ json }}</pre>
+</details>

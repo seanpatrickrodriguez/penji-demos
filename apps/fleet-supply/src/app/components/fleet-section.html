@@ -1,0 +1,39 @@
+<p aria-live="polite" class="waiting">
+  @if (waiting() > 0) {
+    {{ waiting() }} item{{ waiting() === 1 ? '' : 's' }} across the fleet {{ waiting() === 1 ? 'has' : 'have' }} a step you can take.
+  } @else {
+    No item in the fleet has a step you can take.
+  }
+</p>
+
+<div class="table-scroll" tabindex="0" role="region" aria-labelledby="vessels-caption">
+  <table class="data-table">
+    <caption id="vessels-caption">{{ rows().length }} vessels, read as of the records' date.</caption>
+    <thead>
+      <tr>
+        <th scope="col">Vessel</th>
+        <th scope="col">Kind</th>
+        <th scope="col">Open items</th>
+        <th scope="col">Yours to act on</th>
+        <th scope="col">Findings</th>
+        <th scope="col">Your roles here</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.entityId) {
+        <tr [class.selected]="row.entityId === store.selectedEntityId()">
+          <th scope="row"><button type="button" class="link-button" (click)="open(row.entityId)">{{ row.name }}</button></th>
+          <td>{{ row.summary }}</td>
+          <td>{{ row.openEntries }}</td>
+          <td>{{ row.waitingOnViewer || '—' }}</td>
+          <td>@if (row.findings > 0) { {{ row.findings }}@if (row.blocking > 0) {&nbsp;<span class="blocking">({{ row.blocking }} must be resolved)</span> } } @else { — }</td>
+          <td>{{ row.rolesHere || '—' }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (store.selectedEntityId()) {
+  <app-vessel-panel />
+}

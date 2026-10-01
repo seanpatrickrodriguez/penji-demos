@@ -1,0 +1,58 @@
+<a class="skip-link" href="#main">Skip to main content</a>
+<app-site-header />
+
+<main id="main" tabindex="-1">
+  <section class="intro" aria-labelledby="intro-heading">
+    <div class="container">
+      <p class="eyebrow"><a href="/#work">Case studies</a></p>
+      <h1 id="intro-heading">A tug and barge fleet, on the same platform</h1>
+      <p class="lede">
+        A made-up tug and barge company and the shop that keeps its vessels running: each vessel's want list, its profile and its
+        maintenance schedule.  It runs on the same engines as the DPRP demo, with the fleet written as configuration.
+      </p>
+      <p class="muted">
+        A rebuild, on invented data, of how Penji, my private platform, takes on a new kind of organization.  Every name is fictional,
+        and every policy is the made-up company's own.  Pick who you are below and the page offers what that person may do.  Nothing leaves this page.
+      </p>
+      <div class="actions">
+        <a class="button button-primary" href="https://github.com/seanpatrickrodriguez/penji-demos">Read the code</a>
+        <a class="button button-secondary" href="/demos/dprp-evaluation/">The DPRP demo</a>
+        <a class="button button-secondary" href="/#work">Back to case studies</a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="viewer-heading">
+    <div class="container">
+      <h2 id="viewer-heading">Who you are</h2>
+      <p>Crew are assigned to the vessel they rotate aboard, and hold their roles only while aboard.  The shop's people are assigned over the whole fleet.</p>
+      <app-viewer-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="fleet-heading">
+    <div class="container">
+      <h2 id="fleet-heading">The fleet</h2>
+      <p>Open a vessel to work its want list: add an item, send the list, and follow each item through the shop.  Mooring lines and costly items cannot go in the locker until the port engineer approves them.</p>
+      <app-fleet-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="definitions-heading">
+    <div class="container">
+      <h2 id="definitions-heading">The fleet, as configuration</h2>
+      <p>Everything above is read from these definitions.  The engines have no idea what a vessel is.</p>
+      <app-definitions-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="architecture-heading">
+    <div class="container">
+      <h2 id="architecture-heading">One platform, two products</h2>
+      <app-architecture-section />
+      <p class="actions"><button type="button" class="button button-secondary" (click)="store.resetRecords()">Reset the records</button></p>
+    </div>
+  </section>
+</main>
+
+<app-site-footer />

@@ -1,0 +1,90 @@
+:host {
+  display: block;
+  border: 1px solid var(--rule);
+  border-radius: 8px;
+  padding: var(--space-4);
+  background: var(--bg);
+}
+
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  align-items: flex-start;
+}
+
+h3,
+h4 {
+  margin-top: 0;
+}
+
+h3:focus {
+  outline: none;
+}
+
+.guidance,
+.stream,
+.record {
+  margin-top: var(--space-5);
+}
+
+.section-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.section-row h4 {
+  margin: 0;
+}
+
+.not-yours {
+  margin: 0;
+  font-size: 0.9375rem;
+}
+
+.editor {
+  border-left: 3px solid var(--accent);
+  padding-left: var(--space-3);
+  margin: var(--space-3) 0;
+}
+
+.record-values {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0;
+  margin: 0;
+}
+
+@media (min-width: 48rem) {
+  .record-values {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    column-gap: var(--space-5);
+  }
+}
+
+.record-values div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: var(--space-2);
+  padding: var(--space-1) 0;
+  border-bottom: 1px solid var(--rule);
+}
+
+.record-values dt {
+  color: var(--text-muted);
+}
+
+.record-values dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.change-problems {
+  color: var(--error);
+  font-weight: 600;
+}

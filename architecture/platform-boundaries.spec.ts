@@ -20,6 +20,9 @@ const DEFINITION_READERS = ['time', 'form-engine', 'compliance-engine', 'rule-en
 
 const SOURCES = import.meta.glob<string>('../packages/*/src/**/*.ts', { query: '?raw', import: 'default', eager: true });
 const MANIFESTS = import.meta.glob<string>('../packages/*/package.json', { query: '?raw', import: 'default', eager: true });
+const APP_SOURCES = import.meta.glob<string>('../apps/*/src/**/*.ts', { query: '?raw', import: 'default', eager: true });
+// Each product's page, and the product packages it is built from.
+const APPS: Readonly<Record<string, readonly string[]>> = { 'dprp-evaluation': PROGRAM, 'fleet-supply': FLEET };
 const CONFIGURATIONS = import.meta.glob<Record<string, unknown>>('../packages/{dprp-configuration,dprp-standard,mdpp-standard,fleet-configuration}/src/index.ts', { eager: true });
 
 const packageOf = (path: string) => path.split('/')[2] ?? '';
@@ -83,6 +86,15 @@ describe('the platform boundaries', () => {
     const program = reachedFrom(PROGRAM);
     const fleet = reachedFrom(FLEET);
     expect(SHARED_ENGINES.filter((engine) => !program.has(engine) || !fleet.has(engine))).toEqual([]);
+  });
+
+  it('build each product’s page from the engines, the shared UI and its own product only', () => {
+    const appOf = (path: string) => path.split('/')[2] ?? '';
+    expect([...new Set(Object.keys(APP_SOURCES).map(appOf))].sort()).toEqual(Object.keys(APPS).sort());
+    for (const [app, own] of Object.entries(APPS)) {
+      const imports = [...new Set(Object.entries(APP_SOURCES).filter(([path]) => appOf(path) === app && isShipped(path)).flatMap(([, source]) => [...source.matchAll(/from '@penji-demos\/([\w-]+)'/g)].map((match) => match[1] ?? '')))];
+      expect(imports.filter((imported) => !ENGINES.includes(imported) && !SHARED_UI.includes(imported) && !own.includes(imported)), app).toEqual([]);
+    }
   });
 
   it('let configuration packages export definitions only', () => {

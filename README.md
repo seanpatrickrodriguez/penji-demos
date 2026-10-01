@@ -14,11 +14,22 @@ A synthetic organization's participant records, evaluated against the [2024 CDC 
 - **Rules delivered to the platform's forms.**  The enrollment and session forms are the program's own.  Every standard that applies to a participant adds its rules to them, and each field shows which standard asked for what.  Set Medicare Part B to yes and the MDPP's rules join.
 - **The submission file.**  Records become Table 5's columns and codes only when the file is made.
 
+## Fleet supply and maintenance
+
+**Try it:** [seanrodriguez.dev/demos/fleet-supply](https://seanrodriguez.dev/demos/fleet-supply)
+
+A made-up tug and barge company and the shop that keeps its vessels running, on the same engines as the DPRP demo.  Every name is fictional, and every policy is the made-up company's own.
+
+- **Viewing as.**  Pick a person and the page offers what they may do: crew add to their vessel's want list and remove their own items until it is sent, an officer aboard sends it, the shop works it, and the port engineer approves.  Crew off rotation hold nothing.  Every refused action says why.
+- **The want list.**  Each item moves through the shop's statuses, from New to Received, and keeps who took each step and when.  Mooring lines and costly items cannot go in the locker until they are approved; the workflow's guard holds them.
+- **Record review.**  The supply policy and the maintenance schedule are compliance standards, evaluated on each vessel's profile and every item on its list, with the same guidance, accept-with-a-reason and "Fix this" as the DPRP demo.
+- **The configuration, as data.**  Who may do what, how an item moves, what each vessel keeps, and the policies, read back from the definitions the page runs on.
+
 ## Why it is built this way
 
 Penji started as a data system for one program.  To become a platform, it had to take on a new program, a new standard or a new kind of organization as definitions, with the engines that read them left unchanged.  This structure is how it does that, and it is the architecture Penji's current major version is built on.
 
-Its foundation serves any organization that tracks people or things over time against a standard: tenants and their hierarchy, registrations, longitudinal records, compliance checks, and role-based access.  A second demo is being built on the same packages: a tug and barge fleet's supply requests, vessel profiles and maintenance, with vessels and crews where the cohorts and participants are.
+Its foundation serves any organization that tracks people or things over time against a standard: tenants and their hierarchy, registrations, longitudinal records, compliance checks, and role-based access.  The fleet demo runs on the same packages: a tug and barge fleet's supply requests, vessel profiles and maintenance, with vessels and crews where the cohorts and participants are.
 
 ### How it got here
 
@@ -106,8 +117,10 @@ Out of scope here, and in Penji: automatic corrections, dismissing findings, rem
 ```sh
 npm install
 npm run test:packages   # the packages' tests (Vitest)
-npm start               # http://localhost:4200
+npm start               # the DPRP demo, http://localhost:4200
+npm run start:fleet     # the fleet demo, http://localhost:4200
 npm run build:site      # production build for seanrodriguez.dev/demos/dprp-evaluation/
+npm run build:fleet-site  # production build for seanrodriguez.dev/demos/fleet-supply/
 ```
 
 ## License

@@ -1,0 +1,74 @@
+@if (entity(); as entity) {
+  <div class="panel-head">
+    <div>
+      <p class="eyebrow">Vessel</p>
+      <h3 id="vessel-heading" tabindex="-1">{{ name() }}</h3>
+      <p class="muted">
+        @if (rolesHere().length > 0) {
+          You hold {{ rolesHere().join(', ') }} here.
+        } @else {
+          You hold no role over this vessel.
+        }
+        Switch who you are viewing as, above, and the actions here change with it.
+      </p>
+    </div>
+    <button type="button" class="button button-secondary" (click)="close()">Close</button>
+  </div>
+
+  @if (store.changeProblems().length > 0) {
+    <p class="change-problems" role="alert">{{ store.changeProblems().join(' ') }}</p>
+  }
+
+  <section class="guidance" aria-labelledby="review-heading">
+    <h4 id="review-heading">Record review</h4>
+    <p class="muted">The company's maintenance schedule and supply policy, evaluated on this vessel's profile and every item on its list.</p>
+    <app-guidance-list
+      [items]="guidance()"
+      [labels]="labels"
+      [fields]="fields"
+      eventLabel="Item"
+      [recordLabel]="recordTitle()"
+      blockingLabel="must be resolved"
+      [formatDate]="formatDate"
+      [describeEvent]="describeEvent"
+      [resolve]="resolveGuidance"
+      (fix)="fix($event)"
+      (reopen)="store.reopenGuidance($event)"
+    />
+  </section>
+
+  @for (row of streamRows(); track row.view.stream.id) {
+    <section class="stream" [attr.aria-labelledby]="row.view.stream.id + '-heading'">
+      <app-stream-section [view]="row.view" [entity]="entity" [editing]="row.editing" (edit)="openEntry(row.view.stream.id, $event)" (closeEditor)="closeEditor()" />
+    </section>
+  }
+
+  <section class="record" aria-labelledby="record-heading">
+    <div class="section-row">
+      <h4 id="record-heading">{{ recordTitle() }}</h4>
+      @if (editRecord(); as option) {
+        @if (option.available) {
+          @if (!editingRecord()) {
+            <button type="button" class="button button-secondary" (click)="openRecord()">Edit {{ recordTitle().toLowerCase() }}</button>
+          }
+        } @else {
+          <p class="muted not-yours">Editing: {{ option.reason }}</p>
+        }
+      }
+    </div>
+    @if (editingRecord(); as editing) {
+      @if (constrainedRecordForm(); as form) {
+        <div class="editor">
+          <p class="muted">The configured form.  Rules marked ◆ come from the policies that apply, and change as the answers do: set the kind to Barge and the tug's equipment questions leave, and a fuel or propane cargo brings the tank schedule.</p>
+          <app-definition-form [definition]="form" [constraints]="recordConstraints()" [initial]="recordInitial()" [focusField]="editing.focus" idPrefix="record" [submitLabel]="'Save ' + recordTitle().toLowerCase()" (changed)="draftChanged($event)" (saved)="saveRecord($event)" (cancelled)="closeEditor()" />
+        </div>
+      }
+    } @else {
+      <dl class="record-values">
+        @for (value of record(); track value.label) {
+          <div><dt>{{ value.label }}</dt><dd>{{ value.value }}</dd></div>
+        }
+      </dl>
+    }
+  </section>
+}

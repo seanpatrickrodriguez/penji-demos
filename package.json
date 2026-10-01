@@ -7,7 +7,10 @@
     "build:site": "ng build dprp-evaluation --base-href /demos/dprp-evaluation/",
     "test": "vitest run --config vitest.config.packages.ts",
     "test:packages": "vitest run --config vitest.config.packages.ts",
-    "typecheck": "tsc -p tsconfig.packages.json --noEmit"
+    "typecheck": "tsc -p tsconfig.packages.json --noEmit",
+    "start:fleet": "ng serve fleet-supply",
+    "build:fleet": "ng build fleet-supply",
+    "build:fleet-site": "ng build fleet-supply --base-href /demos/fleet-supply/"
   },
   "private": true,
   "packageManager": "npm@11.20.0",

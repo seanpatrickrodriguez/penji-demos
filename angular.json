@@ -92,6 +92,89 @@
           }
         }
       }
+    },
+    "fleet-supply": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/fleet-supply",
+      "sourceRoot": "apps/fleet-supply/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/fleet-supply/src/main.ts",
+            "tsConfig": "apps/fleet-supply/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "packages/ui/public"
+              }
+            ],
+            "styles": [
+              "@fontsource/public-sans/400.css",
+              "@fontsource/public-sans/600.css",
+              "@fontsource-variable/source-serif-4/opsz.css",
+              "packages/ui/src/styles/site.scss"
+            ],
+            "outputPath": "dist/fleet-supply"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "fleet-supply:build:production"
+            },
+            "development": {
+              "buildTarget": "fleet-supply:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "apps/fleet-supply/tsconfig.spec.json"
+          }
+        }
+      }
     }
   }
 }
