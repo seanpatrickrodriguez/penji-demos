@@ -73,7 +73,7 @@ const PHASE_LABEL: Readonly<Record<ProgramSession['phase'], string>> = {
 
 // Sessions in date order, each with its index in the stored record so it can be edited.
 export function resolveSessionRows(evaluation: ParticipantEvaluation, stored: readonly { sessionDate: string; isMakeUp: boolean; weightPounds: number | null; activityMinutes: number }[], items: readonly GuidanceItem[]): readonly SessionRow[] {
-  const flaggedDates = new Set(items.filter(isGuidanceOpen).map((item) => item.finding.sessionDate));
+  const flaggedDates = new Set(items.filter(isGuidanceOpen).map((item) => item.finding.eventDate));
   const used = new Set<number>();
   return evaluation.sessions.map((session) => {
     const index = stored.findIndex((candidate, at) => !used.has(at) && candidate.sessionDate === session.sessionDate && candidate.isMakeUp === session.isMakeUp && candidate.weightPounds === session.weightPounds && candidate.activityMinutes === session.activityMinutes);

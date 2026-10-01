@@ -1,15 +1,16 @@
 import { Answers, PlainDate } from '@penji-demos/types';
 
-// What the engine checks: a participant's facts and their session records,
-// each as plain field values.  The domain builds a subject from its own
-// records; the engine never sees a record type.
+// What the engine checks: a subject's facts and its dated history, each as
+// plain field values.  A participant with sessions and a vessel with want-list
+// items are both subjects; the domain builds one from its own records, and the
+// engine never sees a record type.
 export interface ComplianceSubject {
   readonly facts: Answers;
-  readonly sessions: readonly SubjectSession[];
+  readonly events: readonly SubjectEvent[];
 }
 
-export interface SubjectSession {
-  readonly sessionDate: PlainDate;
+export interface SubjectEvent {
+  readonly eventDate: PlainDate;
   readonly values: Answers;
 }
 

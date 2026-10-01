@@ -1,4 +1,4 @@
-import { CANONICAL_FORM, DEFINITION_KIND, DELIVERY_MODE, DERIVED_FACT, ENROLLMENT_FIELD, RESULT_SOURCE, SESSION_FIELD } from '@penji-demos/constants';
+import { PROGRAM_FORM, DEFINITION_KIND, DELIVERY_MODE, DERIVED_FACT, ENROLLMENT_FIELD, RESULT_SOURCE, SESSION_FIELD } from '@penji-demos/constants';
 import { FieldDefinition, FormDefinition, toDefinitionId } from '@penji-demos/types';
 
 // M1: the platform's own forms.  They collect facts in plain terms and carry
@@ -73,8 +73,8 @@ const form = (id: string, title: string, description: string, fields: readonly F
   rules: [],
 });
 
-export const ENROLLMENT_FORM = form(CANONICAL_FORM.ENROLLMENT, 'Enrollment', 'The facts gathered when a participant enrolls.', ENROLLMENT_FIELDS);
-export const SESSION_FORM = form(CANONICAL_FORM.SESSION, 'Session', 'One session attended by one participant.', SESSION_FIELDS);
+export const ENROLLMENT_FORM = form(PROGRAM_FORM.ENROLLMENT, 'Enrollment', 'The facts gathered when a participant enrolls.', ENROLLMENT_FIELDS);
+export const SESSION_FORM = form(PROGRAM_FORM.SESSION, 'Session', 'One session attended by one participant.', SESSION_FIELDS);
 
 // Labels for every fact a rule can read: the form fields, and the facts worked out from records.
 export const FACT_LABELS: Readonly<Record<string, string>> = {

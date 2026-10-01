@@ -53,8 +53,8 @@ export const RESULT_SOURCE = {
   SELF_REPORTED: 'selfReported',
 } as const;
 
-// The canonical forms, by ID.
-export const CANONICAL_FORM = {
+// The program records' forms, by definition ID.
+export const PROGRAM_FORM = {
   ENROLLMENT: 'enrollment',
   SESSION: 'session',
 } as const;

@@ -1,4 +1,4 @@
-import { CANONICAL_FORM, DEFINITION_KIND, DERIVED_FACT, ENROLLMENT_FIELD, MDPP_ELIGIBILITY_BASIS, RESULT_SOURCE, RULE_CHECK_KIND, RULE_SCOPE, VALIDATION_SEVERITY } from '@penji-demos/constants';
+import { PROGRAM_FORM, DEFINITION_KIND, DERIVED_FACT, ENROLLMENT_FIELD, MDPP_ELIGIBILITY_BASIS, RESULT_SOURCE, RULE_CHECK_KIND, RULE_SCOPE, VALIDATION_SEVERITY } from '@penji-demos/constants';
 import { ComplianceStandardDefinition, Condition, CriterionDefinition, SourceReference, toDefinitionId } from '@penji-demos/types';
 
 // M1: Medicare Diabetes Prevention Program beneficiary eligibility, 42 CFR
@@ -88,7 +88,7 @@ export const MDPP_STANDARD: ComplianceStandardDefinition = {
       id: 'mdpp-blood-test-source',
       title: 'Blood test source recorded for Medicare participants',
       citation: paragraph('(c)(1)(i)(D)'),
-      scope: RULE_SCOPE.ENROLLMENT,
+      scope: RULE_SCOPE.SUBJECT,
       appliesWhen: null,
       check: { kind: RULE_CHECK_KIND.REQUIRED, field: E.BLOOD_TEST_SOURCE },
       severity: VALIDATION_SEVERITY.ERROR,
@@ -96,7 +96,7 @@ export const MDPP_STANDARD: ComplianceStandardDefinition = {
       bypassable: false,
       issue: 'No blood test source is recorded for this Medicare participant.',
       guidance: 'Record a blood test result and attach the lab report; MDPP eligibility needs a lab result from the 12 months before the first core session.',
-      fixTarget: { form: CANONICAL_FORM.ENROLLMENT, field: E.BLOOD_TEST_SOURCE },
+      fixTarget: { form: PROGRAM_FORM.ENROLLMENT, field: E.BLOOD_TEST_SOURCE },
     },
   ],
 

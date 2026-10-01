@@ -2,8 +2,8 @@ import { GUIDANCE_ACTION_TYPE } from '@penji-demos/constants';
 import { GuidanceAction, GuidanceItem, GuidanceResolution, RuleDefinition, RuleFinding } from '@penji-demos/types';
 
 // A stable ID for a finding, so a resolution still matches it after the record is re-evaluated.
-export const resolveGuidanceId = (participantId: string, finding: RuleFinding): string =>
-  [participantId, finding.standardShortName, finding.ruleId, finding.sessionDate ?? 'record'].join(':');
+export const resolveGuidanceId = (subjectId: string, finding: RuleFinding): string =>
+  [subjectId, finding.standardShortName, finding.ruleId, finding.eventDate ?? 'record'].join(':');
 
 // What a person can do about a finding.  Change is offered only where there is
 // a field to change, accept only where the rule allows the record to stand, and
@@ -17,17 +17,17 @@ export function resolveGuidanceActions(rule: RuleDefinition): readonly GuidanceA
 }
 
 export function resolveGuidanceItem(
-  participantId: string,
+  subjectId: string,
   rule: RuleDefinition,
   finding: RuleFinding,
   resolutions: ReadonlyMap<string, GuidanceResolution>,
 ): GuidanceItem {
-  const id = resolveGuidanceId(participantId, finding);
+  const id = resolveGuidanceId(subjectId, finding);
   return {
     id,
     rule,
     finding,
-    target: rule.fixTarget ? { ...rule.fixTarget, sessionDate: finding.sessionDate } : null,
+    target: rule.fixTarget ? { ...rule.fixTarget, eventDate: finding.eventDate } : null,
     requiresAction: rule.blocks,
     availableActions: resolveGuidanceActions(rule),
     resolution: resolutions.get(id) ?? null,

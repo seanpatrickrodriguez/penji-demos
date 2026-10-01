@@ -1,4 +1,4 @@
-import { CANONICAL_FORM, DEFINITION_KIND, GUIDANCE_ACTION_TYPE, RULE_CHECK_KIND, RULE_SCOPE, VALIDATION_SEVERITY } from '@penji-demos/constants';
+import { DEFINITION_KIND, GUIDANCE_ACTION_TYPE, RULE_CHECK_KIND, RULE_SCOPE, VALIDATION_SEVERITY } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
 import { PlainDate } from '../primitives/plain-date';
 import { Definition, SourceReference } from './definition';
@@ -7,7 +7,6 @@ import { Condition, FieldKey } from './form-definition';
 export type ValidationSeverity = ValueOf<typeof VALIDATION_SEVERITY>;
 export type GuidanceActionType = ValueOf<typeof GUIDANCE_ACTION_TYPE>;
 export type RuleScope = ValueOf<typeof RULE_SCOPE>;
-export type CanonicalFormId = ValueOf<typeof CANONICAL_FORM>;
 
 // M2: what a rule checks.  Each kind carries its own parameters; a rule never holds code.
 export type RuleCheck =
@@ -23,9 +22,9 @@ export type RuleCheck =
   | { readonly kind: typeof RULE_CHECK_KIND.NOT_BEFORE_ANCHOR; readonly anchor: FieldKey }
   | { readonly kind: typeof RULE_CHECK_KIND.CHANGE_AT_MOST; readonly field: FieldKey; readonly percent: number };
 
-// Where "Fix this" takes a person: a field on one of the canonical forms.
+// Where "Fix this" takes a person: a field on a form, named by the form definition's ID.
 export interface FixTarget {
-  readonly form: CanonicalFormId;
+  readonly form: string;
   readonly field: FieldKey;
 }
 
@@ -87,7 +86,8 @@ export interface ComplianceStandardDefinition extends Definition<typeof DEFINITI
 export interface RuleFinding {
   readonly ruleId: string;
   readonly standardShortName: string;
-  readonly sessionDate: PlainDate | null;
+  // The event the finding is about, or null for the subject's own record or its history.
+  readonly eventDate: PlainDate | null;
   readonly message: string;
   readonly expected: string | null;
   readonly actual: string | null;
@@ -114,7 +114,7 @@ export interface GuidanceItem {
   readonly id: string;
   readonly rule: RuleDefinition;
   readonly finding: RuleFinding;
-  readonly target: (FixTarget & { readonly sessionDate: PlainDate | null }) | null;
+  readonly target: (FixTarget & { readonly eventDate: PlainDate | null }) | null;
   readonly requiresAction: boolean;
   readonly availableActions: readonly GuidanceAction[];
   readonly resolution: GuidanceResolution | null;
@@ -130,7 +130,7 @@ export interface FieldConstraintSource {
 }
 
 export interface ResolvedFieldConstraint {
-  readonly form: CanonicalFormId;
+  readonly form: string;
   readonly field: FieldKey;
   readonly required: boolean;
   readonly requiredWhen: readonly Condition[];

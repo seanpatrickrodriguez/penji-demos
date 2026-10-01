@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { CANONICAL_FORM, DELIVERY_MODE, GUIDANCE_ACTION_TYPE, SESSION_FIELD, VALIDATION_SEVERITY } from '@penji-demos/constants';
+import { DELIVERY_MODE, GUIDANCE_ACTION_TYPE, PROGRAM_FORM, RULE_SCOPE, SESSION_FIELD, VALIDATION_SEVERITY } from '@penji-demos/constants';
 import { describeRuleCheck, isGuidanceOpen, resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/compliance-engine';
 import {
   ENROLLMENT_FORM,
@@ -19,8 +19,8 @@ import { resolveGuidanceSummary, resolveSessionRows } from '../view/participant-
 import { DefinitionForm } from './definition-form';
 
 type Editing =
-  | { readonly form: typeof CANONICAL_FORM.SESSION; readonly index: number | null; readonly focus: string | null }
-  | { readonly form: typeof CANONICAL_FORM.ENROLLMENT; readonly focus: string | null };
+  | { readonly form: typeof PROGRAM_FORM.SESSION; readonly index: number | null; readonly focus: string | null }
+  | { readonly form: typeof PROGRAM_FORM.ENROLLMENT; readonly focus: string | null };
 
 interface GuidanceView {
   readonly item: GuidanceItem;
@@ -72,7 +72,7 @@ export class ParticipantPanel {
       item,
       severity: SEVERITY_LABEL[item.rule.severity],
       severityClass: item.rule.severity,
-      when: item.finding.sessionDate ? `Session of ${formatDate(item.finding.sessionDate)}` : 'Enrollment record',
+      when: item.finding.eventDate ? `Session of ${formatDate(item.finding.eventDate)}` : 'Enrollment record',
       check: describeRuleCheck(item.rule.check, FACT_LABELS),
       open: isGuidanceOpen(item),
       resolution: item.resolution
@@ -98,15 +98,15 @@ export class ParticipantPanel {
     return draft ? { ...facts, ...draft } : facts;
   });
 
-  protected readonly sessionConstraints = computed(() => resolveFieldConstraints(SESSION_FORM, CANONICAL_FORM.SESSION, ALL_STANDARDS, this.facts()));
+  protected readonly sessionConstraints = computed(() => resolveFieldConstraints(SESSION_FORM, RULE_SCOPE.EVENT, ALL_STANDARDS, this.facts()));
   protected readonly sessionForm = computed(() => resolveConstrainedForm(SESSION_FORM, this.sessionConstraints()));
-  protected readonly enrollmentConstraints = computed(() => resolveFieldConstraints(ENROLLMENT_FORM, CANONICAL_FORM.ENROLLMENT, ALL_STANDARDS, this.facts()));
+  protected readonly enrollmentConstraints = computed(() => resolveFieldConstraints(ENROLLMENT_FORM, RULE_SCOPE.SUBJECT, ALL_STANDARDS, this.facts()));
   protected readonly enrollmentForm = computed(() => resolveConstrainedForm(ENROLLMENT_FORM, this.enrollmentConstraints()));
 
   protected readonly sessionInitial = computed<Answers>(() => {
     const editing = this.editing();
     const participant = this.participant();
-    if (!editing || editing.form !== CANONICAL_FORM.SESSION || !participant) return {};
+    if (!editing || editing.form !== PROGRAM_FORM.SESSION || !participant) return {};
     const session = editing.index === null ? null : participant.sessions[editing.index];
     return session
       ? resolveSessionAnswers(session)
@@ -119,11 +119,11 @@ export class ParticipantPanel {
 
   protected readonly editingSession = computed(() => {
     const editing = this.editing();
-    return editing?.form === CANONICAL_FORM.SESSION ? editing : null;
+    return editing?.form === PROGRAM_FORM.SESSION ? editing : null;
   });
   protected readonly editingEnrollment = computed(() => {
     const editing = this.editing();
-    return editing?.form === CANONICAL_FORM.ENROLLMENT ? editing : null;
+    return editing?.form === PROGRAM_FORM.ENROLLMENT ? editing : null;
   });
 
   protected close(): void {
@@ -131,12 +131,12 @@ export class ParticipantPanel {
   }
 
   protected editSession(index: number | null, focus: string | null = null): void {
-    this.editing.set({ form: CANONICAL_FORM.SESSION, index, focus });
+    this.editing.set({ form: PROGRAM_FORM.SESSION, index, focus });
   }
 
   protected editEnrollment(focus: string | null = null): void {
     this.draftEnrollment.set(null);
-    this.editing.set({ form: CANONICAL_FORM.ENROLLMENT, focus });
+    this.editing.set({ form: PROGRAM_FORM.ENROLLMENT, focus });
   }
 
   protected cancelEdit(): void {
@@ -175,11 +175,11 @@ export class ParticipantPanel {
     const target = item.target;
     const participant = this.participant();
     if (!target || !participant) return;
-    if (target.form === CANONICAL_FORM.ENROLLMENT) {
+    if (target.form === PROGRAM_FORM.ENROLLMENT) {
       this.editEnrollment(target.field);
       return;
     }
-    const index = participant.sessions.findIndex((session) => session.sessionDate === target.sessionDate);
+    const index = participant.sessions.findIndex((session) => session.sessionDate === target.eventDate);
     this.editSession(index >= 0 ? index : null, target.field);
   }
 

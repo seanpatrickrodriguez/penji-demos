@@ -1,4 +1,4 @@
-import { CANONICAL_FORM, ENROLLMENT_FIELD, RESULT_SOURCE, SESSION_FIELD } from '@penji-demos/constants';
+import { ENROLLMENT_FIELD, RESULT_SOURCE, RULE_SCOPE, SESSION_FIELD } from '@penji-demos/constants';
 import { resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/compliance-engine';
 import { MDPP_STANDARD } from '@penji-demos/mdpp-standard';
 import { ENROLLMENT_FORM, SESSION_FORM } from '@penji-demos/program-records';
@@ -61,7 +61,7 @@ describe('rules delivered to the canonical forms', () => {
   const facts = (overrides: Partial<Enrollment>) => ({ ...buildEnrollment(overrides) });
 
   it("puts the DPRP's weight range and required activity minutes on the session form", () => {
-    const constraints = resolveFieldConstraints(SESSION_FORM, CANONICAL_FORM.SESSION, [DPRP_STANDARD_2024, MDPP_STANDARD], facts({}));
+    const constraints = resolveFieldConstraints(SESSION_FORM, RULE_SCOPE.EVENT, [DPRP_STANDARD_2024, MDPP_STANDARD], facts({}));
     const weight = constraints.find((constraint) => constraint.field === SESSION_FIELD.WEIGHT_POUNDS);
     expect(weight).toMatchObject({ min: 70, max: 997 });
     expect(weight?.sources.map((source) => source.standardShortName)).toEqual(['DPRP 2024']);
@@ -70,8 +70,8 @@ describe('rules delivered to the canonical forms', () => {
   });
 
   it('makes the blood test source required on the enrollment form only for Medicare participants, citing the MDPP', () => {
-    const withMedicare = resolveFieldConstraints(ENROLLMENT_FORM, CANONICAL_FORM.ENROLLMENT, [DPRP_STANDARD_2024, MDPP_STANDARD], facts(MEDICARE));
-    const without = resolveFieldConstraints(ENROLLMENT_FORM, CANONICAL_FORM.ENROLLMENT, [DPRP_STANDARD_2024, MDPP_STANDARD], facts({}));
+    const withMedicare = resolveFieldConstraints(ENROLLMENT_FORM, RULE_SCOPE.SUBJECT, [DPRP_STANDARD_2024, MDPP_STANDARD], facts(MEDICARE));
+    const without = resolveFieldConstraints(ENROLLMENT_FORM, RULE_SCOPE.SUBJECT, [DPRP_STANDARD_2024, MDPP_STANDARD], facts({}));
     const source = (list: typeof withMedicare) => list.find((constraint) => constraint.field === ENROLLMENT_FIELD.BLOOD_TEST_SOURCE);
     expect(source(withMedicare)).toMatchObject({ required: true });
     expect(source(withMedicare)?.sources[0]?.citation.section).toBe('410.79(c)(1)(i)(D)');

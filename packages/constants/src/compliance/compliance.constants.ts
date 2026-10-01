@@ -14,12 +14,13 @@ export const GUIDANCE_ACTION_TYPE = {
   DEFER: 'defer',
 } as const;
 
-// What a rule is checked against: the enrollment, each session, or the
-// participant's whole record across time.
+// What a rule is checked against: the subject's own record (a participant's
+// enrollment, a vessel's profile), each dated event in its history (a session,
+// a want-list item), or the history as a whole.
 export const RULE_SCOPE = {
-  ENROLLMENT: 'enrollment',
-  SESSION: 'session',
-  PARTICIPANT: 'participant',
+  SUBJECT: 'subject',
+  EVENT: 'event',
+  HISTORY: 'history',
 } as const;
 
 // The kinds of check a rule definition can declare.  Adding a kind is an M2 change.

@@ -46,21 +46,21 @@ const standard = (shortName: string, rules: readonly RuleDefinition[], appliesWh
   interpretations: [],
 });
 
-const LAP_RANGE = rule('lap-range', { scope: RULE_SCOPE.SESSION, check: { kind: RULE_CHECK_KIND.RANGE, field: 'laps', min: 1, max: 200, unit: 'laps' }, fixTarget: { form: 'session', field: 'laps' } });
+const LAP_RANGE = rule('lap-range', { scope: RULE_SCOPE.EVENT, check: { kind: RULE_CHECK_KIND.RANGE, field: 'laps', min: 1, max: 200, unit: 'laps' }, fixTarget: { form: 'session', field: 'laps' } });
 const ONE_EXTRA_PER_WEEK = rule('extra-per-week', {
-  scope: RULE_SCOPE.SESSION,
+  scope: RULE_SCOPE.EVENT,
   check: { kind: RULE_CHECK_KIND.AT_MOST_PER_WINDOW, counts: { kind: 'equals', field: 'extra', value: true }, max: 1, windowDays: 7 },
   severity: VALIDATION_SEVERITY.WARNING,
   blocks: false,
   bypassable: true,
 });
 const BASIC = standard('Basic', [LAP_RANGE, ONE_EXTRA_PER_WEEK]);
-const SQUAD = standard('Squad', [rule('squad-laps', { scope: RULE_SCOPE.SESSION, check: { kind: RULE_CHECK_KIND.RANGE, field: 'laps', min: 10, max: 120, unit: 'laps' } })], { kind: 'equals', field: 'squad', value: true });
+const SQUAD = standard('Squad', [rule('squad-laps', { scope: RULE_SCOPE.EVENT, check: { kind: RULE_CHECK_KIND.RANGE, field: 'laps', min: 10, max: 120, unit: 'laps' } })], { kind: 'equals', field: 'squad', value: true });
 
-const session = (date: string, values: Record<string, number | boolean | null>) => ({ sessionDate: toPlainDate(date), values: { sessionDate: date, ...values } });
+const event = (date: string, values: Record<string, number | boolean | null>) => ({ eventDate: toPlainDate(date), values: { eventDate: date, ...values } });
 const SUBJECT: ComplianceSubject = {
   facts: { age: 10, swimTestPassed: false, tookLessons: true, squad: false },
-  sessions: [session('2025-03-03', { laps: 40, extra: false }), session('2025-03-04', { laps: 400, extra: true }), session('2025-03-06', { laps: 30, extra: true })],
+  events: [event('2025-03-03', { laps: 40, extra: false }), event('2025-03-04', { laps: 400, extra: true }), event('2025-03-06', { laps: 30, extra: true })],
 };
 
 describe('evaluateStandard', () => {
@@ -72,12 +72,12 @@ describe('evaluateStandard', () => {
 
   it('finds a value out of range on the session it belongs to', () => {
     const [finding] = evaluateStandard(BASIC, SUBJECT, {}).findings.filter((found) => found.ruleId === 'lap-range');
-    expect(finding).toMatchObject({ sessionDate: '2025-03-04', message: 'Value 400 is outside 1-200 laps.', actual: '400 laps' });
+    expect(finding).toMatchObject({ eventDate: '2025-03-04', message: 'Value 400 is outside 1-200 laps.', actual: '400 laps' });
   });
 
   it('counts across sessions within a window', () => {
     const found = evaluateStandard(BASIC, SUBJECT, {}).findings.filter((finding) => finding.ruleId === 'extra-per-week');
-    expect(found.map((finding) => finding.sessionDate)).toEqual(['2025-03-06']);
+    expect(found.map((finding) => finding.eventDate)).toEqual(['2025-03-06']);
   });
 
   it('applies a standard only to the subjects its condition selects', () => {
@@ -99,7 +99,7 @@ describe('field constraints from several standards', () => {
   };
 
   it('merges ranges to the most restrictive and keeps where each came from', () => {
-    const constraints = resolveFieldConstraints(FORM, 'session', [BASIC, SQUAD], { squad: true });
+    const constraints = resolveFieldConstraints(FORM, RULE_SCOPE.EVENT, [BASIC, SQUAD], { squad: true });
     expect(constraints).toHaveLength(1);
     expect(constraints[0]).toMatchObject({ min: 10, max: 120 });
     expect(constraints[0]?.sources.map((source) => source.standardShortName)).toEqual(['Basic', 'Squad']);
@@ -108,7 +108,7 @@ describe('field constraints from several standards', () => {
   });
 
   it('leaves out a standard that does not apply', () => {
-    expect(resolveFieldConstraints(FORM, 'session', [BASIC, SQUAD], { squad: false })[0]).toMatchObject({ min: 1, max: 200 });
+    expect(resolveFieldConstraints(FORM, RULE_SCOPE.EVENT, [BASIC, SQUAD], { squad: false })[0]).toMatchObject({ min: 1, max: 200 });
   });
 });
 

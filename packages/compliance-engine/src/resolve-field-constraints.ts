@@ -1,28 +1,15 @@
-import { RULE_CHECK_KIND, RULE_SCOPE } from '@penji-demos/constants';
+import { RULE_CHECK_KIND } from '@penji-demos/constants';
 import { evaluateCondition } from '@penji-demos/form-engine';
-import {
-  Answers,
-  CanonicalFormId,
-  ComplianceStandardDefinition,
-  CrossFieldRule,
-  FieldDefinition,
-  FormDefinition,
-  ResolvedFieldConstraint,
-  RuleDefinition,
-} from '@penji-demos/types';
+import { Answers, ComplianceStandardDefinition, CrossFieldRule, FieldDefinition, FormDefinition, ResolvedFieldConstraint, RuleScope } from '@penji-demos/types';
 import { isStandardApplicable } from './evaluate-rules';
 
-const SCOPE_BY_FORM: Readonly<Record<CanonicalFormId, RuleDefinition['scope']>> = {
-  enrollment: RULE_SCOPE.ENROLLMENT,
-  session: RULE_SCOPE.SESSION,
-};
-
-// Every field constraint the active standards put on one canonical form.
+// Every field constraint the active standards put on one form.  The caller
+// names the scope the form edits: the subject's own record or one event.
 // Ranges merge to the most restrictive; a field is required if any standard
 // requires it.  Each constraint keeps the standard, rule and citation behind it.
 export function resolveFieldConstraints(
-  form: FormDefinition & { readonly id: string },
-  formId: CanonicalFormId,
+  form: FormDefinition,
+  scope: RuleScope,
   standards: readonly ComplianceStandardDefinition[],
   facts: Answers,
 ): readonly ResolvedFieldConstraint[] {
@@ -32,12 +19,12 @@ export function resolveFieldConstraints(
   for (const standard of standards) {
     if (!isStandardApplicable(standard, facts)) continue;
     for (const rule of standard.rules) {
-      if (rule.scope !== SCOPE_BY_FORM[formId] || (rule.appliesWhen && !evaluateCondition(rule.appliesWhen, facts))) continue;
+      if (rule.scope !== scope || (rule.appliesWhen && !evaluateCondition(rule.appliesWhen, facts))) continue;
       const { check } = rule;
       if (check.kind !== RULE_CHECK_KIND.RANGE && check.kind !== RULE_CHECK_KIND.REQUIRED && check.kind !== RULE_CHECK_KIND.REQUIRED_WHEN) continue;
       if (!fieldKeys.has(check.field)) continue;
 
-      const current = constraints.get(check.field) ?? { form: formId, field: check.field, required: false, requiredWhen: [], min: null, max: null, sources: [] };
+      const current = constraints.get(check.field) ?? { form: form.id, field: check.field, required: false, requiredWhen: [], min: null, max: null, sources: [] };
       const source = {
         standardShortName: standard.shortName,
         ruleId: rule.id,
