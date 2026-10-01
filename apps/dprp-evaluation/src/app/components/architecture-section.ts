@@ -9,14 +9,14 @@ interface PackageView {
 
 const PACKAGES: readonly PackageView[] = [
   { name: 'constants', layer: 'Every layer', holds: 'Every fixed value: MOF layers, rule kinds, severities, canonical field names, DPRP codes and columns.', uses: 'Nothing' },
-  { name: 'types', layer: 'M3, M2, M0 shapes', holds: 'The one type system: branded IDs, what a definition is, the shape of each kind of definition, the records.', uses: 'constants' },
-  { name: 'time', layer: 'Platform', holds: 'Calendar dates and program months, defined once with boundary tests.', uses: 'types' },
-  { name: 'form-engine', layer: 'Engine', holds: 'Renders and validates any form definition; the one condition language.', uses: 'types, time' },
+  { name: 'types', layer: 'M3, M2, M0 shapes', holds: 'Branded IDs, what a definition is, the shape of each kind of definition, the records.', uses: 'constants' },
+  { name: 'time', layer: 'Platform', holds: 'Calendar dates and program months.', uses: 'types' },
+  { name: 'form-engine', layer: 'Engine', holds: 'Renders and validates any form definition, and evaluates conditions.', uses: 'types, time' },
   { name: 'compliance-engine', layer: 'Engine', holds: "Evaluates any standard's eligibility and rules over a participant's facts and history, merges rules onto forms, and turns findings into guidance.", uses: 'form-engine' },
   { name: 'rule-engine', layer: 'Engine', holds: 'Evaluates requirement definitions against a metric registry, awards tiers, and carries statuses forward.', uses: 'types' },
   { name: 'program-records', layer: 'M1, platform', holds: "The platform's own enrollment and session forms, and the adapter from records to facts.", uses: 'compliance-engine' },
   { name: 'dprp-standard', layer: 'M1', holds: 'The 2024 DPRP Standards as data, its data dictionary, the recognition evaluation and the submission file.', uses: 'all engines, program-records' },
-  { name: 'mdpp-standard', layer: 'M1', holds: '42 CFR 410.79 eligibility as data.  Added without changing any engine.', uses: 'types, constants' },
+  { name: 'mdpp-standard', layer: 'M1', holds: '42 CFR 410.79 eligibility as data.', uses: 'types, constants' },
   { name: 'seed', layer: 'M0', holds: 'A deterministic synthetic organization with a case for every rule.', uses: 'types, time' },
 ];
 

@@ -43,10 +43,10 @@ The repository follows the four layers of the OMG Meta Object Facility.  Each la
 
 ### Packages
 
-- **`@penji-demos/constants`:** every fixed value: MOF layers, rule kinds, severities, guidance actions, canonical field names, metric keys, DPRP codes and submission columns.  No other package declares one.
-- **`@penji-demos/types`:** the one type system: branded IDs, the M3 and M2 definitions, the M0 records and the evaluation results.
-- **`@penji-demos/time`:** calendar dates and program months, each boundary defined once and tested.
-- **`@penji-demos/form-engine`:** renders and validates any form definition, and owns the one condition language used for form visibility, rule applicability and eligibility.
+- **`@penji-demos/constants`:** every fixed value: MOF layers, rule kinds, severities, guidance actions, canonical field names, metric keys, DPRP codes and submission columns.
+- **`@penji-demos/types`:** branded IDs, the M3 and M2 definitions, the M0 records and the evaluation results.
+- **`@penji-demos/time`:** calendar dates and program months.
+- **`@penji-demos/form-engine`:** renders and validates any form definition, and evaluates conditions.
 - **`@penji-demos/compliance-engine`:** evaluates any compliance standard's eligibility and rules over a participant's facts and session history, merges the active standards' rules onto a form with the source of each, and turns findings into guidance items.
 - **`@penji-demos/rule-engine`:** evaluates requirement definitions against a registry of metric calculators, awards tiers, and carries awarded statuses forward.
 - **`@penji-demos/program-records`:** the platform's own enrollment and session forms and the adapters between records, facts and form answers.
