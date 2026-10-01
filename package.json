@@ -1,0 +1,36 @@
+{
+  "name": "penji-demos",
+  "version": "0.0.0",
+  "scripts": {
+    "start": "ng serve dprp-evaluation",
+    "build": "ng build dprp-evaluation",
+    "build:site": "ng build dprp-evaluation --base-href /demos/dprp-evaluation/",
+    "test": "vitest run --config vitest.config.packages.ts && ng test dprp-evaluation --watch=false",
+    "test:packages": "vitest run --config vitest.config.packages.ts",
+    "typecheck": "tsc -p tsconfig.packages.json --noEmit"
+  },
+  "private": true,
+  "packageManager": "npm@11.20.0",
+  "dependencies": {
+    "@angular/common": "^21.2.0",
+    "@angular/compiler": "^21.2.0",
+    "@angular/core": "^21.2.0",
+    "@angular/platform-browser": "^21.2.0",
+    "rxjs": "~7.8.0",
+    "tslib": "^2.3.0",
+    "@fontsource/public-sans": "^5.3.0",
+    "@fontsource-variable/source-serif-4": "^5.3.0"
+  },
+  "devDependencies": {
+    "@angular/build": "^21.2.24",
+    "@angular/cli": "^21.2.24",
+    "@angular/compiler-cli": "^21.2.0",
+    "jsdom": "^28.0.0",
+    "prettier": "^3.8.1",
+    "typescript": "~5.9.2",
+    "vitest": "^4.0.8"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}

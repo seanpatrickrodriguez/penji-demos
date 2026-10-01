@@ -1,0 +1,59 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@penji-demos/types": [
+        "packages/types/src/index.ts"
+      ],
+      "@penji-demos/constants": [
+        "packages/constants/src/index.ts"
+      ],
+      "@penji-demos/time": [
+        "packages/time/src/index.ts"
+      ],
+      "@penji-demos/rule-engine": [
+        "packages/rule-engine/src/index.ts"
+      ],
+      "@penji-demos/dprp-standard": [
+        "packages/dprp-standard/src/index.ts"
+      ],
+      "@penji-demos/form-engine": [
+        "packages/form-engine/src/index.ts"
+      ],
+      "@penji-demos/seed": [
+        "packages/seed/src/index.ts"
+      ]
+    },
+    "noUncheckedIndexedAccess": true
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/dprp-evaluation/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/dprp-evaluation/tsconfig.spec.json"
+    },
+    {
+      "path": "./tsconfig.packages.json"
+    }
+  ]
+}
