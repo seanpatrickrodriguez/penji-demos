@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { DELIVERY_MODE, GUIDANCE_ACTION_TYPE, PROGRAM_FORM, RULE_SCOPE, SESSION_FIELD, VALIDATION_SEVERITY } from '@penji-demos/constants';
-import { describeRuleCheck, isGuidanceOpen, resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/compliance-engine';
+import { DELIVERY_MODE, PROGRAM_FORM, RULE_SCOPE, SESSION_FIELD } from '@penji-demos/constants';
+import { resolveConstrainedForm, resolveFieldConstraints } from '@penji-demos/compliance-engine';
 import {
   ENROLLMENT_FORM,
   FACT_LABELS,
@@ -11,30 +11,20 @@ import {
   resolveSessionAnswers,
   resolveSessionFromAnswers,
 } from '@penji-demos/program-records';
-import { Answers, GuidanceActionType, GuidanceItem } from '@penji-demos/types';
+import { Answers, GuidanceItem } from '@penji-demos/types';
+import { DefinitionForm, GuidanceList, ResolveGuidance } from '@penji-demos/ui';
 import { ALL_STANDARDS, DemoStore, RECOGNITION_STANDARD } from '../state/demo-store';
 import { CHART, resolveWeightChart } from '../view/chart-view';
-import { SEVERITY_LABEL, formatDate } from '../view/format';
-import { resolveGuidanceSummary, resolveSessionRows } from '../view/participant-view';
-import { DefinitionForm } from './definition-form';
+import { formatDate } from '../view/format';
+import { resolveSessionRows } from '../view/participant-view';
 
 type Editing =
   | { readonly form: typeof PROGRAM_FORM.SESSION; readonly index: number | null; readonly focus: string | null }
   | { readonly form: typeof PROGRAM_FORM.ENROLLMENT; readonly focus: string | null };
 
-interface GuidanceView {
-  readonly item: GuidanceItem;
-  readonly severity: string;
-  readonly severityClass: string;
-  readonly when: string;
-  readonly check: string;
-  readonly open: boolean;
-  readonly resolution: string;
-}
-
 @Component({
   selector: 'app-participant-panel',
-  imports: [DefinitionForm],
+  imports: [DefinitionForm, GuidanceList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './participant-panel.html',
   styleUrl: './participant-panel.scss',
@@ -43,10 +33,10 @@ export class ParticipantPanel {
   protected readonly store = inject(DemoStore);
   protected readonly chartSize = CHART;
   protected readonly editing = signal<Editing | null>(null);
-  protected readonly accepting = signal<string | null>(null);
   protected readonly confirmingRemoval = signal<number | null>(null);
-  protected readonly acceptNote = signal('');
-  protected readonly acceptProblems = signal<readonly string[]>([]);
+  protected readonly labels = FACT_LABELS;
+  protected readonly formatDate = formatDate;
+  protected readonly resolveGuidance: ResolveGuidance = (item, action, note) => this.store.resolveGuidance(item, action, note);
   // Enrollment answers while the form is open, so rules that depend on them (Medicare) apply as they change.
   private readonly draftEnrollment = signal<Answers | null>(null);
 
@@ -66,22 +56,6 @@ export class ParticipantPanel {
       citationUrl: ALL_STANDARDS[index]?.source.url ?? '',
     })),
   );
-
-  protected readonly guidance = computed<readonly GuidanceView[]>(() =>
-    this.store.participantGuidance().map((item) => ({
-      item,
-      severity: SEVERITY_LABEL[item.rule.severity],
-      severityClass: item.rule.severity,
-      when: item.finding.eventDate ? `Session of ${formatDate(item.finding.eventDate)}` : 'Enrollment record',
-      check: describeRuleCheck(item.rule.check, FACT_LABELS),
-      open: isGuidanceOpen(item),
-      resolution: item.resolution
-        ? `${item.resolution.action === GUIDANCE_ACTION_TYPE.ACCEPT ? 'Accepted' : 'Deferred'} by ${item.resolution.resolvedBy}, ${new Date(item.resolution.resolvedAt).toLocaleString()}${item.resolution.note ? `: "${item.resolution.note}"` : ''}`
-        : '',
-    })),
-  );
-
-  protected readonly summary = computed(() => resolveGuidanceSummary(this.store.participantGuidance()));
 
   protected readonly sessionRows = computed(() => {
     const evaluation = this.evaluation();
@@ -183,26 +157,4 @@ export class ParticipantPanel {
     this.editSession(index >= 0 ? index : null, target.field);
   }
 
-  protected act(item: GuidanceItem, action: GuidanceActionType): void {
-    if (action === GUIDANCE_ACTION_TYPE.CHANGE) return this.fix(item);
-    if (action === GUIDANCE_ACTION_TYPE.ACCEPT) {
-      this.accepting.set(item.id);
-      this.acceptNote.set('');
-      this.acceptProblems.set([]);
-      return;
-    }
-    this.store.resolveGuidance(item, action, '');
-  }
-
-  protected confirmAccept(item: GuidanceItem): void {
-    const problems = this.store.resolveGuidance(item, GUIDANCE_ACTION_TYPE.ACCEPT, this.acceptNote());
-    this.acceptProblems.set(problems);
-    if (problems.length === 0) this.accepting.set(null);
-  }
-
-  protected setNote(event: Event): void {
-    this.acceptNote.set(event.target instanceof HTMLTextAreaElement ? event.target.value : '');
-  }
-
-  protected readonly severityError = VALIDATION_SEVERITY.ERROR;
 }

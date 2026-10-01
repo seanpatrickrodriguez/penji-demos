@@ -1,4 +1,4 @@
-import { PROGRAM_PHASE, VALIDATION_SEVERITY } from '@penji-demos/constants';
+import { PROGRAM_PHASE } from '@penji-demos/constants';
 import { isGuidanceOpen } from '@penji-demos/compliance-engine';
 import { SubmissionResult } from '@penji-demos/dprp-standard';
 import { GuidanceItem, ParticipantEvaluation, ProgramSession } from '@penji-demos/types';
@@ -37,21 +37,6 @@ export function resolveParticipantRows(entry: SubmissionResult, blockingRuleIds:
       blocking: findings.filter((finding) => blockingRuleIds.has(finding.ruleId)).length,
     };
   });
-}
-
-export interface GuidanceSummary {
-  readonly open: number;
-  readonly blocking: number;
-  readonly resolved: number;
-}
-
-export function resolveGuidanceSummary(items: readonly GuidanceItem[]): GuidanceSummary {
-  const open = items.filter(isGuidanceOpen);
-  return {
-    open: open.length,
-    blocking: open.filter((item) => item.requiresAction && item.rule.severity === VALIDATION_SEVERITY.ERROR).length,
-    resolved: items.length - open.length,
-  };
 }
 
 export interface SessionRow {

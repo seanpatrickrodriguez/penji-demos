@@ -46,6 +46,9 @@
       ],
       "@penji-demos/seed": [
         "packages/seed/src/index.ts"
+      ],
+      "@penji-demos/ui": [
+        "packages/ui/src/index.ts"
       ]
     },
     "noUncheckedIndexedAccess": true

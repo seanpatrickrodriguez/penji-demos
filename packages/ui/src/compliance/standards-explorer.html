@@ -1,11 +1,13 @@
+@if (standards().length > 1) {
 <fieldset class="picker">
   <legend>Standard</legend>
-  @for (standard of standards; track standard.shortName) {
+  @for (standard of standards(); track standard.shortName) {
     <label><input type="radio" name="standard-picker" [value]="standard.shortName" [checked]="shown() === standard.shortName" (change)="show($event)" /> {{ standard.shortName }}</label>
   }
 </fieldset>
+}
 
-@for (standard of standards; track standard.shortName) {
+@for (standard of standards(); track standard.shortName) {
   @if (shown() === standard.shortName) {
     <article class="standard" [attr.aria-label]="standard.title">
       <h3><a [href]="standard.url">{{ standard.title }}</a></h3>

@@ -1,5 +1,5 @@
-import { COMPARATOR, RECOGNITION_STATUS, REQUIREMENT_OUTCOME, VALIDATION_SEVERITY } from '@penji-demos/constants';
-import { MetricValue, PlainDate, RecognitionStatus, RequirementDefinition, RequirementOutcome, ValidationSeverity } from '@penji-demos/types';
+import { COMPARATOR, RECOGNITION_STATUS, REQUIREMENT_OUTCOME } from '@penji-demos/constants';
+import { MetricValue, PlainDate, RecognitionStatus, RequirementDefinition, RequirementOutcome } from '@penji-demos/types';
 
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
@@ -17,11 +17,6 @@ export const OUTCOME_LABEL: Readonly<Record<RequirementOutcome, string>> = {
   [REQUIREMENT_OUTCOME.NOT_EVALUATED]: 'Not calculated',
 };
 
-export const SEVERITY_LABEL: Readonly<Record<ValidationSeverity, string>> = {
-  [VALIDATION_SEVERITY.ERROR]: 'Error',
-  [VALIDATION_SEVERITY.WARNING]: 'Warning',
-  [VALIDATION_SEVERITY.INFO]: 'Note',
-};
 
 const monthIndex = (date: PlainDate) => Number(date.slice(5, 7)) - 1;
 

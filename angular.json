@@ -26,6 +26,10 @@
             "assets": [
               {
                 "glob": "**/*",
+                "input": "packages/ui/public"
+              },
+              {
+                "glob": "**/*",
                 "input": "apps/dprp-evaluation/public"
               }
             ],
@@ -33,7 +37,7 @@
               "@fontsource/public-sans/400.css",
               "@fontsource/public-sans/600.css",
               "@fontsource-variable/source-serif-4/opsz.css",
-              "apps/dprp-evaluation/src/styles.scss"
+              "packages/ui/src/styles/site.scss"
             ],
             "outputPath": "dist/dprp-evaluation"
           },
