@@ -444,6 +444,13 @@ export const DPRP_STANDARD_2024: RecognitionStandardDefinition = {
     { status: RECOGNITION_STATUS.PENDING, label: 'Pending', requires: [] },
   ],
 
+  statusOrder: [RECOGNITION_STATUS.PENDING, RECOGNITION_STATUS.PRELIMINARY, RECOGNITION_STATUS.FULL, RECOGNITION_STATUS.FULL_PLUS],
+  statusPersistence: [
+    { status: RECOGNITION_STATUS.PRELIMINARY, lastsMonths: null, fallsTo: null },
+    { status: RECOGNITION_STATUS.FULL, lastsMonths: null, fallsTo: null },
+    { status: RECOGNITION_STATUS.FULL_PLUS, lastsMonths: 12, fallsTo: RECOGNITION_STATUS.FULL },
+  ],
+
   interpretations: [
     {
       clause: 'Sessions "in months 1-6"',

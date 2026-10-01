@@ -1,7 +1,7 @@
 import { OUTCOME_PATHWAY, RECOGNITION_STATUS } from '@penji-demos/constants';
 import { ValueOf } from '../primitives/brand';
 import { ComplianceStandardDefinition } from './compliance-definition';
-import { RequirementDefinition, TierDefinition } from './requirement-definition';
+import { RequirementDefinition, StatusPersistence, TierDefinition } from './requirement-definition';
 
 export type RecognitionStatus = ValueOf<typeof RECOGNITION_STATUS>;
 export type OutcomePathway = ValueOf<typeof OUTCOME_PATHWAY>;
@@ -78,4 +78,7 @@ export interface RecognitionStandardDefinition extends ComplianceStandardDefinit
   readonly submissionIntervalMonths: number;
   readonly requirements: readonly RequirementDefinition[];
   readonly tiers: readonly TierDefinition<RecognitionStatus>[];
+  // Statuses lowest to highest, and how long each lasts once awarded.
+  readonly statusOrder: readonly RecognitionStatus[];
+  readonly statusPersistence: readonly StatusPersistence<RecognitionStatus>[];
 }

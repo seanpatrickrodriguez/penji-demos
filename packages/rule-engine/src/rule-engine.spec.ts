@@ -1,7 +1,7 @@
 import { COMPARATOR, METRIC_KEY, REQUIREMENT_OUTCOME } from '@penji-demos/constants';
-import { MetricKey, MetricValue, RequirementDefinition, TierDefinition } from '@penji-demos/types';
+import { MetricKey, MetricValue, RequirementDefinition, StatusPersistence, TierDefinition } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
-import { MetricRegistry, evaluateRequirements, resolveTier, validateRequirementDefinitions } from './rule-engine';
+import { MetricRegistry, evaluateRequirements, resolveStatusTimeline, resolveTier, validateRequirementDefinitions } from './rule-engine';
 
 // The engine is tested with a context of plain numbers, to show it needs nothing domain-specific.
 type Context = Readonly<Partial<Record<MetricKey, number | null>>>;
@@ -80,5 +80,25 @@ describe('validateRequirementDefinitions', () => {
       'Requirement "late" waits on "missing", which is not a requirement.',
       'Tier "base" requires "nope", which is not a requirement.',
     ]);
+  });
+});
+
+describe('resolveStatusTimeline', () => {
+  const ORDER = ['none', 'bronze', 'silver', 'gold'] as const;
+  type Status = (typeof ORDER)[number];
+  const PERSISTENCE: readonly StatusPersistence<Status>[] = [
+    { status: 'bronze', lastsMonths: null, fallsTo: null },
+    { status: 'silver', lastsMonths: null, fallsTo: null },
+    { status: 'gold', lastsMonths: 12, fallsTo: 'silver' },
+  ];
+
+  it('carries a status forward, and lets a time-limited status fall back when it lapses', () => {
+    const evaluated: readonly Status[] = ['bronze', 'none', 'silver', 'gold', 'silver', 'silver', 'silver'];
+    expect(resolveStatusTimeline(ORDER, PERSISTENCE, evaluated, 6).map((entry) => entry.awarded)).toEqual(['bronze', 'bronze', 'silver', 'gold', 'gold', 'silver', 'silver']);
+  });
+
+  it('says how long a carried status has been held', () => {
+    const [, second] = resolveStatusTimeline(ORDER, PERSISTENCE, ['bronze', 'none'], 6);
+    expect(second).toEqual({ evaluated: 'none', awarded: 'bronze', heldForMonths: 6 });
   });
 });

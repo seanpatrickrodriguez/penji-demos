@@ -19,6 +19,15 @@ export interface RequirementDefinition {
   readonly source: SourceReference;
 }
 
+// M2: how long an awarded status lasts once earned.  Null means it lasts as
+// long as the organization keeps submitting; otherwise it lasts the given
+// months and then falls to the named status unless it is earned again.
+export interface StatusPersistence<Status extends string> {
+  readonly status: Status;
+  readonly lastsMonths: number | null;
+  readonly fallsTo: Status | null;
+}
+
 // M2: a status awarded when every requirement it lists is met.  Tiers are
 // listed highest first; the first tier whose requirements all hold is awarded.
 export interface TierDefinition<Status extends string> {
