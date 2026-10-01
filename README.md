@@ -18,7 +18,7 @@ A synthetic organization's participant records, evaluated against the [2024 CDC 
 
 Penji started as a data system for one program.  To become a platform, it had to take on a new program, a new standard or a new kind of organization as definitions, with the engines that read them left unchanged.  This structure is how it does that, and it is the architecture Penji's current major version is built on.
 
-Its foundation serves any organization that tracks people or things over time against a standard: tenants and their hierarchy, registrations, longitudinal records, compliance checks, and role-based access.  A marine engineering company's supply requests, equipment and vessel maintenance fit the same structure, with vessels and crews where the cohorts and participants are, maintenance logs as the longitudinal record, and inspection requirements as the compliance standard.
+Its foundation serves any organization that tracks people or things over time against a standard: tenants and their hierarchy, registrations, longitudinal records, compliance checks, and role-based access.  A second demo is being built on the same packages: a tug and barge fleet's supply requests, vessel profiles and maintenance, with vessels and crews where the cohorts and participants are.
 
 ### How it got here
 
