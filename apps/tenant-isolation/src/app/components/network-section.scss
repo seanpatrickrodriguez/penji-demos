@@ -1,0 +1,54 @@
+:host {
+  display: block;
+}
+
+.network {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (min-width: 56rem) {
+  .network {
+    grid-template-columns: minmax(0, 2fr) minmax(0, 3fr);
+    align-items: start;
+  }
+}
+
+h3 {
+  margin-top: 0;
+}
+
+.tree,
+.tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tree ul {
+  margin-left: var(--space-2);
+  padding-left: var(--space-3);
+  border-left: 2px solid var(--rule);
+}
+
+.tree li {
+  padding: var(--space-1) 0;
+  overflow-wrap: anywhere;
+}
+
+.tenant {
+  font-weight: 600;
+}
+
+.block {
+  display: block;
+}
+
+.data-table th[scope='row'] {
+  font-weight: 600;
+}
+
+.table-scroll {
+  margin-top: var(--space-3);
+}

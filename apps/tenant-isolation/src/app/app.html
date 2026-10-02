@@ -1,0 +1,63 @@
+<a class="skip-link" href="#main">Skip to main content</a>
+<app-site-header />
+
+<main id="main" tabindex="-1">
+  <section class="intro" aria-labelledby="intro-heading">
+    <div class="container">
+      <p class="eyebrow"><a href="/#work">Case studies</a></p>
+      <h1 id="intro-heading">Tenant isolation in the database</h1>
+      <p class="lede">
+        Sign in as a staff member of a made-up hub network and send the same reads and saves as everyone else.  A live Firestore database
+        answers each one, under security rules generated from the platform's access policy and forms.
+      </p>
+      <p class="muted">
+        A rebuild, on synthetic organizations and people, of how Penji, my private platform, keeps each organization's records to the
+        people assigned over them.  The database here is real and runs in its own project; it holds only the synthetic network.
+      </p>
+      <div class="actions">
+        <a class="button button-primary" href="https://github.com/seanpatrickrodriguez/penji-demos">Read the code</a>
+        <a class="button button-secondary" href="/#work">Back to case studies</a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="network-heading">
+    <div class="container">
+      <h2 id="network-heading">The network</h2>
+      <p>
+        Lantern Bay Network is a hub over two organizations.  Westfield Family Center oversees a smaller organization of its own,
+        Westfield North Outreach.  Oversight reaches down the tree: an assignment at a tenant covers it and everything under it, and
+        nothing above it or beside it.
+      </p>
+      <app-network-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="try-heading">
+    <div class="container">
+      <h2 id="try-heading">Try it</h2>
+      <app-try-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="rules-heading">
+    <div class="container">
+      <h2 id="rules-heading">The rules, generated</h2>
+      <p>
+        The platform's part is written once and serves every product.  The rest is generated from the configuration: which roles hold
+        each kind of record's edit permission under the access policy, and what values each record's form accepts.  A test fails if the
+        deployed file falls out of step with the configuration.
+      </p>
+      <app-rules-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="architecture-heading">
+    <div class="container">
+      <h2 id="architecture-heading">How it is built</h2>
+      <app-architecture-section />
+    </div>
+  </section>
+</main>
+
+<app-site-footer />

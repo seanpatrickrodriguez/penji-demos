@@ -37,6 +37,18 @@ Signing in with a code from an authenticator app, the way Penji signs everyone i
 - **The policy, as data.**  Digits, time step, drift, secret length, recovery codes and lockout come from one definition, checked against the bounds RFC 4226 and RFC 6238 set.
 - **Tested to the RFCs.**  The factor engine passes the HOTP test values in RFC 4226 appendix D and the TOTP test values for SHA-1, SHA-256 and SHA-512 in RFC 6238 appendix B.
 
+## Tenant isolation
+
+**Try it:** [seanrodriguez.dev/demos/tenant-isolation](https://seanrodriguez.dev/demos/tenant-isolation)
+
+A made-up hub network in a live Firestore database, in its own Firebase project.  Sign in as one of its staff, or as nobody, and the page sends the same reads and saves for everyone and shows what the database answered.
+
+- **Tenants in a tree.**  A hub oversees two organizations, and one of them oversees a smaller organization.  An assignment at a tenant covers it and everything under it.  A coach is assigned to one cohort.
+- **Claims the browser cannot change.**  A seed script with the Admin SDK sets each account's custom claims from the record engine: the roles the staff record gives, and the tenants and records the active assignments cover.  Each stored record carries its line of ancestors, written by the server.
+- **Rules generated from the configuration.**  The platform's part of the rules is written once.  The rest comes from the program's configuration: the roles that hold each kind of record's edit permission, and the values each form accepts.  A test fails if the deployed rules fall out of step with the configuration.
+- **Every answer, with its reason.**  Each request shows what the access policy permits, what the rules engine predicts, what Firestore answered and the clause that decided it.
+- **Tested in the emulator.**  Every request, for every demo account, a person signed in with no staff record and nobody signed in, runs against the generated rules.  Each answer must match the rules engine's prediction and, where the request asks only about access, the access policy.
+
 ## Why it is built this way
 
 Penji started as a data system for one program.  To become a platform, it had to take on a new program, a new standard or a new kind of organization as definitions, with the engines that read them left unchanged.  This structure is how it does that, and it is the architecture Penji's current major version is built on.
@@ -98,6 +110,7 @@ Engines:
 - **`@penji-demos/rule-engine`:** evaluates requirement definitions against a standard's registry of metric calculators, awards tiers, and carries awarded statuses forward.
 - **`@penji-demos/workflow-engine`:** checks permissions against an access policy and moves a record through any workflow definition.
 - **`@penji-demos/record-engine`:** reads any configuration's tenants, entities and streams: works out facts, resolves each person's roles from their record and who may do what over the tenant and entity trees, records changes with a permission check on each, shows the records as of a date, and validates a configuration bundle.
+- **`@penji-demos/security-rules-engine`:** the platform's records as Firestore stores them and the claims on a sign-in token, Firestore security rules generated from any configuration, and the reading of what those rules decide for a request.
 
 Diabetes prevention program:
 
@@ -105,7 +118,7 @@ Diabetes prevention program:
 - **`@penji-demos/dprp-standard`:** the recognition standard's shape, and the 2024 Standards and the Table 5 data dictionary as data.
 - **`@penji-demos/mdpp-standard`:** 42 CFR 410.79(c)(1) eligibility as data.
 - **`@penji-demos/dprp-recognition`:** the DPRP's metric calculators, the shapes of its results, recognition over the submissions, and the submission file.
-- **`@penji-demos/dprp-seed`:** a deterministic synthetic hub and organization with a case for every rule.
+- **`@penji-demos/dprp-seed`:** a deterministic synthetic hub and organization with a case for every rule, and the synthetic Lantern Bay network with its demo accounts and the requests the tenant isolation page sends.
 
 Fleet supply and maintenance:
 
@@ -140,6 +153,12 @@ npm run build:site      # production build for seanrodriguez.dev/demos/dprp-eval
 npm run build:fleet-site  # production build for seanrodriguez.dev/demos/fleet-supply/
 npm run start:totp      # the sign-in demo, http://localhost:4200
 npm run build:totp-site # production build for seanrodriguez.dev/demos/totp-sign-in/
+npm run start:tenants   # the tenant isolation demo, http://localhost:4200, against the live demo project
+npm run build:tenants-site  # production build for seanrodriguez.dev/demos/tenant-isolation/
+npm run rules:generate  # write firebase/firestore.rules from the configuration
+npm run test:rules      # the generated rules in the Firestore emulator (needs the Firebase CLI and Java)
+npm run rules:deploy    # deploy the rules to the demo project
+npm run seed:tenants    # reset the demo project's records and accounts (Application Default Credentials)
 ```
 
 ## License

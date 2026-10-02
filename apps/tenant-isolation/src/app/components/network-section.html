@@ -1,0 +1,47 @@
+<div class="network">
+  <div>
+    <h3>Tenants and their cohorts</h3>
+    <ul class="tree">
+      @for (node of tree; track node.tenantId) {
+        <ng-container [ngTemplateOutlet]="branch" [ngTemplateOutletContext]="{ $implicit: node }" />
+      }
+    </ul>
+  </div>
+  <div>
+    <h3>Staff, and the demo accounts</h3>
+    <p>Anyone may sign in with these.  They are public on purpose: the database decides what each one reaches.</p>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="staff-caption">
+      <table class="data-table">
+        <caption id="staff-caption">Each staff member's position, where they are assigned, and their demo sign-in.</caption>
+        <thead>
+          <tr><th scope="col">Staff member</th><th scope="col">Assigned to</th><th scope="col">Sign-in</th></tr>
+        </thead>
+        <tbody>
+          @for (row of staff; track row.key) {
+            <tr>
+              <th scope="row">{{ row.name }}<span class="muted block">{{ row.position }}, {{ row.worksFor }}</span></th>
+              <td>{{ row.scope }}</td>
+              <td><code class="breakable">{{ row.email }}</code><span class="block">Password <code>{{ row.password }}</code></span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<ng-template #branch let-node>
+  <li>
+    <span class="tenant">{{ node.name }}</span> <span class="muted">{{ node.kind }}</span>
+    @if (node.cohorts.length > 0 || node.children.length > 0) {
+      <ul>
+        @for (cohort of node.cohorts; track cohort.code) {
+          <li class="cohort"><code>{{ cohort.code }}</code> <span class="muted">{{ cohort.detail }}</span></li>
+        }
+        @for (child of node.children; track child.tenantId) {
+          <ng-container [ngTemplateOutlet]="branch" [ngTemplateOutletContext]="{ $implicit: child }" />
+        }
+      </ul>
+    }
+  </li>
+</ng-template>

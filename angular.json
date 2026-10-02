@@ -258,6 +258,89 @@
           }
         }
       }
+    },
+    "tenant-isolation": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/tenant-isolation",
+      "sourceRoot": "apps/tenant-isolation/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/tenant-isolation/src/main.ts",
+            "tsConfig": "apps/tenant-isolation/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "packages/ui/public"
+              }
+            ],
+            "styles": [
+              "@fontsource/public-sans/400.css",
+              "@fontsource/public-sans/600.css",
+              "@fontsource-variable/source-serif-4/opsz.css",
+              "packages/ui/src/styles/site.scss"
+            ],
+            "outputPath": "dist/tenant-isolation"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "900kB",
+                  "maximumError": "1.5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "tenant-isolation:build:production"
+            },
+            "development": {
+              "buildTarget": "tenant-isolation:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "apps/tenant-isolation/tsconfig.spec.json"
+          }
+        }
+      }
     }
   }
 }
