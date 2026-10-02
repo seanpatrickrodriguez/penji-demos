@@ -35,3 +35,60 @@ export const FACT_DERIVATION_KIND = {
   // Whether an entry's workflow has ever reached one of the named states.
   STATE_REACHED: 'stateReached',
 } as const;
+
+// Where the platform keeps its records in Firestore: each tenant a document,
+// and every record a tenant keeps in a collection under it, so a record's
+// path names the tenant it belongs to.
+export const STORAGE_COLLECTION = {
+  TENANTS: 'tenants',
+  ENTITIES: 'entities',
+} as const;
+
+// The fields a stored record carries.  `line` is the record's own ID and its
+// ancestors', nearest first: a tenant's line climbs the tenant tree, an
+// entity's climbs the entity tree.  Only the server writes it.
+export const STORED_FIELD = {
+  KIND: 'kind',
+  NAME: 'name',
+  PARENT_ID: 'parentId',
+  LINE: 'line',
+  VALUES: 'values',
+} as const;
+
+// The custom claims on a person's sign-in token, set by the server from their
+// staff record and assignments: the roles their record gives them, and the
+// tenants and entities their active assignments cover.
+export const TOKEN_CLAIM = {
+  ROLES: 'roles',
+  TENANT_SCOPES: 'tenantScopes',
+  ENTITY_SCOPES: 'entityScopes',
+} as const;
+
+// What a request to the database asks to do.
+export const STORAGE_OPERATION = {
+  GET: 'get',
+  LIST: 'list',
+  UPDATE: 'update',
+} as const;
+
+// The part of the security rules that decides a request, checked in this order.
+export const RULE_CLAUSE = {
+  SIGNED_IN: 'signedIn',
+  SCOPE: 'scope',
+  LIST_SCOPE: 'listScope',
+  RECORD_EXISTS: 'recordExists',
+  PROTECTED_FIELD: 'protectedField',
+  PERMISSION: 'permission',
+  VALUES: 'values',
+} as const;
+
+// The longest text a stored answer may hold when its form sets no limit.
+export const STORED_TEXT_LIMIT = 200;
+
+// Where a part of the generated security rules comes from.
+export const RULES_ORIGIN = {
+  // Written once in the engine, the same for every product.
+  PLATFORM: 'platform',
+  // Generated from a product's configuration.
+  CONFIGURATION: 'configuration',
+} as const;

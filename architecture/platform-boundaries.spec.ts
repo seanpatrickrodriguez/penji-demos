@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 // and its own packages, never the other product's; and a product's
 // configuration packages export definitions only, no code.
 
-const ENGINES = ['constants', 'types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine', 'factor-engine'];
+const ENGINES = ['constants', 'types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine', 'factor-engine', 'security-rules-engine'];
 const SHARED_UI = ['ui'];
 const PROGRAM = ['dprp-configuration', 'dprp-standard', 'mdpp-standard', 'dprp-recognition', 'dprp-seed'];
 const FLEET = ['fleet-configuration', 'fleet-seed'];
@@ -17,13 +17,13 @@ const PRODUCTS: readonly (readonly string[])[] = [PROGRAM, FLEET, SIGN_IN];
 const SHARED_ENGINES = ['form-engine', 'compliance-engine', 'workflow-engine', 'record-engine'];
 const CONFIGURATION_PACKAGES = ['dprp-configuration', 'dprp-standard', 'mdpp-standard', 'fleet-configuration', 'sign-in-configuration'];
 // The engines that name no product.  constants holds every product's values, by design; each product's shapes live in its own packages.
-const DEFINITION_READERS = ['types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine', 'factor-engine'];
+const DEFINITION_READERS = ['types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine', 'factor-engine', 'security-rules-engine'];
 
 const SOURCES = import.meta.glob<string>('../packages/*/src/**/*.ts', { query: '?raw', import: 'default', eager: true });
 const MANIFESTS = import.meta.glob<string>('../packages/*/package.json', { query: '?raw', import: 'default', eager: true });
 const APP_SOURCES = import.meta.glob<string>('../apps/*/src/**/*.ts', { query: '?raw', import: 'default', eager: true });
 // Each product's page, and the product packages it is built from.
-const APPS: Readonly<Record<string, readonly string[]>> = { 'dprp-evaluation': PROGRAM, 'fleet-supply': FLEET, 'totp-sign-in': SIGN_IN };
+const APPS: Readonly<Record<string, readonly string[]>> = { 'dprp-evaluation': PROGRAM, 'fleet-supply': FLEET, 'totp-sign-in': SIGN_IN, 'tenant-isolation': PROGRAM };
 const CONFIGURATIONS = import.meta.glob<Record<string, unknown>>('../packages/{dprp-configuration,dprp-standard,mdpp-standard,fleet-configuration,sign-in-configuration}/src/index.ts', { eager: true });
 
 const packageOf = (path: string) => path.split('/')[2] ?? '';

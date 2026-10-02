@@ -2,7 +2,7 @@ import { fileURLToPath } from 'node:url';
 import { defineConfig } from 'vitest/config';
 
 // The packages are plain TypeScript, tested without Angular, with the platform's boundary checks beside them.
-const packages = ['types', 'constants', 'time', 'rule-engine', 'compliance-engine', 'workflow-engine', 'record-engine', 'dprp-configuration', 'dprp-recognition', 'dprp-standard', 'mdpp-standard', 'form-engine', 'dprp-seed', 'fleet-configuration', 'fleet-seed', 'factor-engine', 'sign-in-configuration'];
+const packages = ['types', 'constants', 'time', 'rule-engine', 'compliance-engine', 'workflow-engine', 'record-engine', 'dprp-configuration', 'dprp-recognition', 'dprp-standard', 'mdpp-standard', 'form-engine', 'dprp-seed', 'fleet-configuration', 'fleet-seed', 'factor-engine', 'sign-in-configuration', 'security-rules-engine'];
 
 export default defineConfig({
   resolve: {

@@ -19,7 +19,7 @@ import { MDPP_STANDARD } from '@penji-demos/mdpp-standard';
 import { EntityDefinition, StreamDefinition, TenantKindDefinition, toDefinitionId } from '@penji-demos/types';
 
 // M1: what a diabetes prevention program keeps on file.  A hub oversees
-// organizations; an organization runs cohorts; a participant sits in a
+// organizations, and an organization may oversee others; an organization runs cohorts; a participant sits in a
 // cohort, with a stream of sessions, a stream of A1C results and a stream of
 // recodes.  The participant's facts that no form asks for are worked out here
 // from those records, and the standards the participant is held to are named.
@@ -38,7 +38,8 @@ export const PROGRAM_TENANT_KINDS: readonly TenantKindDefinition[] = [
     title: 'Organization',
     source: SOURCE,
     label: 'Organization',
-    parentKinds: [id(PROGRAM_TENANT_KIND.HUB)],
+    // An organization sits under a hub, or under an organization that oversees it.
+    parentKinds: [id(PROGRAM_TENANT_KIND.HUB), id(PROGRAM_TENANT_KIND.ORGANIZATION)],
     formId: id(PROGRAM_FORM.ORGANIZATION),
   },
 ];

@@ -14,5 +14,6 @@ export * from './definitions/entity-definition';
 export * from './definitions/configuration-definition';
 export * from './definitions/factor-policy-definition';
 export * from './records/platform-records';
+export * from './records/stored-records';
 export * from './records/factor-records';
 export * from './evaluation/evaluation';

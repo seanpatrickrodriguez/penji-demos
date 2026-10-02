@@ -65,6 +65,9 @@
       "@penji-demos/sign-in-configuration": [
         "packages/sign-in-configuration/src/index.ts"
       ],
+      "@penji-demos/security-rules-engine": [
+        "packages/security-rules-engine/src/index.ts"
+      ],
       "@penji-demos/ui": [
         "packages/ui/src/index.ts"
       ]
@@ -84,6 +87,12 @@
     },
     {
       "path": "./apps/totp-sign-in/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/tenant-isolation/tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
     },
     {
       "path": "./apps/dprp-evaluation/tsconfig.spec.json"
