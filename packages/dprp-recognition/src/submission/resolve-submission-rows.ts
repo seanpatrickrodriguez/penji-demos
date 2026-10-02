@@ -15,7 +15,9 @@ import {
   SUBMISSION_COLUMN,
 } from '@penji-demos/constants';
 import { readNumber, readText, resolveEntityFacts, resolveFieldLabels, resolveStreamEntries } from '@penji-demos/record-engine';
-import { DeliveryMode, PlainDate, PlatformConfiguration, PlatformData, ProgramPhase, RecognitionStandardDefinition, TenantId, ValueOf } from '@penji-demos/types';
+import { PlainDate, PlatformConfiguration, PlatformData, TenantId, ValueOf } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from '@penji-demos/dprp-standard';
+import { DeliveryMode, ProgramPhase } from '../recognition-evaluation';
 import { resolveOrganizationParticipants } from '../organization/evaluate-recognition';
 import { resolveFinalA1c, resolveParticipantSessions } from '../participant/resolve-program-sessions';
 

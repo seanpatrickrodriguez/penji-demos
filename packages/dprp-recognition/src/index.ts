@@ -1,3 +1,4 @@
+export * from './recognition-evaluation';
 export * from './participant/calculate-measures';
 export * from './participant/evaluate-completer';
 export * from './participant/evaluate-outcomes';

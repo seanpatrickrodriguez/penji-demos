@@ -1,6 +1,8 @@
 import { PROGRAM_PHASE } from '@penji-demos/constants';
 import { calculateDaysBetween, resolveProgramMonthStart } from '@penji-demos/time';
-import { ParticipantEvaluation, PlainDate, RecognitionStandardDefinition } from '@penji-demos/types';
+import { PlainDate } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from '@penji-demos/dprp-standard';
+import { ParticipantEvaluation } from '@penji-demos/dprp-recognition';
 
 // Geometry for a participant's weight over the program year, in SVG units.
 

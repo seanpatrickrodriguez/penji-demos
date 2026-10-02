@@ -18,7 +18,8 @@ import {
   SESSION_FIELD,
   VALIDATION_SEVERITY,
 } from '@penji-demos/constants';
-import { Condition, CriterionDefinition, RecognitionStandardDefinition, RuleDefinition, SourceReference, toDefinitionId } from '@penji-demos/types';
+import { Condition, CriterionDefinition, RuleDefinition, SourceReference, toDefinitionId } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from './recognition-standard-definition';
 
 // M1: the 2024 CDC Diabetes Prevention Recognition Program Standards and
 // Operating Procedures, written as a RecognitionStandardDefinition.  Who is

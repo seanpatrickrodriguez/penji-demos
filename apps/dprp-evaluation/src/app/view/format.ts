@@ -1,5 +1,6 @@
 import { COMPARATOR, RECOGNITION_STATUS, REQUIREMENT_OUTCOME } from '@penji-demos/constants';
-import { MetricValue, RecognitionStatus, RequirementDefinition, RequirementOutcome } from '@penji-demos/types';
+import { MetricValue, RequirementDefinition, RequirementOutcome } from '@penji-demos/types';
+import { RecognitionStatus } from '@penji-demos/dprp-standard';
 
 export const STATUS_LABEL: Readonly<Record<RecognitionStatus, string>> = {
   [RECOGNITION_STATUS.PENDING]: 'Pending',

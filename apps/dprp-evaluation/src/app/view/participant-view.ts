@@ -1,7 +1,8 @@
 import { PROGRAM_PHASE } from '@penji-demos/constants';
 import { isGuidanceOpen } from '@penji-demos/compliance-engine';
 import { SubmissionResult } from '@penji-demos/dprp-recognition';
-import { EntityId, EntryId, GuidanceItem, ParticipantEvaluation, ProgramSession } from '@penji-demos/types';
+import { EntityId, EntryId, GuidanceItem } from '@penji-demos/types';
+import { ParticipantEvaluation, ProgramSession } from '@penji-demos/dprp-recognition';
 import { formatDate } from '@penji-demos/ui';
 
 export interface ParticipantRow {

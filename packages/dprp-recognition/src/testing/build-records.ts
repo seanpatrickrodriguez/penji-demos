@@ -19,22 +19,8 @@ import {
 import { PROGRAM_CONFIGURATION } from '@penji-demos/dprp-configuration';
 import { DPRP_STANDARD_2024 } from '@penji-demos/dprp-standard';
 import { resolveDaysLater, toPlainDate } from '@penji-demos/time';
-import {
-  A1cResult,
-  Answers,
-  EntityRecord,
-  ParticipantEvaluation,
-  PlainDate,
-  PlatformData,
-  StreamEntry,
-  ValueOf,
-  toActorId,
-  toAssignmentId,
-  toDefinitionId,
-  toEntityId,
-  toEntryId,
-  toTenantId,
-} from '@penji-demos/types';
+import { Answers, EntityRecord, PlainDate, PlatformData, StreamEntry, ValueOf, toActorId, toAssignmentId, toDefinitionId, toEntityId, toEntryId, toTenantId } from '@penji-demos/types';
+import { A1cResult, ParticipantEvaluation } from '../recognition-evaluation';
 import { evaluateParticipant } from '../participant/evaluate-participant';
 import { resolveProgramParticipants } from '../participant/resolve-program-sessions';
 

@@ -1,6 +1,6 @@
 import { CALENDAR } from '@penji-demos/constants';
 import { calculateDaysBetween } from '@penji-demos/time';
-import { ActivitySummary, ProgramSession, WeightChange } from '@penji-demos/types';
+import { ActivitySummary, ProgramSession, WeightChange } from '../recognition-evaluation';
 
 // First and last reported weights among the counted sessions, and the percent lost between them.
 export function calculateWeightChange(counted: readonly ProgramSession[]): WeightChange | null {

@@ -1,5 +1,7 @@
 import { isBefore, isOnOrAfter, resolveFirstOfMonth, resolveMonthsLater } from '@penji-demos/time';
-import { CohortWindow, PlainDate, RecognitionStandardDefinition } from '@penji-demos/types';
+import { PlainDate } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from '@penji-demos/dprp-standard';
+import { CohortWindow } from '../recognition-evaluation';
 
 // The window of first-session dates an evaluation looks at, counted back from the submission due month.
 export function resolveCohortWindow(standard: RecognitionStandardDefinition, submissionMonth: PlainDate): CohortWindow {

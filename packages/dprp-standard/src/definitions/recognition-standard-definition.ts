@@ -1,15 +1,21 @@
 import { OUTCOME_PATHWAY, RECOGNITION_STATUS } from '@penji-demos/constants';
-import { ValueOf } from '../primitives/brand';
-import { ComplianceStandardDefinition, EligibilityRulesDefinition } from './compliance-definition';
-import { RequirementDefinition, StatusPersistence, TierDefinition } from './requirement-definition';
+import {
+  ComplianceStandardDefinition,
+  EligibilityRulesDefinition,
+  InclusiveRange,
+  RequirementDefinition,
+  StatusPersistence,
+  TierDefinition,
+  ValueOf,
+} from '@penji-demos/types';
+
+// The DPRP's own M2: a recognition standard is a compliance standard that also
+// measures outcomes over a program year and awards recognition to an
+// organization.  The platform's compliance and rule engines read the parts
+// they know; the recognition package reads the rest.
 
 export type RecognitionStatus = ValueOf<typeof RECOGNITION_STATUS>;
 export type OutcomePathway = ValueOf<typeof OUTCOME_PATHWAY>;
-
-export interface InclusiveRange {
-  readonly min: number;
-  readonly max: number;
-}
 
 // M2: the shape of the program year.
 export interface ProgramDefinition {

@@ -1,6 +1,8 @@
 import { PROGRAM_PHASE } from '@penji-demos/constants';
 import { calculateFullMonthsBetween } from '@penji-demos/time';
-import { Determination, PlainDate, ProgramSession, RecognitionStandardDefinition } from '@penji-demos/types';
+import { Determination, PlainDate } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from '@penji-demos/dprp-standard';
+import { ProgramSession } from '../recognition-evaluation';
 
 // A completer attended enough Core-phase sessions and stayed long enough.
 export function evaluateCompleter(

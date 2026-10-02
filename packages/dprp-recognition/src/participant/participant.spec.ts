@@ -1,6 +1,7 @@
 import { DPRP_ELIGIBILITY_BASIS, INELIGIBILITY_EVENT, OUTCOME_PATHWAY, PROGRAM_PHASE } from '@penji-demos/constants';
 import { resolveDaysLater, toPlainDate } from '@penji-demos/time';
-import { OutcomePathway, ParticipantEvaluation } from '@penji-demos/types';
+import { OutcomePathway } from '@penji-demos/dprp-standard';
+import { ParticipantEvaluation } from '../recognition-evaluation';
 import { describe, expect, it } from 'vitest';
 import { DPRP_STANDARD_2024 } from '@penji-demos/dprp-standard';
 import { FULL_SCHEDULE, NO_BLOOD_TEST, buildCohort, buildEnrollment, buildParticipant, buildSession, buildSessions, evaluateCase } from '../testing/build-records';

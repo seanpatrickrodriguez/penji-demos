@@ -1,7 +1,9 @@
 import { A1C_RESULT_FIELD, COHORT_FIELD, DELIVERY_MODE, PROGRAM_ENTITY, PROGRAM_PHASE, PROGRAM_STREAM, SESSION_FIELD } from '@penji-demos/constants';
 import { readBoolean, readDate, readMember, readNumber, resolveStreamEntries } from '@penji-demos/record-engine';
 import { calculateDaysBetween, resolveProgramMonth } from '@penji-demos/time';
-import { A1cResult, EntityRecord, PlainDate, PlatformData, ProgramSession, RecognitionStandardDefinition, StreamEntry } from '@penji-demos/types';
+import { EntityRecord, PlainDate, PlatformData, StreamEntry } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from '@penji-demos/dprp-standard';
+import { A1cResult, ProgramSession } from '../recognition-evaluation';
 
 // The program's records read the way the recognition standard counts them.
 // Each reads a stream entry or an entity by the canonical field names; none

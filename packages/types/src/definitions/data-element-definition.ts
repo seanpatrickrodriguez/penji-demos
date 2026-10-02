@@ -1,6 +1,6 @@
 import { DEFINITION_KIND } from '@penji-demos/constants';
 import { Definition } from './definition';
-import { InclusiveRange } from './standard-definition';
+import { InclusiveRange } from '../primitives/inclusive-range';
 
 export interface CodedValue {
   readonly code: string | number;

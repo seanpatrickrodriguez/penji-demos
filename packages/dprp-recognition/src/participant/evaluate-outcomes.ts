@@ -1,7 +1,9 @@
 import { ENROLLMENT_FIELD } from '@penji-demos/constants';
 import { readDate, readNumber } from '@penji-demos/record-engine';
 import { calculateDaysBetween, resolveProgramMonth } from '@penji-demos/time';
-import { A1cResult, ActivitySummary, Answers, OutcomePathwayDefinition, OutcomeResult, PlainDate, ProgramSession, RecognitionStandardDefinition, WeightChange } from '@penji-demos/types';
+import { Answers, PlainDate } from '@penji-demos/types';
+import { OutcomePathwayDefinition, RecognitionStandardDefinition } from '@penji-demos/dprp-standard';
+import { A1cResult, ActivitySummary, OutcomeResult, ProgramSession, WeightChange } from '../recognition-evaluation';
 
 interface OutcomeEvidence {
   readonly weightChange: WeightChange | null;

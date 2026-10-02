@@ -1,6 +1,8 @@
 import { METRIC_KEY } from '@penji-demos/constants';
 import { MetricCalculator } from '@penji-demos/rule-engine';
-import { MetricValue, ParticipantEvaluation, RecognitionStandardDefinition, ValueOf } from '@penji-demos/types';
+import { MetricValue, ValueOf } from '@penji-demos/types';
+import { RecognitionStandardDefinition } from '@penji-demos/dprp-standard';
+import { ParticipantEvaluation } from '../recognition-evaluation';
 
 // What the DPRP metrics are calculated from.
 export interface RecognitionContext {

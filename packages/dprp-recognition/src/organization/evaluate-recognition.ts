@@ -2,7 +2,9 @@ import { COHORT_FIELD, ORGANIZATION_FIELD, PROGRAM_ENTITY, PROGRAM_STREAM, RECOG
 import { readDate, resolveDataAsOf, resolveStreamEntries, resolveTenantLine } from '@penji-demos/record-engine';
 import { evaluateRequirements, resolveStatusTimeline, resolveTier } from '@penji-demos/rule-engine';
 import { calculateFullMonthsBetween, isBefore, resolveFirstOfMonth, resolveMonthsLater } from '@penji-demos/time';
-import { PlainDate, PlatformConfiguration, PlatformData, RecognitionEvaluation, RecognitionStandardDefinition, RecognitionStatus, TenantId } from '@penji-demos/types';
+import { PlainDate, PlatformConfiguration, PlatformData, TenantId } from '@penji-demos/types';
+import { RecognitionStandardDefinition, RecognitionStatus } from '@penji-demos/dprp-standard';
+import { RecognitionEvaluation } from '../recognition-evaluation';
 import { evaluateParticipant } from '../participant/evaluate-participant';
 import { ProgramParticipant, resolveProgramParticipants } from '../participant/resolve-program-sessions';
 import { DPRP_METRIC_REGISTRY } from './metric-registry';

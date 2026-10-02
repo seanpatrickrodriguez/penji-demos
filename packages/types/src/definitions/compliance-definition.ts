@@ -16,9 +16,9 @@ export type RuleCheck =
   | { readonly kind: typeof RULE_CHECK_KIND.CONDITION; readonly condition: Condition; readonly describes: readonly FieldKey[] }
   | { readonly kind: typeof RULE_CHECK_KIND.SAME_DATE_VALUES_MATCH; readonly field: FieldKey }
   | { readonly kind: typeof RULE_CHECK_KIND.AT_MOST_PER_WINDOW; readonly counts: Condition; readonly max: number; readonly windowDays: number }
-  // A participant date no more than `days` after an anchor date, both read from the participant's facts.
+  // A date no more than `days` after an anchor date, both read from the subject's facts.
   | { readonly kind: typeof RULE_CHECK_KIND.WITHIN_DAYS_OF_ANCHOR; readonly field: FieldKey; readonly anchor: FieldKey; readonly days: number }
-  // Each session dated on or after an anchor date from the participant's facts.
+  // Each event dated on or after an anchor date from the subject's facts.
   | { readonly kind: typeof RULE_CHECK_KIND.NOT_BEFORE_ANCHOR; readonly anchor: FieldKey }
   | { readonly kind: typeof RULE_CHECK_KIND.CHANGE_AT_MOST; readonly field: FieldKey; readonly percent: number };
 

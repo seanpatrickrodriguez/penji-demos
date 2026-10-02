@@ -15,8 +15,8 @@ const PRODUCTS: readonly (readonly string[])[] = [PROGRAM, FLEET];
 // The engines both products run on.
 const SHARED_ENGINES = ['form-engine', 'compliance-engine', 'workflow-engine', 'record-engine'];
 const CONFIGURATION_PACKAGES = ['dprp-configuration', 'dprp-standard', 'mdpp-standard', 'fleet-configuration'];
-// The engines that read definitions.  constants holds every product's values and types every product's shapes, by design.
-const DEFINITION_READERS = ['time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine'];
+// The engines that name no product.  constants holds every product's values, by design; each product's shapes live in its own packages.
+const DEFINITION_READERS = ['types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine'];
 
 const SOURCES = import.meta.glob<string>('../packages/*/src/**/*.ts', { query: '?raw', import: 'default', eager: true });
 const MANIFESTS = import.meta.glob<string>('../packages/*/package.json', { query: '?raw', import: 'default', eager: true });
@@ -64,7 +64,7 @@ describe('the platform boundaries', () => {
     for (const ui of SHARED_UI) expect(importsOf(ui).filter((imported) => !ENGINES.includes(imported)), ui).toEqual([]);
   });
 
-  it('keep every product value out of the engines that read definitions', () => {
+  it('keep every product value out of the platform’s shapes and engines', () => {
     for (const engine of DEFINITION_READERS) {
       const named = shipped.filter(([path]) => packageOf(path) === engine).flatMap(([, source]) => productConstants.filter((constant) => new RegExp(`\\b${constant}\\b`).test(source)));
       expect(named, engine).toEqual([]);
