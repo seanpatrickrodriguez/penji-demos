@@ -1,0 +1,96 @@
+:host {
+  display: block;
+}
+
+.phone {
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  padding: var(--space-4);
+  background: var(--surface);
+}
+
+h3 {
+  margin-top: 0;
+  font-size: var(--text-body);
+}
+
+.account {
+  margin: 0;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.account .muted {
+  font-weight: 400;
+}
+
+.code {
+  margin: var(--space-2) 0;
+  font-family: ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  font-size: 2.5rem;
+  line-height: 1.1;
+  letter-spacing: 0.08em;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.bar {
+  height: 6px;
+  border-radius: 3px;
+  background: var(--rule);
+  overflow: hidden;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+  background: var(--accent);
+}
+
+.small {
+  font-size: var(--text-small);
+  margin: var(--space-1) 0 var(--space-3);
+}
+
+.clock .small {
+  margin: var(--space-2) 0 0;
+}
+
+.clock {
+  border-top: 1px solid var(--rule);
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+}
+
+.clock fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+.clock legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: var(--space-2);
+}
+
+.clock label {
+  display: block;
+  padding: 0.125rem 0;
+}
+
+input[type='radio'] {
+  width: 1.125rem;
+  height: 1.125rem;
+  accent-color: var(--accent);
+  margin: 0 var(--space-2) 0 0;
+  vertical-align: -0.15em;
+}
+
+.spent {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-small);
+  font-weight: 600;
+  color: var(--warn);
+}
