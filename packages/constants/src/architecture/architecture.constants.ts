@@ -29,4 +29,5 @@ export const DEFINITION_KIND = {
   TENANT_KIND: 'tenantKind',
   ENTITY: 'entity',
   CONFIGURATION: 'configuration',
+  FACTOR_POLICY: 'factorPolicy',
 } as const;

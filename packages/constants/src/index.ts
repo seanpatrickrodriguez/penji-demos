@@ -1,4 +1,5 @@
 export * from './architecture/architecture.constants';
+export * from './authentication/authentication.constants';
 export * from './compliance/compliance.constants';
 export * from './dprp/data-dictionary.constants';
 export * from './dprp/metric-key.constants';

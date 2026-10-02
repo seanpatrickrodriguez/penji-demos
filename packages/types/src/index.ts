@@ -1,6 +1,7 @@
 export * from './primitives/brand';
 export * from './primitives/branded-ids';
 export * from './primitives/plain-date';
+export * from './primitives/unix-seconds';
 export * from './definitions/definition';
 export * from './definitions/requirement-definition';
 export * from './definitions/compliance-definition';
@@ -11,5 +12,7 @@ export * from './definitions/access-definition';
 export * from './definitions/workflow-definition';
 export * from './definitions/entity-definition';
 export * from './definitions/configuration-definition';
+export * from './definitions/factor-policy-definition';
 export * from './records/platform-records';
+export * from './records/factor-records';
 export * from './evaluation/evaluation';
