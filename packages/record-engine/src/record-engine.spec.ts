@@ -21,6 +21,7 @@ import { resolveEntryOptions, isPermittedOnRecord, resolvePermissionOption } fro
 import { resolveDataAsOf } from './resolve-as-of';
 import { describeRecordValue, evaluateEntity } from './evaluate-entity';
 import { addEntry, applyEntryTransition, removeEntry } from './record-changes';
+import { resolveRuleRoles } from './resolve-scope';
 import { resolveEntityFacts, resolveEntryAnswers } from './resolve-subject';
 import { validateConfiguration } from './validate-configuration';
 
@@ -35,7 +36,17 @@ const form = (formId: string, fields: readonly FieldDefinition[]): FormDefinitio
 const FORMS = [
   form('network', [{ kind: 'text', key: 'region', label: 'Region' }]),
   form('library', [{ kind: 'text', key: 'branch', label: 'Branch' }]),
-  form('person', [{ kind: 'text', key: 'badge', label: 'Badge' }]),
+  form('person', [
+    {
+      kind: 'choice',
+      key: 'duty',
+      label: 'Duty',
+      options: [
+        { value: 'librarian', label: 'Librarian' },
+        { value: 'volunteer', label: 'Volunteer' },
+      ],
+    },
+  ]),
   form('household', [
     { kind: 'text', key: 'zone', label: 'Zone' },
     { kind: 'date', key: 'joined', label: 'Joined' },
@@ -97,6 +108,10 @@ const POLICY: AccessPolicyDefinition = {
         { permission: 'removeLoan', when: { kind: 'sameAs', field: PLATFORM_FACT.ACTOR_ID, other: PLATFORM_FACT.ENTRY_AUTHOR } },
       ],
     },
+  ],
+  roleRules: [
+    { id: 'librarians', label: 'Librarians', when: { kind: 'equals', field: 'duty', value: 'librarian' }, roleIds: ['librarian'] },
+    { id: 'volunteers', label: 'Volunteers', when: { kind: 'equals', field: 'duty', value: 'volunteer' }, roleIds: ['volunteer'] },
   ],
 };
 
@@ -214,14 +229,14 @@ const DATA: PlatformData = {
     { tenantId: SOUTH, kind: id('library'), parentId: NETWORK, name: 'South', values: {} },
   ],
   actors: [
-    { actorId: LIBRARIAN, tenantId: NETWORK, name: 'Librarian', values: {} },
-    { actorId: VOLUNTEER, tenantId: NORTH, name: 'Volunteer', values: {} },
-    { actorId: RESTING, tenantId: NORTH, name: 'Resting volunteer', values: {} },
+    { actorId: LIBRARIAN, tenantId: NETWORK, name: 'Librarian', values: { duty: 'librarian' } },
+    { actorId: VOLUNTEER, tenantId: NORTH, name: 'Volunteer', values: { duty: 'volunteer' } },
+    { actorId: RESTING, tenantId: NORTH, name: 'Resting volunteer', values: { duty: 'volunteer' } },
   ],
   assignments: [
-    { assignmentId: toAssignmentId('s1'), actorId: LIBRARIAN, roleId: 'librarian', scope: { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: NETWORK }, active: true },
-    { assignmentId: toAssignmentId('s2'), actorId: VOLUNTEER, roleId: 'volunteer', scope: { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: toEntityId('h-north') }, active: true },
-    { assignmentId: toAssignmentId('s3'), actorId: RESTING, roleId: 'volunteer', scope: { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: toEntityId('h-north') }, active: false },
+    { assignmentId: toAssignmentId('s1'), actorId: LIBRARIAN, scope: { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: NETWORK }, active: true },
+    { assignmentId: toAssignmentId('s2'), actorId: VOLUNTEER, scope: { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: toEntityId('h-north') }, active: true },
+    { assignmentId: toAssignmentId('s3'), actorId: RESTING, scope: { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: toEntityId('h-north') }, active: false },
   ],
   entities: [
     { entityId: toEntityId('h-north'), kind: id('household'), tenantId: NORTH, parentId: null, values: { zone: 'Ridge', joined: '2026-01-10' } },
@@ -260,13 +275,19 @@ describe('a configuration bundle', () => {
     const broken: PlatformConfiguration = {
       ...CONFIGURATION,
       entities: [HOUSEHOLD, { ...MEMBER, streams: [{ ...MEMBER.streams[0]!, formId: id('missing'), addPermission: 'fly' }], standardIds: [id('safety'), id('nothing')] }],
-      accessPolicy: { ...POLICY, roles: [{ id: 'clerk', label: 'Clerk', description: '', grants: [{ permission: 'lend', when: { kind: 'equals', field: 'shoeSize', value: 9 } }] }] },
+      accessPolicy: {
+        ...POLICY,
+        roles: [{ id: 'clerk', label: 'Clerk', description: '', grants: [{ permission: 'lend', when: { kind: 'equals', field: 'shoeSize', value: 9 } }] }],
+        roleRules: [{ id: 'clerks', label: 'Clerks', when: { kind: 'equals', field: 'zone', value: 'Ridge' }, roleIds: ['clerk', 'janitor'] }],
+      },
     };
     const problems = validateConfiguration(broken);
     expect(problems).toContain('Entity "member", stream "visits" names the form "missing", which is not in the bundle.');
     expect(problems).toContain('Entity "member", stream "visits" needs "fly", which the access policy does not define.');
     expect(problems).toContain('Entity "member" is evaluated by "nothing", which is not in the bundle.');
     expect(problems).toContain('"shoeSize" is read by a definition, and no form, fact or platform fact supplies it.');
+    expect(problems).toContain('Role rule "clerks" gives the role "janitor", which the access policy does not define.');
+    expect(problems).toContain('Role rule "clerks" reads "zone", which is not on the actor form.');
   });
 });
 
@@ -285,6 +306,14 @@ describe('scope', () => {
 
   it('grants nothing through an inactive assignment', () => {
     expect(isPermittedOnRecord(CONFIGURATION, DATA, RESTING, 'borrow', entity('m-north'))).toBe(false);
+  });
+
+  it('gives each person the roles their record matches, wherever they are assigned', () => {
+    expect(resolveRuleRoles(POLICY, { actorId: VOLUNTEER, tenantId: NORTH, name: 'Volunteer', values: { duty: 'volunteer' } })).toEqual(['volunteer']);
+    expect(isPermittedOnRecord(CONFIGURATION, DATA, VOLUNTEER, 'lend', entity('m-north'))).toBe(false);
+    const promoted: PlatformData = { ...DATA, actors: DATA.actors.map((actor) => (actor.actorId === VOLUNTEER ? { ...actor, values: { duty: 'librarian' } } : actor)) };
+    expect(isPermittedOnRecord(CONFIGURATION, promoted, VOLUNTEER, 'lend', entity('m-north'))).toBe(true);
+    expect(isPermittedOnRecord(CONFIGURATION, promoted, VOLUNTEER, 'lend', entity('m-south'))).toBe(false);
   });
 });
 

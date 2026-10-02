@@ -1,5 +1,6 @@
 import { ACCESS_SCOPE_KIND } from '@penji-demos/constants';
-import { AccessScope, AccessScopeKind, ActorId, EntityId, EntityRecord, PlatformData, TenantId, TenantRecord } from '@penji-demos/types';
+import { evaluateCondition } from '@penji-demos/form-engine';
+import { AccessPolicyDefinition, AccessScope, AccessScopeKind, ActorId, ActorRecord, EntityId, EntityRecord, PlatformData, TenantId, TenantRecord } from '@penji-demos/types';
 
 // The tenant tree and the entity tree, and which scopes cover which records.
 // A scope covers everything beneath it: a hub's data specialist and a fleet's
@@ -34,11 +35,18 @@ export function isInScope(data: PlatformData, scope: AccessScope, entity: Entity
   }
 }
 
-// The roles a person holds over an entity: every active assignment whose scope
-// covers it, or only the assignments of one scope kind when `assignedTo` names one.
-export function resolveActorRoles(data: PlatformData, actorId: ActorId, entity: EntityRecord, assignedTo: AccessScopeKind | null = null): readonly string[] {
-  const roles = data.assignments
-    .filter((assignment) => assignment.actorId === actorId && assignment.active && (assignedTo === null || assignment.scope.kind === assignedTo) && isInScope(data, assignment.scope, entity))
-    .map((assignment) => assignment.roleId);
-  return [...new Set(roles)];
+// The roles a person's record gives them, from every role rule it matches.
+export function resolveRuleRoles(policy: AccessPolicyDefinition, actor: ActorRecord): readonly string[] {
+  return [...new Set(policy.roleRules.filter((rule) => evaluateCondition(rule.when, actor.values)).flatMap((rule) => rule.roleIds))];
+}
+
+// The roles a person holds over an entity: their record's roles, wherever an
+// active assignment covers the entity, or only through assignments of one
+// scope kind when `assignedTo` names one.
+export function resolveActorRoles(policy: AccessPolicyDefinition, data: PlatformData, actorId: ActorId, entity: EntityRecord, assignedTo: AccessScopeKind | null = null): readonly string[] {
+  const actor = data.actors.find((candidate) => candidate.actorId === actorId);
+  const covered = data.assignments.some(
+    (assignment) => assignment.actorId === actorId && assignment.active && (assignedTo === null || assignment.scope.kind === assignedTo) && isInScope(data, assignment.scope, entity),
+  );
+  return actor && covered ? resolveRuleRoles(policy, actor) : [];
 }

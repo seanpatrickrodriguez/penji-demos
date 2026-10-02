@@ -25,7 +25,13 @@ export const ORGANIZATION_FIELD = {
 } as const;
 
 export const STAFF_FIELD = {
-  TITLE: 'staffTitle',
+  POSITION: 'staffPosition',
+} as const;
+
+// A staff member's position, which gives their roles.
+export const STAFF_POSITION = {
+  DATA_SPECIALIST: 'dataSpecialist',
+  LIFESTYLE_COACH: 'lifestyleCoach',
 } as const;
 
 export const COHORT_FIELD = {

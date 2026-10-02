@@ -28,12 +28,12 @@ export type AccessScope =
   | { readonly kind: typeof ACCESS_SCOPE_KIND.TENANT; readonly tenantId: TenantId }
   | { readonly kind: typeof ACCESS_SCOPE_KIND.ENTITY; readonly entityId: EntityId };
 
-// One role held by one person over one scope.  An inactive assignment is kept
-// and grants nothing: crew on their rotation off, a coach between cohorts.
-export interface RoleAssignment {
+// One person placed over one scope.  The roles they hold there come from the
+// access policy's role rules, read over their record.  An inactive assignment
+// is kept and grants nothing: crew on their rotation off, a coach between cohorts.
+export interface Assignment {
   readonly assignmentId: AssignmentId;
   readonly actorId: ActorId;
-  readonly roleId: string;
   readonly scope: AccessScope;
   readonly active: boolean;
 }
@@ -61,7 +61,7 @@ export interface StreamEntry {
 export interface PlatformData {
   readonly tenants: readonly TenantRecord[];
   readonly actors: readonly ActorRecord[];
-  readonly assignments: readonly RoleAssignment[];
+  readonly assignments: readonly Assignment[];
   readonly entities: readonly EntityRecord[];
   readonly entries: readonly StreamEntry[];
 }

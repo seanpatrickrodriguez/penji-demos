@@ -9,12 +9,13 @@ import {
   ORGANIZATION_FIELD,
   PARTICIPANT_FIELD,
   PROGRAM_ENTITY,
-  PROGRAM_ROLE,
   PROGRAM_STREAM,
   PROGRAM_TENANT_KIND,
   RECODE_FIELD,
   RESULT_SOURCE,
   SESSION_FIELD,
+  STAFF_FIELD,
+  STAFF_POSITION,
 } from '@penji-demos/constants';
 import { PROGRAM_CONFIGURATION } from '@penji-demos/dprp-configuration';
 import { DPRP_STANDARD_2024 } from '@penji-demos/dprp-standard';
@@ -149,8 +150,8 @@ export function buildOrganization(cohorts: readonly EntityRecord[], participants
         values: { [ORGANIZATION_FIELD.CODE]: 'DEMO1', [ORGANIZATION_FIELD.DELIVERY_MODE]: DELIVERY_MODE.IN_PERSON, [ORGANIZATION_FIELD.EFFECTIVE_DATE]: effectiveDate },
       },
     ],
-    actors: [{ actorId: DATA_SPECIALIST_ID, tenantId: ORGANIZATION_ID, name: 'Data specialist', values: {} }],
-    assignments: [{ assignmentId: toAssignmentId('assignment'), actorId: DATA_SPECIALIST_ID, roleId: PROGRAM_ROLE.DATA_SPECIALIST, scope: { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: ORGANIZATION_ID }, active: true }],
+    actors: [{ actorId: DATA_SPECIALIST_ID, tenantId: ORGANIZATION_ID, name: 'Data specialist', values: { [STAFF_FIELD.POSITION]: STAFF_POSITION.DATA_SPECIALIST } }],
+    assignments: [{ assignmentId: toAssignmentId('assignment'), actorId: DATA_SPECIALIST_ID, scope: { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: ORGANIZATION_ID }, active: true }],
     entities: [...cohorts, ...participants.map((participant) => participant.participant)],
     entries: participants.flatMap((participant) => participant.entries),
   };

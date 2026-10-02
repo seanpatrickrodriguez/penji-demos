@@ -3,6 +3,7 @@ import { TransitionOption } from '@penji-demos/workflow-engine';
 import {
   PermissionOption,
   resolveActorRoles,
+  resolveRuleRoles,
   resolveEntityDefinition,
   resolveEntryAnswers,
   resolveEntryOptions,
@@ -25,8 +26,8 @@ import {
   FormDefinition,
   GuidanceItem,
   PlatformConfiguration,
+  AccessScope,
   PlatformData,
-  RoleAssignment,
   StreamDefinition,
   StreamEntry,
 } from '@penji-demos/types';
@@ -73,14 +74,13 @@ export const resolveActorTitle = (configuration: PlatformConfiguration, actor: A
 
 const roleLabel = (configuration: PlatformConfiguration, roleId: string): string => configuration.accessPolicy.roles.find((role) => role.id === roleId)?.label ?? roleId;
 
-const scopeName = (configuration: PlatformConfiguration, data: PlatformData, scope: RoleAssignment['scope']): string => {
+const scopeName = (configuration: PlatformConfiguration, data: PlatformData, scope: AccessScope): string => {
   if (scope.kind === ACCESS_SCOPE_KIND.TENANT) return data.tenants.find((tenant) => tenant.tenantId === scope.tenantId)?.name ?? 'an unknown company';
   const entity = data.entities.find((candidate) => candidate.entityId === scope.entityId);
   return entity ? resolveEntityName(configuration, entity) : 'an unknown record';
 };
 
 export interface AssignmentView {
-  readonly role: string;
   readonly over: string;
   readonly active: boolean;
 }
@@ -89,6 +89,8 @@ export interface ViewerView {
   readonly name: string;
   readonly title: string;
   readonly company: string;
+  // The roles their record gives them, named, and where those roles apply.
+  readonly roles: string;
   readonly assignments: readonly AssignmentView[];
 }
 
@@ -97,9 +99,12 @@ export function resolveViewer(configuration: PlatformConfiguration, data: Platfo
     name: actor.name,
     title: resolveActorTitle(configuration, actor),
     company: data.tenants.find((tenant) => tenant.tenantId === actor.tenantId)?.name ?? '',
+    roles: resolveRuleRoles(configuration.accessPolicy, actor)
+      .map((roleId) => roleLabel(configuration, roleId))
+      .join(', '),
     assignments: data.assignments
       .filter((assignment) => assignment.actorId === actor.actorId)
-      .map((assignment) => ({ role: roleLabel(configuration, assignment.roleId), over: scopeName(configuration, data, assignment.scope), active: assignment.active })),
+      .map((assignment) => ({ over: scopeName(configuration, data, assignment.scope), active: assignment.active })),
   };
 }
 
@@ -129,7 +134,7 @@ export function resolveViewerGroups(configuration: PlatformConfiguration, data: 
 
 // The roles a person holds over one entity, named.
 export const resolveRolesHere = (configuration: PlatformConfiguration, data: PlatformData, actorId: ActorId, entity: EntityRecord): readonly string[] =>
-  resolveActorRoles(data, actorId, entity).map((roleId) => roleLabel(configuration, roleId));
+  resolveActorRoles(configuration.accessPolicy, data, actorId, entity).map((roleId) => roleLabel(configuration, roleId));
 
 const isBlocking = (item: GuidanceItem) => isGuidanceOpen(item) && item.requiresAction && item.rule.severity === VALIDATION_SEVERITY.ERROR;
 
@@ -261,7 +266,7 @@ export function resolveStreamViews(configuration: PlatformConfiguration, data: P
         findings: guidance.filter((item) => item.finding.eventId === entry.entryId && isGuidanceOpen(item)).length,
       };
     });
-    return { stream, hasRole: resolveActorRoles(data, viewerId, entity).length > 0, form, add: resolvePermissionOption(configuration, data, viewerId, stream.addPermission, entity), entries };
+    return { stream, hasRole: resolveActorRoles(configuration.accessPolicy, data, viewerId, entity).length > 0, form, add: resolvePermissionOption(configuration, data, viewerId, stream.addPermission, entity), entries };
   });
 }
 

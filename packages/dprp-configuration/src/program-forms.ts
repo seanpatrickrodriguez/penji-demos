@@ -14,6 +14,7 @@ import {
   RESULT_SOURCE,
   SESSION_FIELD,
   STAFF_FIELD,
+  STAFF_POSITION,
 } from '@penji-demos/constants';
 import { FieldDefinition, FormDefinition, toDefinitionId } from '@penji-demos/types';
 
@@ -42,7 +43,18 @@ const ORGANIZATION_FIELDS: readonly FieldDefinition[] = [
   { kind: 'date', key: ORGANIZATION_FIELD.EFFECTIVE_DATE, label: 'Recognition effective date', required: true },
 ];
 
-const STAFF_FIELDS: readonly FieldDefinition[] = [{ kind: 'text', key: STAFF_FIELD.TITLE, label: 'Title', required: true }];
+const STAFF_FIELDS: readonly FieldDefinition[] = [
+  {
+    kind: 'choice',
+    key: STAFF_FIELD.POSITION,
+    label: 'Position',
+    required: true,
+    options: [
+      { value: STAFF_POSITION.DATA_SPECIALIST, label: 'Data specialist' },
+      { value: STAFF_POSITION.LIFESTYLE_COACH, label: 'Lifestyle coach' },
+    ],
+  },
+];
 
 const COHORT_FIELDS: readonly FieldDefinition[] = [
   { kind: 'text', key: COHORT_FIELD.CODE, label: 'Cohort ID', required: true, maxLength: 25 },

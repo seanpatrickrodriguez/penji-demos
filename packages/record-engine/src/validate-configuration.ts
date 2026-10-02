@@ -63,7 +63,13 @@ export function validateConfiguration(configuration: PlatformConfiguration): rea
   for (const workflow of configuration.workflows) for (const problem of validateWorkflowDefinition(workflow, policy)) problems.push(`Workflow "${workflow.id}": ${problem}`);
   for (const role of policy.roles) for (const grant of role.grants) requirePermission(`Role "${role.id}"`, grant.permission);
 
-  requireForm('The actor record', configuration.actorFormId);
+  const actorForm = requireForm('The actor record', configuration.actorFormId);
+  const roleIds = new Set(policy.roles.map((role) => role.id));
+  for (const rule of policy.roleRules) {
+    for (const roleId of rule.roleIds) if (!roleIds.has(roleId)) problems.push(`Role rule "${rule.id}" gives the role "${roleId}", which the access policy does not define.`);
+    for (const field of resolveConditionFields(rule.when))
+      if (actorForm && !actorForm.fields.some((candidate) => candidate.key === field)) problems.push(`Role rule "${rule.id}" reads "${field}", which is not on the actor form.`);
+  }
   const tenantKinds = new Set(configuration.tenantKinds.map((kind) => kind.id));
   for (const kind of configuration.tenantKinds) {
     requireForm(`Tenant kind "${kind.id}"`, kind.formId);

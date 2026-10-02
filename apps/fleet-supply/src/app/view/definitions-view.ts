@@ -18,12 +18,16 @@ export interface AccessRow {
 export interface AccessMatrix {
   readonly roles: readonly { readonly id: string; readonly label: string; readonly description: string }[];
   readonly rows: readonly AccessRow[];
+  // Who holds which roles, from the role rules.
+  readonly holders: readonly { readonly id: string; readonly who: string; readonly roles: string }[];
 }
 
 export function resolveAccessMatrix(configuration: PlatformConfiguration, labels: FieldLabels, fields: readonly FieldDefinition[]): AccessMatrix {
   const { roles, permissions } = configuration.accessPolicy;
+  const roleLabel = (roleId: string) => roles.find((role) => role.id === roleId)?.label ?? roleId;
   return {
     roles: roles.map((role) => ({ id: role.id, label: role.label, description: role.description })),
+    holders: configuration.accessPolicy.roleRules.map((rule) => ({ id: rule.id, who: rule.label, roles: rule.roleIds.map(roleLabel).join(', ') })),
     rows: permissions.map((permission) => ({
       permission: permission.label,
       cells: roles.map((role) => {

@@ -16,7 +16,7 @@ export interface ActorContext {
 
 export function resolveActorContext(configuration: PlatformConfiguration, data: PlatformData, actorId: ActorId, entity: EntityRecord, entry: StreamEntry | null): ActorContext {
   return {
-    roleIds: resolveActorRoles(data, actorId, entity),
+    roleIds: resolveActorRoles(configuration.accessPolicy, data, actorId, entity),
     context: { ...resolveRecordAnswers(configuration, entity), ...(entry ? resolveEntryAnswers(configuration, entry) : {}), [PLATFORM_FACT.ACTOR_ID]: actorId },
   };
 }

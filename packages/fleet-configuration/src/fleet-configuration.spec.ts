@@ -1,7 +1,7 @@
-import { ACCESS_SCOPE_KIND, FLEET_ENTITY, FLEET_PERMISSION, FLEET_ROLE, FLEET_STREAM, FLEET_TENANT_KIND, SUPPLY_CATEGORY, SUPPLY_STATUS, WANT_ITEM_FIELD, WANT_LIST_TRANSITION } from '@penji-demos/constants';
-import { RecordChange, addEntry, applyEntryTransition, isPermittedOnRecord, removeEntry, resolveEntryOptions, validateConfiguration } from '@penji-demos/record-engine';
+import { ACCESS_SCOPE_KIND, CREW_FIELD, FLEET_ENTITY, FLEET_PERMISSION, FLEET_POSITION, FLEET_ROLE, FLEET_STREAM, FLEET_TENANT_KIND, SUPPLY_CATEGORY, SUPPLY_STATUS, WANT_ITEM_FIELD, WANT_LIST_TRANSITION } from '@penji-demos/constants';
+import { RecordChange, addEntry, applyEntryTransition, isPermittedOnRecord, removeEntry, resolveEntryOptions, resolveRuleRoles, validateConfiguration } from '@penji-demos/record-engine';
 import { toPlainDate } from '@penji-demos/time';
-import { ActorId, Answers, EntityRecord, PlatformData, RoleAssignment, toActorId, toAssignmentId, toDefinitionId, toEntityId, toEntryId, toTenantId } from '@penji-demos/types';
+import { ActorId, Answers, Assignment, EntityRecord, PlatformData, toActorId, toAssignmentId, toDefinitionId, toEntityId, toEntryId, toTenantId } from '@penji-demos/types';
 import { describe, expect, it } from 'vitest';
 import { FLEET_CONFIGURATION } from './fleet-configuration';
 import { WANT_LIST_WORKFLOW } from './want-list-workflow';
@@ -15,24 +15,29 @@ const vessel = (id: string): EntityRecord => ({ entityId: toEntityId(id), kind: 
 const TUG = vessel('tug');
 const OTHER_TUG = vessel('other-tug');
 
+// Each person is a position, placed on a vessel or over the fleet; the access policy's role rules give the roles.
 let count = 0;
-const onVessel = (roles: readonly string[], target = TUG, active = true) => (actorId: ActorId): readonly RoleAssignment[] =>
-  roles.map((roleId) => ({ assignmentId: toAssignmentId(`s${count++}`), actorId, roleId, scope: { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: target.entityId }, active }));
-const overFleet = (roleId: string) => (actorId: ActorId): readonly RoleAssignment[] => [
-  { assignmentId: toAssignmentId(`s${count++}`), actorId, roleId, scope: { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: OWNER }, active: true },
-];
+const onVessel = (position: string, target = TUG, active = true) => ({
+  position,
+  assign: (actorId: ActorId): Assignment => ({ assignmentId: toAssignmentId(`s${count++}`), actorId, scope: { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: target.entityId }, active }),
+});
+const overFleet = (position: string) => ({
+  position,
+  assign: (actorId: ActorId): Assignment => ({ assignmentId: toAssignmentId(`s${count++}`), actorId, scope: { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: OWNER }, active: true }),
+});
 
+const O = FLEET_POSITION;
 const PEOPLE = {
-  COOK: onVessel([R.CREW_MEMBER]),
-  DECKHAND: onVessel([R.CREW_MEMBER]),
-  CAPTAIN: onVessel([R.CREW_MEMBER, R.SENDING_OFFICER]),
-  OFF_ROTATION_CAPTAIN: onVessel([R.CREW_MEMBER, R.SENDING_OFFICER], TUG, false),
-  OTHER_CAPTAIN: onVessel([R.CREW_MEMBER, R.SENDING_OFFICER], OTHER_TUG),
-  PIC: onVessel([R.CREW_MEMBER, R.SENDING_OFFICER]),
-  SUPPLY_MANAGER: overFleet(R.SUPPLY_MANAGER),
-  PORT_ENGINEER: overFleet(R.PORT_ENGINEER),
-  OWNER_REPRESENTATIVE: overFleet(R.OWNER_REPRESENTATIVE),
-  WELDER: overFleet(R.SHOP_STAFF),
+  COOK: onVessel(O.COOK),
+  DECKHAND: onVessel(O.SECOND_MATE),
+  CAPTAIN: onVessel(O.CAPTAIN),
+  OFF_ROTATION_CAPTAIN: onVessel(O.CAPTAIN, TUG, false),
+  OTHER_CAPTAIN: onVessel(O.CAPTAIN, OTHER_TUG),
+  PIC: onVessel(O.TANKERMAN_PIC),
+  SUPPLY_MANAGER: overFleet(O.SUPPLY_MANAGER),
+  PORT_ENGINEER: overFleet(O.PORT_ENGINEER),
+  OWNER_REPRESENTATIVE: overFleet(O.OWNER_REPRESENTATIVE),
+  WELDER: overFleet(O.SENIOR_WELDER),
 };
 type Person = keyof typeof PEOPLE;
 const actor = (person: Person) => toActorId(person.toLowerCase());
@@ -42,8 +47,8 @@ const DATA: PlatformData = {
     { tenantId: OWNER, kind: toDefinitionId(FLEET_TENANT_KIND.COMPANY), parentId: null, name: 'Owner', values: {} },
     { tenantId: SHOP, kind: toDefinitionId(FLEET_TENANT_KIND.COMPANY), parentId: OWNER, name: 'Shop', values: {} },
   ],
-  actors: Object.keys(PEOPLE).map((person) => ({ actorId: toActorId(person.toLowerCase()), tenantId: OWNER, name: person, values: {} })),
-  assignments: Object.entries(PEOPLE).flatMap(([person, assign]) => assign(toActorId(person.toLowerCase()))),
+  actors: Object.entries(PEOPLE).map(([person, { position }]) => ({ actorId: toActorId(person.toLowerCase()), tenantId: OWNER, name: person, values: { [CREW_FIELD.POSITION]: position } })),
+  assignments: Object.entries(PEOPLE).map(([person, { assign }]) => assign(toActorId(person.toLowerCase()))),
   entities: [TUG, OTHER_TUG],
   entries: [],
 };
@@ -83,6 +88,13 @@ describe('the fleet configuration', () => {
     expect(WANT_LIST_WORKFLOW.states.map((state) => state.id).sort()).toEqual(Object.values(SUPPLY_STATUS).sort());
     const granted = new Set(FLEET_CONFIGURATION.accessPolicy.roles.flatMap((role) => role.grants.map((grant) => grant.permission)));
     expect(Object.values(FLEET_PERMISSION).filter((permission) => !granted.has(permission))).toEqual([]);
+  });
+
+  it('gives every position its roles through one role rule, and the officers who send the list the sending officer’s role', () => {
+    const rolesOf = (position: string) => resolveRuleRoles(FLEET_CONFIGURATION.accessPolicy, { actorId: toActorId('p'), tenantId: OWNER, name: 'p', values: { [CREW_FIELD.POSITION]: position } });
+    for (const position of Object.values(FLEET_POSITION)) expect(rolesOf(position).length, position).toBeGreaterThan(0);
+    const senders = Object.values(FLEET_POSITION).filter((position) => rolesOf(position).includes(R.SENDING_OFFICER));
+    expect(senders.sort()).toEqual([FLEET_POSITION.CAPTAIN, FLEET_POSITION.CHIEF_ENGINEER, FLEET_POSITION.FIRST_MATE, FLEET_POSITION.TANKERMAN_PIC].sort());
   });
 });
 

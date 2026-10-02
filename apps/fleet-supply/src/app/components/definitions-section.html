@@ -22,7 +22,12 @@
 }
 
 <h3>Who may do what</h3>
-<p>Roles are assigned over a branch of the tree.  Crew are assigned to the vessel they rotate aboard, active only while aboard; the shop's people are assigned at the company, over every vessel.  A condition on a grant reads the vessel, the item and who is acting.</p>
+<p>A person's position gives their roles, and their assignments say where the roles apply.  Crew are assigned to the vessel they rotate aboard, active only while aboard; the shop's people are assigned at the company, over every vessel.  A condition on a grant reads the vessel, the item and who is acting.</p>
+<ul class="roles" aria-label="Roles by position">
+  @for (holder of access.holders; track holder.id) {
+    <li><strong>{{ holder.who }}:</strong> {{ holder.roles }}</li>
+  }
+</ul>
 <div class="table-scroll" tabindex="0" role="region" aria-labelledby="access-caption">
   <table class="data-table access">
     <caption id="access-caption">The access policy: each permission, by role.</caption>

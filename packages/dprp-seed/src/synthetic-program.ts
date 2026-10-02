@@ -10,13 +10,13 @@ import {
   ORGANIZATION_FIELD,
   PARTICIPANT_FIELD,
   PROGRAM_ENTITY,
-  PROGRAM_ROLE,
   PROGRAM_STREAM,
   PROGRAM_TENANT_KIND,
   RECODE_FIELD,
   RESULT_SOURCE,
   SESSION_FIELD,
   STAFF_FIELD,
+  STAFF_POSITION,
 } from '@penji-demos/constants';
 import { readDate, readNumber, resolveOpaqueId } from '@penji-demos/record-engine';
 import { resolveDaysLater, toPlainDate } from '@penji-demos/time';
@@ -24,10 +24,10 @@ import {
   ActorId,
   ActorRecord,
   Answers,
+  Assignment,
   EntityRecord,
   PlainDate,
   PlatformData,
-  RoleAssignment,
   StreamEntry,
   TenantId,
   toActorId,
@@ -295,16 +295,16 @@ function resolveRecords(cohorts: readonly EntityRecord[], drafts: readonly Parti
     ...(draft.recode ? entry(draft, PROGRAM_STREAM.RECODE, readDate(draft.recode, RECODE_FIELD.DATE), SYNTHETIC_DATA_SPECIALIST_ID, draft.recode) : []),
   ]);
   const actors: readonly ActorRecord[] = [
-    { actorId: SYNTHETIC_DATA_SPECIALIST_ID, tenantId: SYNTHETIC_ORGANIZATION_ID, name: 'Organization data specialist', values: { [STAFF_FIELD.TITLE]: 'Data specialist' } },
-    { actorId: SYNTHETIC_HUB_DATA_SPECIALIST_ID, tenantId: SYNTHETIC_HUB_ID, name: 'Hub data specialist', values: { [STAFF_FIELD.TITLE]: 'Hub data specialist' } },
-    ...COACH_IDS.map((actorId, index) => ({ actorId, tenantId: SYNTHETIC_ORGANIZATION_ID, name: `Coach ${index + 1}`, values: { [STAFF_FIELD.TITLE]: 'Lifestyle coach' } })),
+    { actorId: SYNTHETIC_DATA_SPECIALIST_ID, tenantId: SYNTHETIC_ORGANIZATION_ID, name: 'Organization data specialist', values: { [STAFF_FIELD.POSITION]: STAFF_POSITION.DATA_SPECIALIST } },
+    { actorId: SYNTHETIC_HUB_DATA_SPECIALIST_ID, tenantId: SYNTHETIC_HUB_ID, name: 'Hub data specialist', values: { [STAFF_FIELD.POSITION]: STAFF_POSITION.DATA_SPECIALIST } },
+    ...COACH_IDS.map((actorId, index) => ({ actorId, tenantId: SYNTHETIC_ORGANIZATION_ID, name: `Coach ${index + 1}`, values: { [STAFF_FIELD.POSITION]: STAFF_POSITION.LIFESTYLE_COACH } })),
   ];
   let assignmentCount = 0;
-  const assignment = (actorId: ActorId, roleId: string, scope: RoleAssignment['scope']): RoleAssignment => ({ assignmentId: toAssignmentId(resolveOpaqueId('s', assignmentCount++)), actorId, roleId, scope, active: true });
-  const assignments: readonly RoleAssignment[] = [
-    assignment(SYNTHETIC_DATA_SPECIALIST_ID, PROGRAM_ROLE.DATA_SPECIALIST, { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: SYNTHETIC_ORGANIZATION_ID }),
-    assignment(SYNTHETIC_HUB_DATA_SPECIALIST_ID, PROGRAM_ROLE.DATA_SPECIALIST, { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: SYNTHETIC_HUB_ID }),
-    ...cohorts.flatMap((cohort) => COACH_IDS.map((actorId) => assignment(actorId, PROGRAM_ROLE.COACH, { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: cohort.entityId }))),
+  const assignment = (actorId: ActorId, scope: Assignment['scope']): Assignment => ({ assignmentId: toAssignmentId(resolveOpaqueId('s', assignmentCount++)), actorId, scope, active: true });
+  const assignments: readonly Assignment[] = [
+    assignment(SYNTHETIC_DATA_SPECIALIST_ID, { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: SYNTHETIC_ORGANIZATION_ID }),
+    assignment(SYNTHETIC_HUB_DATA_SPECIALIST_ID, { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: SYNTHETIC_HUB_ID }),
+    ...cohorts.flatMap((cohort) => COACH_IDS.map((actorId) => assignment(actorId, { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: cohort.entityId }))),
   ];
   return {
     tenants: [

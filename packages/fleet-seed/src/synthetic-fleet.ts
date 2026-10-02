@@ -6,7 +6,6 @@ import {
   FLEET_ENTITY,
   FLEET_PERMISSION,
   FLEET_POSITION,
-  FLEET_ROLE,
   FLEET_STREAM,
   FLEET_TENANT_KIND,
   SUPPLY_CATEGORY,
@@ -23,10 +22,10 @@ import {
   ActorId,
   ActorRecord,
   Answers,
+  Assignment,
   EntityRecord,
   PlainDate,
   PlatformData,
-  RoleAssignment,
   TenantRecord,
   ValueOf,
   toActorId,
@@ -122,23 +121,6 @@ const LAST_NAMES = ['Akana', 'Fonoti', 'Santos', 'Mahoe', 'Tupou', 'Kealoha', 'R
 const nameAt = (index: number) =>
   `${FIRST_NAMES[index % FIRST_NAMES.length] ?? ''} ${LAST_NAMES[(index * 7 + Math.floor(index / LAST_NAMES.length)) % LAST_NAMES.length] ?? ''}`;
 
-// The roles each position holds.  Officers who send the list are crew members too.
-const POSITION_ROLES: Readonly<Record<FleetPosition, readonly string[]>> = {
-  [P.CAPTAIN]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [P.FIRST_MATE]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [P.SECOND_MATE]: [FLEET_ROLE.CREW_MEMBER],
-  [P.CHIEF_ENGINEER]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [P.ASSISTANT_ENGINEER]: [FLEET_ROLE.CREW_MEMBER],
-  [P.COOK]: [FLEET_ROLE.CREW_MEMBER],
-  [P.TANKERMAN]: [FLEET_ROLE.CREW_MEMBER],
-  [P.TANKERMAN_PIC]: [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER],
-  [P.SUPPLY_MANAGER]: [FLEET_ROLE.SUPPLY_MANAGER],
-  [P.PORT_ENGINEER]: [FLEET_ROLE.PORT_ENGINEER],
-  [P.OWNER_REPRESENTATIVE]: [FLEET_ROLE.OWNER_REPRESENTATIVE],
-  [P.SENIOR_WELDER]: [FLEET_ROLE.SHOP_STAFF],
-  [P.SENIOR_ELECTRICIAN]: [FLEET_ROLE.SHOP_STAFF],
-};
-
 // Where a person works: the vessels they rotate aboard, and whether they are aboard now.  Shop staff work over the whole fleet.
 interface Placement {
   readonly position: FleetPosition;
@@ -178,21 +160,20 @@ const ACTORS: readonly ActorRecord[] = PLACEMENTS.map((placement, index) => ({
   values: { [CREW_FIELD.POSITION]: placement.position },
 }));
 
+// Where each person's roles apply: crew over the vessels they rotate aboard, active while aboard; the shop over the whole fleet.
 let assignmentCount = 0;
-const assignment = (actorId: ActorId, roleId: string, scope: RoleAssignment['scope'], active: boolean): RoleAssignment => ({
+const assignment = (actorId: ActorId, scope: Assignment['scope'], active: boolean): Assignment => ({
   assignmentId: toAssignmentId(resolveOpaqueId('s', assignmentCount++)),
   actorId,
-  roleId,
   scope,
   active,
 });
-const ASSIGNMENTS: readonly RoleAssignment[] = PLACEMENTS.flatMap((placement, index) => {
+const ASSIGNMENTS: readonly Assignment[] = PLACEMENTS.flatMap((placement, index) => {
   const actor = ACTORS[index];
   if (!actor) return [];
-  const roles = POSITION_ROLES[placement.position];
   return placement.vessels.length > 0
-    ? placement.vessels.flatMap((each) => roles.map((roleId) => assignment(actor.actorId, roleId, { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: each.entityId }, placement.aboard)))
-    : roles.map((roleId) => assignment(actor.actorId, roleId, { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: FLEET_OWNER_ID }, true));
+    ? placement.vessels.map((each) => assignment(actor.actorId, { kind: ACCESS_SCOPE_KIND.ENTITY, entityId: each.entityId }, placement.aboard))
+    : [assignment(actor.actorId, { kind: ACCESS_SCOPE_KIND.TENANT, tenantId: FLEET_OWNER_ID }, true)];
 });
 
 const positionOf = (actor: ActorRecord): FleetPosition | null => readMember(actor.values, CREW_FIELD.POSITION, FLEET_POSITION);

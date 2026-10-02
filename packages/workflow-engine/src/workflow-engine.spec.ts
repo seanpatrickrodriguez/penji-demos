@@ -31,6 +31,7 @@ const POLICY: AccessPolicyDefinition = {
     },
     { id: 'editor', label: 'Editor', description: '', grants: [{ permission: 'publish', when: null }] },
   ],
+  roleRules: [],
 };
 
 const WORKFLOW: WorkflowDefinition = {

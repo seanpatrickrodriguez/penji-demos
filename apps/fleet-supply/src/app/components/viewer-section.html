@@ -14,13 +14,14 @@
 
   <div class="who" aria-live="polite">
     <p class="name">{{ viewer().name }} <span class="muted">· {{ viewer().title }}, {{ viewer().company }}</span></p>
-    @if (viewer().assignments.length === 0) {
-      <p class="muted">No role assignments, so no permissions anywhere.</p>
+    @if (viewer().roles === '' || viewer().assignments.length === 0) {
+      <p class="muted">No roles assigned, so no permissions anywhere.</p>
     } @else {
+      <p class="roles">Roles from their position: {{ viewer().roles }}</p>
       <ul class="assignments">
         @for (assignment of viewer().assignments; track $index) {
           <li [class.inactive]="!assignment.active">
-            {{ assignment.role }} over {{ assignment.over }}@if (!assignment.active) { <span class="tag">off rotation, grants nothing</span> }
+            Assigned over {{ assignment.over }}@if (!assignment.active) { <span class="tag">off rotation, grants nothing</span> }
           </li>
         }
       </ul>

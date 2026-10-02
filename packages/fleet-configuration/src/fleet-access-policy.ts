@@ -1,11 +1,11 @@
-import { DEFINITION_KIND, FLEET_PERMISSION, FLEET_ROLE, PLATFORM_FACT, SUPPLY_STATUS } from '@penji-demos/constants';
-import { AccessPolicyDefinition, Condition, PermissionGrant, toDefinitionId } from '@penji-demos/types';
+import { CREW_FIELD, DEFINITION_KIND, FLEET_PERMISSION, FLEET_POSITION, FLEET_ROLE, PLATFORM_FACT, SUPPLY_STATUS } from '@penji-demos/constants';
+import { AccessPolicyDefinition, Condition, PermissionGrant, RoleRuleDefinition, toDefinitionId } from '@penji-demos/types';
 import { FLEET_POLICY_SOURCE } from './fleet-policy-source';
 
-// M1: who may do what with a vessel and its want list.  Where a role applies
-// comes from each person's assignments: crew are assigned to the vessel they
-// rotate aboard and hold nothing while off rotation; the shop's people are
-// assigned at the company, over every vessel.  The conditions on the grants
+// M1: who may do what with a vessel and its want list.  A person's position
+// gives their roles; where the roles apply comes from their assignments: crew
+// are assigned to the vessel they rotate aboard and hold nothing while off
+// rotation; the shop's people are assigned at the company, over every vessel.  The conditions on the grants
 // are the platform's condition language, read over the vessel, the item and
 // who is acting.
 
@@ -18,6 +18,14 @@ const addedByActor: Condition = { kind: 'sameAs', field: PLATFORM_FACT.ACTOR_ID,
 const notYetSent: Condition = { kind: 'equals', field: PLATFORM_FACT.ENTRY_STATUS, value: SUPPLY_STATUS.NEW };
 const awaitingApproval: Condition = { kind: 'equals', field: PLATFORM_FACT.ENTRY_STATUS, value: SUPPLY_STATUS.APPROVAL_REQUEST };
 const ownUnsentItem: Condition = { kind: 'all', conditions: [addedByActor, notYetSent] };
+
+const O = FLEET_POSITION;
+const holding = (id: string, label: string, positions: readonly string[], roleIds: readonly string[]): RoleRuleDefinition => ({
+  id,
+  label,
+  when: { kind: 'oneOf', field: CREW_FIELD.POSITION, values: positions },
+  roleIds,
+});
 
 export const FLEET_ACCESS_POLICY: AccessPolicyDefinition = {
   kind: DEFINITION_KIND.ACCESS_POLICY,
@@ -83,5 +91,13 @@ export const FLEET_ACCESS_POLICY: AccessPolicyDefinition = {
       description: 'Decides with the port engineer on items sent for approval.',
       grants: [when(P.DECIDE, awaitingApproval)],
     },
+  ],
+  roleRules: [
+    holding('officers-who-send', 'The captain, first mate, chief engineer and tankerman in charge', [O.CAPTAIN, O.FIRST_MATE, O.CHIEF_ENGINEER, O.TANKERMAN_PIC], [FLEET_ROLE.CREW_MEMBER, FLEET_ROLE.SENDING_OFFICER]),
+    holding('crew', 'The rest of the crew', [O.SECOND_MATE, O.ASSISTANT_ENGINEER, O.COOK, O.TANKERMAN], [FLEET_ROLE.CREW_MEMBER]),
+    holding('supply-manager', 'The supply manager', [O.SUPPLY_MANAGER], [FLEET_ROLE.SUPPLY_MANAGER]),
+    holding('port-engineer', 'The port engineer', [O.PORT_ENGINEER], [FLEET_ROLE.PORT_ENGINEER]),
+    holding('owner-representative', "The owner's representative", [O.OWNER_REPRESENTATIVE], [FLEET_ROLE.OWNER_REPRESENTATIVE]),
+    holding('senior-trades', 'The senior welder and electrician', [O.SENIOR_WELDER, O.SENIOR_ELECTRICIAN], [FLEET_ROLE.SHOP_STAFF]),
   ],
 };

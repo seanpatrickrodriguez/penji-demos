@@ -5,7 +5,8 @@ import { CONFIGURATION, FleetStore } from '../state/fleet-store';
 import { resolveActorName, resolveActorTitle, resolveViewer, resolveViewerGroups } from '../view/fleet-view';
 
 // Who the page acts as.  Every button below is offered or refused for this
-// person by the record engine, from their role assignments and the access policy.
+// person by the record engine: their position gives their roles under the
+// access policy, and their assignments say where those roles apply.
 @Component({
   selector: 'app-viewer-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
