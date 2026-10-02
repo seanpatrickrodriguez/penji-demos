@@ -13,7 +13,7 @@
     @switch (view().step) {
       @case (steps.SET_UP) {
         <h3>Set up an authenticator</h3>
-        <p>Signing in to <strong>{{ view().accountName }}</strong> takes a password and then a code from an authenticator app.  Setup gives the app a secret that the account shares.  From then on, the app and the account each work out the same code from that secret and the time.</p>
+        <p>Signing in to <strong class="breakable">{{ view().accountName }}</strong> takes a password and then a code from an authenticator app.  Setup gives the app a secret that the account shares.  From then on, the app and the account each work out the same code from that secret and the time.</p>
         <button type="button" class="button button-primary" [disabled]="store.busy()" (click)="store.startSetup()">Start setup</button>
       }
       @case (steps.CONFIRM) {
@@ -71,7 +71,7 @@
       }
       @case (steps.SIGNED_IN) {
         <h3>Signed in</h3>
-        <p>You are signed in as <strong>{{ view().accountName }}</strong>.  Sign out and enter the same code again before it changes: the account refuses it, because a code works once.</p>
+        <p>You are signed in as <strong class="breakable">{{ view().accountName }}</strong>.  Sign out and enter the same code again before it changes: the account refuses it, because a code works once.</p>
         <button type="button" class="button button-secondary" (click)="store.signOut()">Sign out</button>
       }
     }
