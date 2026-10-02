@@ -1,0 +1,29 @@
+<div class="phone" role="group" aria-labelledby="authenticator-heading">
+  <h3 id="authenticator-heading">Built-in authenticator</h3>
+  @if (view().ready) {
+    <p class="account">{{ view().issuer }}<span class="muted"> · {{ view().account }}</span></p>
+    <p class="code"><span class="visually-hidden">Current code: </span>{{ view().code }}</p>
+    <div class="bar" aria-hidden="true"><span [style.width.%]="view().elapsedPercent"></span></div>
+    <p class="muted small countdown">Changes in {{ view().secondsLeft }} · time step {{ view().timeStep }}</p>
+    @if (view().spent) {
+      <p class="spent">The account has already taken a code from this time step, so this one will be refused.  Wait for the next.</p>
+    }
+    @if (view().canUse) {
+      <button type="button" class="button button-secondary" (click)="store.useAuthenticatorCode()">Use this code</button>
+    }
+    <div class="clock">
+      <fieldset>
+        <legend>This authenticator’s clock</legend>
+        @for (offset of view().offsets; track offset.seconds) {
+          <label [for]="offset.id">
+            <input type="radio" name="authenticator-clock" [id]="offset.id" [checked]="offset.checked" (change)="setOffset(offset.seconds)" />
+            {{ offset.label }}
+          </label>
+        }
+      </fieldset>
+      <p class="muted small">{{ view().drift }}</p>
+    </div>
+  } @else {
+    <p class="muted">No secret yet.  Start setup and this authenticator receives it, the way an app does when it scans the QR code.  An authenticator app on your own phone works too.</p>
+  }
+</div>

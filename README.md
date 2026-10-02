@@ -25,6 +25,18 @@ A made-up tug and barge company and the shop that keeps its vessels running, on 
 - **Record review.**  The supply policy and the maintenance schedule are compliance standards, evaluated on each vessel's profile and every item on its list, with the same guidance, accept-with-a-reason and "Fix this" as the DPRP demo.
 - **The configuration, as data.**  Who may do what, how an item moves, what each vessel keeps, and the policies, read back from the definitions the page runs on.
 
+## Two-factor sign-in
+
+**Try it:** [seanrodriguez.dev/demos/totp-sign-in](https://seanrodriguez.dev/demos/totp-sign-in)
+
+Signing in with a code from an authenticator app, the way Penji signs everyone in, with recovery codes for a lost phone.  The page plays both the server and the phone so every step can be watched; in Penji the secret is made and checked on the server.
+
+- **Setup.**  A QR code and a typed key give the authenticator its secret.  The first good code turns the factor on, and ten recovery codes are shown once.  The account keeps only a hash of each.
+- **A built-in authenticator.**  It shows the current code and the seconds left in its time step, and its clock can be set behind or ahead.  An authenticator app on a phone, scanning the same QR code, shows the same code.
+- **Every check, with its evidence.**  Each code is compared with the current time step and one step either side.  A code from a step already used is refused, and five failures in a row lock sign-in for a minute.  The page lists each step compared, which matched, and the attempt count.
+- **The policy, as data.**  Digits, time step, drift, secret length, recovery codes and lockout come from one definition, checked against the bounds RFC 4226 and RFC 6238 set.
+- **Tested to the RFCs.**  The factor engine passes the HOTP test values in RFC 4226 appendix D and the TOTP test values for SHA-1, SHA-256 and SHA-512 in RFC 6238 appendix B.
+
 ## Why it is built this way
 
 Penji started as a data system for one program.  To become a platform, it had to take on a new program, a new standard or a new kind of organization as definitions, with the engines that read them left unchanged.  This structure is how it does that, and it is the architecture Penji's current major version is built on.
@@ -65,7 +77,12 @@ A person's position gives their roles, through the access policy's role rules: e
 | Engines: `constants`, `types`, `time`, `form-engine`, `compliance-engine`, `rule-engine`, `workflow-engine`, `record-engine` | Engines only.  Every engine except `constants` names no product value |
 | Diabetes prevention program: `dprp-configuration`, `dprp-standard`, `mdpp-standard`, `dprp-recognition`, `dprp-seed` | Engines and its own packages |
 | Fleet supply and maintenance: `fleet-configuration`, `fleet-seed` | Engines and its own packages |
-| Shared page parts: `ui` | Engines only |
+| Two-factor sign-in:
+
+- **`@penji-demos/factor-engine`:** HOTP and TOTP over Web Crypto, base 32, the otpauth link, recovery codes and their hashes, setup, and code checks with a drift window, replay refusal and lockout.  The time and the random bytes are handed to it.
+- **`@penji-demos/sign-in-configuration`:** the platform's sign-in policy as a definition.
+
+Shared page parts: `ui` | Engines only |
 
 Both products reach the form, compliance, workflow and record engines, and the configuration packages export definitions and no code.
 
@@ -121,6 +138,8 @@ npm start               # the DPRP demo, http://localhost:4200
 npm run start:fleet     # the fleet demo, http://localhost:4200
 npm run build:site      # production build for seanrodriguez.dev/demos/dprp-evaluation/
 npm run build:fleet-site  # production build for seanrodriguez.dev/demos/fleet-supply/
+npm run start:totp      # the sign-in demo, http://localhost:4200
+npm run build:totp-site # production build for seanrodriguez.dev/demos/totp-sign-in/
 ```
 
 ## License

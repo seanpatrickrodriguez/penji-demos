@@ -7,23 +7,24 @@ import { describe, expect, it } from 'vitest';
 // and its own packages, never the other product's; and a product's
 // configuration packages export definitions only, no code.
 
-const ENGINES = ['constants', 'types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine'];
+const ENGINES = ['constants', 'types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine', 'factor-engine'];
 const SHARED_UI = ['ui'];
 const PROGRAM = ['dprp-configuration', 'dprp-standard', 'mdpp-standard', 'dprp-recognition', 'dprp-seed'];
 const FLEET = ['fleet-configuration', 'fleet-seed'];
-const PRODUCTS: readonly (readonly string[])[] = [PROGRAM, FLEET];
+const SIGN_IN = ['sign-in-configuration'];
+const PRODUCTS: readonly (readonly string[])[] = [PROGRAM, FLEET, SIGN_IN];
 // The engines both products run on.
 const SHARED_ENGINES = ['form-engine', 'compliance-engine', 'workflow-engine', 'record-engine'];
-const CONFIGURATION_PACKAGES = ['dprp-configuration', 'dprp-standard', 'mdpp-standard', 'fleet-configuration'];
+const CONFIGURATION_PACKAGES = ['dprp-configuration', 'dprp-standard', 'mdpp-standard', 'fleet-configuration', 'sign-in-configuration'];
 // The engines that name no product.  constants holds every product's values, by design; each product's shapes live in its own packages.
-const DEFINITION_READERS = ['types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine'];
+const DEFINITION_READERS = ['types', 'time', 'form-engine', 'compliance-engine', 'rule-engine', 'workflow-engine', 'record-engine', 'factor-engine'];
 
 const SOURCES = import.meta.glob<string>('../packages/*/src/**/*.ts', { query: '?raw', import: 'default', eager: true });
 const MANIFESTS = import.meta.glob<string>('../packages/*/package.json', { query: '?raw', import: 'default', eager: true });
 const APP_SOURCES = import.meta.glob<string>('../apps/*/src/**/*.ts', { query: '?raw', import: 'default', eager: true });
 // Each product's page, and the product packages it is built from.
-const APPS: Readonly<Record<string, readonly string[]>> = { 'dprp-evaluation': PROGRAM, 'fleet-supply': FLEET };
-const CONFIGURATIONS = import.meta.glob<Record<string, unknown>>('../packages/{dprp-configuration,dprp-standard,mdpp-standard,fleet-configuration}/src/index.ts', { eager: true });
+const APPS: Readonly<Record<string, readonly string[]>> = { 'dprp-evaluation': PROGRAM, 'fleet-supply': FLEET, 'totp-sign-in': SIGN_IN };
+const CONFIGURATIONS = import.meta.glob<Record<string, unknown>>('../packages/{dprp-configuration,dprp-standard,mdpp-standard,fleet-configuration,sign-in-configuration}/src/index.ts', { eager: true });
 
 const packageOf = (path: string) => path.split('/')[2] ?? '';
 const isShipped = (path: string) => !path.endsWith('.spec.ts') && !path.includes('/testing/');
@@ -72,20 +73,23 @@ describe('the platform boundaries', () => {
   });
 
   it('serve both products from the same engines, and neither product reaches the other', () => {
-    const pairs: readonly (readonly [readonly string[], readonly string[]])[] = [
-      [PROGRAM, FLEET],
-      [FLEET, PROGRAM],
-    ];
-    for (const [own, other] of pairs) {
+    for (const own of PRODUCTS) {
       for (const name of own) {
         const imports = importsOf(name);
-        expect(imports.filter((imported) => other.includes(imported)), name).toEqual([]);
+        expect(imports.filter((imported) => PRODUCTS.some((other) => other !== own && other.includes(imported))), name).toEqual([]);
         expect(imports.filter((imported) => !ENGINES.includes(imported) && !own.includes(imported)), name).toEqual([]);
       }
     }
     const program = reachedFrom(PROGRAM);
     const fleet = reachedFrom(FLEET);
     expect(SHARED_ENGINES.filter((engine) => !program.has(engine) || !fleet.has(engine))).toEqual([]);
+  });
+
+  it('check every sign-in code with the factor engine, read from the policy alone', () => {
+    const page = Object.entries(APP_SOURCES).filter(([path]) => path.includes('/apps/totp-sign-in/') && isShipped(path)).map(([, source]) => source).join('\n');
+    expect(page).toContain("from '@penji-demos/factor-engine'");
+    expect(page).toContain("from '@penji-demos/sign-in-configuration'");
+    expect(importsOf('sign-in-configuration').filter((imported) => !['constants', 'types'].includes(imported))).toEqual([]);
   });
 
   it('build each product’s page from the engines, the shared UI and its own product only', () => {

@@ -175,6 +175,89 @@
           }
         }
       }
+    },
+    "totp-sign-in": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/totp-sign-in",
+      "sourceRoot": "apps/totp-sign-in/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/totp-sign-in/src/main.ts",
+            "tsConfig": "apps/totp-sign-in/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "packages/ui/public"
+              }
+            ],
+            "styles": [
+              "@fontsource/public-sans/400.css",
+              "@fontsource/public-sans/600.css",
+              "@fontsource-variable/source-serif-4/opsz.css",
+              "packages/ui/src/styles/site.scss"
+            ],
+            "outputPath": "dist/totp-sign-in"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "totp-sign-in:build:production"
+            },
+            "development": {
+              "buildTarget": "totp-sign-in:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "apps/totp-sign-in/tsconfig.spec.json"
+          }
+        }
+      }
     }
   }
 }

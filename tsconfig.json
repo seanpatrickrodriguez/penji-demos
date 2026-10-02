@@ -59,6 +59,12 @@
       "@penji-demos/dprp-seed": [
         "packages/dprp-seed/src/index.ts"
       ],
+      "@penji-demos/factor-engine": [
+        "packages/factor-engine/src/index.ts"
+      ],
+      "@penji-demos/sign-in-configuration": [
+        "packages/sign-in-configuration/src/index.ts"
+      ],
       "@penji-demos/ui": [
         "packages/ui/src/index.ts"
       ]
@@ -75,6 +81,9 @@
   "references": [
     {
       "path": "./apps/dprp-evaluation/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/totp-sign-in/tsconfig.app.json"
     },
     {
       "path": "./apps/dprp-evaluation/tsconfig.spec.json"

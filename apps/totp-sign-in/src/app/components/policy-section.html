@@ -1,0 +1,27 @@
+<p class="check" role="status">
+  @if (problems.length === 0) {
+    Policy check: inside every bound RFC 4226 and RFC 6238 set.
+  } @else {
+    Policy check: {{ problems.join(' ') }}
+  }
+</p>
+<div class="policy">
+  <div>
+    <dl class="facts">
+      @for (item of values; track item.term) {
+        <div><dt>{{ item.term }}</dt><dd>{{ item.value }}</dd></div>
+      }
+    </dl>
+    <h3>How the policy reads its sources</h3>
+    <ul class="interpretations">
+      @for (line of policy.interpretations; track $index) {
+        <li>{{ line }}</li>
+      }
+    </ul>
+    <p>Source: <a [href]="policy.source.url">{{ policy.source.title }}</a>, with <a href="https://www.rfc-editor.org/rfc/rfc4226">RFC 4226: HOTP</a>.</p>
+  </div>
+  <div class="definition">
+    <h3>The definition</h3>
+    <pre tabindex="0" aria-label="Sign-in policy definition">{{ json }}</pre>
+  </div>
+</div>
