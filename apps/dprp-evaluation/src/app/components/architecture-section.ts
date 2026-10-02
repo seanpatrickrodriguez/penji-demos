@@ -9,17 +9,17 @@ interface PackageView {
 
 const PACKAGES: readonly PackageView[] = [
   { name: 'constants', layer: 'Every layer', holds: 'Every fixed value: MOF layers, platform facts, rule kinds, severities, canonical field names, DPRP codes and columns.', uses: 'Nothing' },
-  { name: 'types', layer: 'M3, M2, M0 shapes', holds: "Branded IDs, what a definition is, the shape of each kind of definition, the platform's records and the evaluation results.", uses: 'constants' },
+  { name: 'types', layer: 'M3, M2, M0 shapes', holds: "Branded IDs, what a definition is, the shape of each kind of definition, the platform's records and the compliance and requirement results.", uses: 'constants' },
   { name: 'time', layer: 'Platform', holds: 'Calendar dates and program months.', uses: 'types' },
   { name: 'form-engine', layer: 'Engine', holds: 'Renders and validates any form definition, evaluates conditions and calculates fields.', uses: 'types, time' },
   { name: 'compliance-engine', layer: 'Engine', holds: "Evaluates any standard's eligibility and rules over a subject's facts and the entries in its streams, merges rules onto forms, and turns findings into guidance.", uses: 'form-engine' },
   { name: 'rule-engine', layer: 'Engine', holds: 'Evaluates requirement definitions against a metric registry, awards tiers, and carries statuses forward.', uses: 'types' },
   { name: 'workflow-engine', layer: 'Engine', holds: 'Checks permissions and moves a record through any workflow definition.', uses: 'form-engine' },
-  { name: 'record-engine', layer: 'Engine', holds: "Reads any configuration's tenants, entities and streams: works out facts, resolves who may do what over the tenant and entity trees, records changes, and validates a configuration.", uses: 'every engine' },
-  { name: 'dprp-configuration', layer: 'M1', holds: 'The program as configuration: hub and organization tenants, cohorts and participants, the session, A1C result and recode streams, the forms and the access roles.', uses: 'types, constants, dprp-standard, mdpp-standard' },
-  { name: 'dprp-standard', layer: 'M1', holds: 'The 2024 DPRP Standards and the Table 5 data dictionary as data.', uses: 'types, constants' },
+  { name: 'record-engine', layer: 'Engine', holds: "Reads any configuration's tenants, entities and streams: works out facts, resolves who may do what over the tenant and entity trees, resolves each person's roles from their record, records changes, and validates a configuration.", uses: 'every engine' },
+  { name: 'dprp-configuration', layer: 'M1', holds: 'The program as configuration: hub and organization tenants, cohorts and participants, the session, A1C result and recode streams, the forms, and the access roles with the positions that hold them.', uses: 'types, constants, dprp-standard, mdpp-standard' },
+  { name: 'dprp-standard', layer: 'M1', holds: 'The recognition standard\'s shape, and the 2024 DPRP Standards and the Table 5 data dictionary as data.', uses: 'types, constants' },
   { name: 'mdpp-standard', layer: 'M1', holds: '42 CFR 410.79(c)(1) eligibility as data.', uses: 'types, constants' },
-  { name: 'dprp-recognition', layer: 'DPRP calculators', holds: "The DPRP's metric calculators, recognition over the submissions and the Table 5 file.", uses: 'record-engine, rule-engine' },
+  { name: 'dprp-recognition', layer: 'DPRP calculators', holds: "The DPRP's metric calculators, the shapes of its results, recognition over the submissions and the Table 5 file.", uses: 'record-engine, rule-engine' },
   { name: 'dprp-seed', layer: 'M0', holds: 'A deterministic synthetic hub and organization with a case for every rule.', uses: 'record-engine' },
 ];
 
@@ -45,9 +45,9 @@ const PACKAGES: readonly PackageView[] = [
         <thead><tr><th scope="col">Layer</th><th scope="col">What it is</th><th scope="col">Here</th></tr></thead>
         <tbody>
           <tr><th scope="row">M3</th><td>What any definition is: a kind, an ID, a version, and the source it was written from.</td><td>types: <code>Definition</code></td></tr>
-          <tr><th scope="row">M2</th><td>The shape of each kind of definition: a product configuration, a tenant kind, an entity with its streams and facts, a form, a workflow, an access policy, a compliance standard and its rules, a requirement, a data element.</td><td>types: <code>PlatformConfiguration</code>, <code>EntityDefinition</code>, <code>ComplianceStandardDefinition</code>, <code>FormDefinition</code></td></tr>
+          <tr><th scope="row">M2</th><td>The shape of each kind of definition: a product configuration, a tenant kind, an entity with its streams and facts, a form, a workflow, an access policy and its role rules, a compliance standard and its rules, a requirement, a data element.  The DPRP adds a recognition standard.</td><td>types: <code>PlatformConfiguration</code>, <code>EntityDefinition</code>, <code>ComplianceStandardDefinition</code>, <code>FormDefinition</code></td></tr>
           <tr><th scope="row">M1</th><td>Definitions written in those shapes: the program's configuration, the 2024 DPRP Standards, the MDPP regulation.</td><td>dprp-configuration, dprp-standard, mdpp-standard</td></tr>
-          <tr><th scope="row">M0</th><td>The platform's records: tenants, staff and their role assignments, cohort and participant entities, stream entries, and the resolutions people record.</td><td>dprp-seed, and every change made on this page</td></tr>
+          <tr><th scope="row">M0</th><td>The platform's records: tenants, staff and their assignments, cohort and participant entities, stream entries, and the resolutions people record.</td><td>dprp-seed, and every change made on this page</td></tr>
         </tbody>
       </table>
     </div>

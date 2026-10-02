@@ -48,21 +48,21 @@ The repository follows the four layers of the OMG Meta Object Facility.  Each la
 | Layer | What it is | Where it lives |
 |---|---|---|
 | M3, meta-metamodel | What a definition is: a kind, an ID, a version and the source it was written from | `packages/types/src/definitions/definition.ts` |
-| M2, metamodels | The shape of each kind of definition: a product configuration, a tenant kind, an entity with its streams and facts, a form, a workflow, an access policy, a compliance standard and its rules, a requirement and tier, a data element | `packages/types/src/definitions/` |
+| M2, metamodels | The shape of each kind of definition: a product configuration, a tenant kind, an entity with its streams and facts, a form, a workflow, an access policy and its role rules, a compliance standard and its rules, a requirement and tier, a data element.  The DPRP adds its own: a recognition standard | `packages/types/src/definitions/`, `packages/dprp-standard/src/definitions/recognition-standard-definition.ts` |
 | M1, models | Definitions in those shapes: the diabetes prevention program's configuration, the 2024 DPRP Standards, the MDPP regulation, the fleet's configuration and policies | `packages/dprp-configuration/`, `packages/dprp-standard/`, `packages/mdpp-standard/`, `packages/fleet-configuration/` |
-| M0, instances | Tenants, staff and their role assignments, entities, stream entries, and the resolutions people record | `packages/types/src/records/` (shapes), `packages/dprp-seed/`, `packages/fleet-seed/` (synthetic data) |
+| M0, instances | Tenants, people and their assignments, entities, stream entries, and the resolutions people record | `packages/types/src/records/` (shapes), `packages/dprp-seed/`, `packages/fleet-seed/` (synthetic data) |
 
 ### One platform, two products
 
 The engines hold no product.  A product is a configuration bundle: its tenant kinds, the entities it keeps and the streams of dated entries recorded against them, its forms, workflows, access policy and standards.  The diabetes prevention program keeps cohorts and participants, with a session log on each participant.  The fleet keeps vessels, with a want list on each vessel whose items move through a workflow.  The same record engine works out each record's facts, decides who may do what, records every change and hands each record to the same compliance engine.
 
-Roles are assignments over a scope, and a scope covers everything beneath it.  A hub's data specialist is assigned at the hub and works every organization under it; the fleet's supply manager works for the shop and is assigned at the owning company, over every vessel.  Crew are assigned to the vessel they rotate aboard, and an assignment is inactive while they are off.
+A person's position gives their roles, through the access policy's role rules: every captain is a crew member and a sending officer, every lifestyle coach a coach.  Their assignments say where the roles apply, and an assignment covers everything beneath it.  A hub's data specialist is assigned at the hub and works every organization under it; the fleet's supply manager works for the shop and is assigned at the owning company, over every vessel.  Crew are assigned to the vessel they rotate aboard, and an assignment is inactive while they are off.
 
 `architecture/platform-boundaries.spec.ts` checks the boundary on every test run:
 
 | Package group | May import |
 |---|---|
-| Engines: `constants`, `types`, `time`, `form-engine`, `compliance-engine`, `rule-engine`, `workflow-engine`, `record-engine` | Engines only, and the engines that read definitions name no product value |
+| Engines: `constants`, `types`, `time`, `form-engine`, `compliance-engine`, `rule-engine`, `workflow-engine`, `record-engine` | Engines only.  Every engine except `constants` names no product value |
 | Diabetes prevention program: `dprp-configuration`, `dprp-standard`, `mdpp-standard`, `dprp-recognition`, `dprp-seed` | Engines and its own packages |
 | Fleet supply and maintenance: `fleet-configuration`, `fleet-seed` | Engines and its own packages |
 | Shared page parts: `ui` | Engines only |
@@ -74,25 +74,25 @@ Both products reach the form, compliance, workflow and record engines, and the c
 Engines:
 
 - **`@penji-demos/constants`:** every fixed value: MOF layers, platform facts, scope and fact kinds, rule kinds, severities, and each product's codes and field names.
-- **`@penji-demos/types`:** branded IDs, the M3 and M2 definitions, the platform's records and the evaluation results.
+- **`@penji-demos/types`:** branded IDs, the M3 and M2 definitions, the platform's records and the compliance and requirement results.
 - **`@penji-demos/time`:** calendar dates and program months.
 - **`@penji-demos/form-engine`:** renders and validates any form definition, evaluates conditions and calculates fields.
 - **`@penji-demos/compliance-engine`:** evaluates any compliance standard's eligibility and rules over a subject's facts and the entries in its streams, merges the active standards' rules onto a form with the source of each, and turns findings into guidance items.
 - **`@penji-demos/rule-engine`:** evaluates requirement definitions against a standard's registry of metric calculators, awards tiers, and carries awarded statuses forward.
 - **`@penji-demos/workflow-engine`:** checks permissions against an access policy and moves a record through any workflow definition.
-- **`@penji-demos/record-engine`:** reads any configuration's tenants, entities and streams: works out facts, resolves who may do what over the tenant and entity trees, records changes with a permission check on each, shows the records as of a date, and validates a configuration bundle.
+- **`@penji-demos/record-engine`:** reads any configuration's tenants, entities and streams: works out facts, resolves each person's roles from their record and who may do what over the tenant and entity trees, records changes with a permission check on each, shows the records as of a date, and validates a configuration bundle.
 
 Diabetes prevention program:
 
-- **`@penji-demos/dprp-configuration`:** the program as configuration: hub and organization tenants, cohorts and participants, the session, A1C result and recode streams, the forms and the access roles.
-- **`@penji-demos/dprp-standard`:** the 2024 Standards and the Table 5 data dictionary as data.
+- **`@penji-demos/dprp-configuration`:** the program as configuration: hub and organization tenants, cohorts and participants, the session, A1C result and recode streams, the forms, and the access roles with the positions that hold them.
+- **`@penji-demos/dprp-standard`:** the recognition standard's shape, and the 2024 Standards and the Table 5 data dictionary as data.
 - **`@penji-demos/mdpp-standard`:** 42 CFR 410.79(c)(1) eligibility as data.
-- **`@penji-demos/dprp-recognition`:** the DPRP's metric calculators, recognition over the submissions, and the submission file.
+- **`@penji-demos/dprp-recognition`:** the DPRP's metric calculators, the shapes of its results, recognition over the submissions, and the submission file.
 - **`@penji-demos/dprp-seed`:** a deterministic synthetic hub and organization with a case for every rule.
 
 Fleet supply and maintenance:
 
-- **`@penji-demos/fleet-configuration`:** a made-up tug and barge company's fleet as configuration: companies, vessels, the want list and its workflow, the forms, the access policy, the supply policy and the maintenance schedule.
+- **`@penji-demos/fleet-configuration`:** a made-up tug and barge company's fleet as configuration: companies, vessels, the want list and its workflow, the forms, the access policy with the positions that hold each role, the supply policy and the maintenance schedule.
 - **`@penji-demos/fleet-seed`:** a deterministic synthetic fleet with a case for every policy rule.
 
 Shared page parts:
