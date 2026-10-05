@@ -1,0 +1,113 @@
+:host {
+  display: block;
+}
+
+fieldset {
+  border: 0;
+  margin: 0;
+  padding: 0;
+  min-width: 0;
+}
+
+legend {
+  font-weight: 600;
+  margin-bottom: var(--space-2);
+}
+
+.options {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-2);
+}
+
+@media (min-width: 48rem) {
+  .options {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  }
+}
+
+.option {
+  display: flex;
+  gap: var(--space-2);
+  align-items: flex-start;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.option input {
+  margin-top: 0.3rem;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex: none;
+  accent-color: var(--accent);
+}
+
+.option-label {
+  font-weight: 600;
+}
+
+.block {
+  display: block;
+}
+
+.actions {
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.status {
+  font-weight: 600;
+}
+
+.token {
+  margin-top: var(--space-4);
+}
+
+.token h3 {
+  margin: 0 0 var(--space-1);
+}
+
+.facts {
+  margin: var(--space-2) 0 0;
+}
+
+.facts div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--rule);
+}
+
+@media (min-width: 30rem) {
+  .facts div {
+    grid-template-columns: 10rem minmax(0, 1fr);
+    column-gap: var(--space-3);
+  }
+}
+
+.facts dt {
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.table-scroll {
+  margin-top: var(--space-4);
+}
+
+.data-table th[scope='row'] {
+  font-weight: 600;
+  min-width: 12rem;
+}
+
+.clause {
+  font-weight: 600;
+}
+
+.returned {
+  overflow-wrap: anywhere;
+}

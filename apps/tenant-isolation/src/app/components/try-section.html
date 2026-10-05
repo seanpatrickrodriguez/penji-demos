@@ -1,0 +1,72 @@
+<div class="controls">
+  <fieldset>
+    <legend>Sign in as</legend>
+    <div class="options">
+      @for (option of options; track option.key) {
+        <label class="option">
+          <input type="radio" name="visitor" [value]="option.key" [checked]="option.key === store.visitorKey()" [disabled]="store.busy()" (change)="choose($event)" />
+          <span>
+            <span class="option-label">{{ option.label }}</span>
+            <span class="muted block">{{ option.detail }}</span>
+          </span>
+        </label>
+      }
+    </div>
+  </fieldset>
+  <p class="actions">
+    <button type="button" class="button button-primary" [disabled]="store.busy()" (click)="store.send()">Sign in and send every request</button>
+  </p>
+  <p class="status" role="status">{{ status() }}</p>
+</div>
+
+@if (claims(); as claims) {
+  <div class="token">
+    <h3>What the live sign-in token carries</h3>
+    <p class="muted">Custom claims the server set for {{ chosen()?.holder }} from their staff record and assignments.  The browser cannot change them.</p>
+    <dl class="facts">
+      <div><dt>Roles</dt><dd>{{ claims.roles }}</dd></div>
+      <div><dt>Tenants covered</dt><dd>{{ claims.tenantScopes }}</dd></div>
+      <div><dt>Records covered</dt><dd>{{ claims.entityScopes }}</dd></div>
+    </dl>
+  </div>
+}
+
+<div class="table-scroll" tabindex="0" role="region" aria-labelledby="requests-caption">
+  <table class="data-table">
+    <caption id="requests-caption">
+      Each request, with what the access policy permits, what the rules engine predicts the generated rules will do, and what the live database answered.
+    </caption>
+    <thead>
+      <tr>
+        <th scope="col">Request</th>
+        <th scope="col">Access policy</th>
+        <th scope="col">Rules predict</th>
+        <th scope="col">Firestore answered</th>
+        <th scope="col">Decided by</th>
+        <th scope="col">Returned</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.id) {
+        <tr>
+          <th scope="row"><span class="muted block">{{ row.operation }}</span>{{ row.label }}</th>
+          <td>{{ row.policy }}</td>
+          <td><span [class]="'badge ' + row.predictedTone">{{ row.predicted }}</span></td>
+          <td>
+            <span [class]="'badge ' + row.liveTone">{{ row.live }}</span>
+            @if (row.agrees) { <span class="muted block">{{ row.agrees }}</span> }
+          </td>
+          <td>
+            @if (row.clause) {
+              <span class="clause">{{ row.clause }}</span>
+              <span class="block">{{ row.reason }}</span>
+            } @else {
+              —
+            }
+          </td>
+          <td class="returned">{{ row.returned }}</td>
+        </tr>
+      }
+    </tbody>
+  </table>
+</div>

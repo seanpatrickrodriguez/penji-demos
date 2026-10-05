@@ -1,0 +1,20 @@
+:host {
+  display: block;
+}
+
+.waiting {
+  font-weight: 600;
+}
+
+tr.selected {
+  background: var(--surface);
+}
+
+.blocking {
+  color: var(--error);
+  font-weight: 600;
+}
+
+app-vessel-panel {
+  margin-top: var(--space-4);
+}

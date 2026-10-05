@@ -1,0 +1,104 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "strict": true,
+    "noImplicitOverride": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "noImplicitReturns": true,
+    "noFallthroughCasesInSwitch": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "ES2022",
+    "module": "preserve",
+    "baseUrl": ".",
+    "paths": {
+      "@penji-demos/types": [
+        "packages/types/src/index.ts"
+      ],
+      "@penji-demos/constants": [
+        "packages/constants/src/index.ts"
+      ],
+      "@penji-demos/time": [
+        "packages/time/src/index.ts"
+      ],
+      "@penji-demos/rule-engine": [
+        "packages/rule-engine/src/index.ts"
+      ],
+      "@penji-demos/compliance-engine": [
+        "packages/compliance-engine/src/index.ts"
+      ],
+      "@penji-demos/workflow-engine": [
+        "packages/workflow-engine/src/index.ts"
+      ],
+      "@penji-demos/record-engine": [
+        "packages/record-engine/src/index.ts"
+      ],
+      "@penji-demos/dprp-configuration": [
+        "packages/dprp-configuration/src/index.ts"
+      ],
+      "@penji-demos/dprp-recognition": [
+        "packages/dprp-recognition/src/index.ts"
+      ],
+      "@penji-demos/dprp-standard": [
+        "packages/dprp-standard/src/index.ts"
+      ],
+      "@penji-demos/mdpp-standard": [
+        "packages/mdpp-standard/src/index.ts"
+      ],
+      "@penji-demos/form-engine": [
+        "packages/form-engine/src/index.ts"
+      ],
+      "@penji-demos/fleet-configuration": [
+        "packages/fleet-configuration/src/index.ts"
+      ],
+      "@penji-demos/fleet-seed": [
+        "packages/fleet-seed/src/index.ts"
+      ],
+      "@penji-demos/dprp-seed": [
+        "packages/dprp-seed/src/index.ts"
+      ],
+      "@penji-demos/factor-engine": [
+        "packages/factor-engine/src/index.ts"
+      ],
+      "@penji-demos/sign-in-configuration": [
+        "packages/sign-in-configuration/src/index.ts"
+      ],
+      "@penji-demos/security-rules-engine": [
+        "packages/security-rules-engine/src/index.ts"
+      ],
+      "@penji-demos/ui": [
+        "packages/ui/src/index.ts"
+      ]
+    },
+    "noUncheckedIndexedAccess": true
+  },
+  "angularCompilerOptions": {
+    "enableI18nLegacyMessageIdFormat": false,
+    "strictInjectionParameters": true,
+    "strictInputAccessModifiers": true,
+    "strictTemplates": true
+  },
+  "files": [],
+  "references": [
+    {
+      "path": "./apps/dprp-evaluation/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/totp-sign-in/tsconfig.app.json"
+    },
+    {
+      "path": "./apps/tenant-isolation/tsconfig.app.json"
+    },
+    {
+      "path": "./tsconfig.node.json"
+    },
+    {
+      "path": "./apps/dprp-evaluation/tsconfig.spec.json"
+    },
+    {
+      "path": "./tsconfig.packages.json"
+    }
+  ]
+}

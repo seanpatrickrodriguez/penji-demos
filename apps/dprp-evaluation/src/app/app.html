@@ -1,0 +1,72 @@
+<a class="skip-link" href="#main">Skip to main content</a>
+<app-site-header />
+
+<main id="main" tabindex="-1">
+  <section class="intro" aria-labelledby="intro-heading">
+    <div class="container">
+      <p class="eyebrow"><a href="/#work">Case studies</a></p>
+      <h1 id="intro-heading">DPRP recognition, evaluated from the records</h1>
+      <p class="lede">
+        A synthetic organization's participant records, evaluated against the 2024 CDC Diabetes Prevention Recognition Program
+        Standards and, for Medicare participants, the Medicare Diabetes Prevention Program.  Every result carries its evidence and
+        its citation, and every rule is a definition you can read below.
+      </p>
+      <p class="muted">
+        A rebuild, on invented data, of how Penji, my private platform, handles compliance: standards as data, delivered to the
+        platform's own forms and records, never shaping them.  Change a record and every submission re-evaluates.  Nothing leaves this page.
+      </p>
+      <div class="actions">
+        <a class="button button-primary" href="https://github.com/seanpatrickrodriguez/penji-demos">Read the code</a>
+        <a class="button button-secondary" href="/#work">Back to case studies</a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="recognition-heading">
+    <div class="container">
+      <h2 id="recognition-heading">Recognition over time</h2>
+      <p>The DPRP evaluates an organization every six months, on cohorts that began 12 to 18 months earlier, using only the records that existed by then.  Pick a submission.</p>
+      <app-recognition-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="participants-heading">
+    <div class="container">
+      <h2 id="participants-heading">Participants</h2>
+      <p>Open a participant to see their year, each standard's view of them, and the record review: what is wrong, why, how to fix it, and what was done about it.</p>
+      <app-participants-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="standards-heading">
+    <div class="container">
+      <h2 id="standards-heading">The standards, as data</h2>
+      <p>
+        Each standard is a definition: who it applies to, who it accepts, and the rules a record must meet.  The compliance engine
+        reads these and nothing else; adding the MDPP took a definition and no new code.
+      </p>
+      <app-standards-explorer [definitions]="standards" [labels]="labels" [fields]="fields" [formTitles]="formTitles" eventNoun="session" />
+    </div>
+  </section>
+
+  <section aria-labelledby="submission-heading">
+    <div class="container">
+      <h2 id="submission-heading">The submission file</h2>
+      <app-submission-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="architecture-heading">
+    <div class="container">
+      <h2 id="architecture-heading">Architecture</h2>
+      <p>
+        The code follows the four layers of the OMG Meta Object Facility.  Each layer is described by the one above it, and code at
+        each layer reads the layer above instead of repeating it.  One type system runs through every package.
+      </p>
+      <app-architecture-section />
+      <p class="actions"><button type="button" class="button button-secondary" (click)="store.resetRecords()">Reset the records</button></p>
+    </div>
+  </section>
+</main>
+
+<app-site-footer />

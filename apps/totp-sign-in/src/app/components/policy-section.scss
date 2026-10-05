@@ -1,0 +1,78 @@
+:host {
+  display: block;
+}
+
+.check {
+  font-weight: 600;
+}
+
+.policy {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (min-width: 56rem) {
+  .policy {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.policy > div {
+  min-width: 0;
+}
+
+.facts {
+  margin: 0;
+}
+
+.facts div {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--rule);
+}
+
+@media (min-width: 30rem) {
+  .facts div {
+    grid-template-columns: 9rem minmax(0, 1fr);
+    column-gap: var(--space-3);
+  }
+}
+
+.facts dt {
+  color: var(--text-muted);
+}
+
+.facts dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.interpretations {
+  padding-left: 1.25rem;
+}
+
+.interpretations li {
+  margin-bottom: var(--space-2);
+}
+
+.definition h3 {
+  margin-top: 0;
+}
+
+pre {
+  margin: 0;
+  max-height: 32rem;
+  overflow: auto;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 4px;
+  padding: var(--space-3);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}

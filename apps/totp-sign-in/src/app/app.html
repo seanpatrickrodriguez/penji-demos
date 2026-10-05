@@ -1,0 +1,58 @@
+<a class="skip-link" href="#main">Skip to main content</a>
+<app-site-header />
+
+<main id="main" tabindex="-1">
+  <section class="intro" aria-labelledby="intro-heading">
+    <div class="container">
+      <p class="eyebrow"><a href="/#work">Case studies</a></p>
+      <h1 id="intro-heading">Two-factor sign-in with an authenticator app</h1>
+      <p class="lede">
+        Set up an authenticator, confirm it, save the recovery codes and sign in, then watch what the account checks for every code: the
+        time step, the window either side of it, a code used twice and a lockout.
+      </p>
+      <p class="muted">
+        A rebuild, on a made-up account, of how Penji, my private platform, signs people in: an authenticator code for everyone, and
+        recovery codes for a lost phone.  In Penji the secret is made and checked on the server and never held by the browser after setup.
+        Here the browser plays both the server and the phone, so you can watch.  Nothing leaves this page.
+      </p>
+      <div class="actions">
+        <a class="button button-primary" href="https://github.com/seanpatrickrodriguez/penji-demos">Read the code</a>
+        <a class="button button-secondary" href="/#work">Back to case studies</a>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="try-heading">
+    <div class="container">
+      <h2 id="try-heading">Try it</h2>
+      <p>Use the built-in authenticator, or scan the QR code with an authenticator app on your phone.  Both show the same code.</p>
+      <app-try-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="evidence-heading">
+    <div class="container">
+      <h2 id="evidence-heading">What the account checked</h2>
+      <p>A sign-in page tells the person only whether the code worked.  Behind it, each check compares the code with the codes for the current time step and the steps either side, refuses any step already used, and counts failures toward a lockout.</p>
+      <app-evidence-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="policy-heading">
+    <div class="container">
+      <h2 id="policy-heading">The sign-in policy, as configuration</h2>
+      <p>Every number on this page comes from this definition.  Change the definition and the engine follows it, within the bounds the RFCs set.</p>
+      <app-policy-section />
+    </div>
+  </section>
+
+  <section aria-labelledby="architecture-heading">
+    <div class="container">
+      <h2 id="architecture-heading">How it is built</h2>
+      <app-architecture-section />
+      <p class="actions"><button type="button" class="button button-secondary" (click)="store.reset()">Start over</button></p>
+    </div>
+  </section>
+</main>
+
+<app-site-footer />

@@ -1,0 +1,76 @@
+<h3>Every check</h3>
+@if (rows().length === 0) {
+  <p class="muted">No codes checked yet.  Each code you enter above shows up here, newest first.</p>
+} @else {
+  <div class="table-scroll" tabindex="0" role="region" aria-labelledby="checks-caption">
+    <table class="data-table">
+      <caption id="checks-caption">Each code checked, newest first: the time step the account was on, each step in the drift window, and the attempt count after.</caption>
+      <thead>
+        <tr>
+          <th scope="col">Time</th>
+          <th scope="col">For</th>
+          <th scope="col">Factor</th>
+          <th scope="col">Result</th>
+          <th scope="col">Current step</th>
+          <th scope="col">Steps compared</th>
+          <th scope="col">Matched</th>
+          <th scope="col">Failed attempts</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (row of rows(); track row.key) {
+          <tr>
+            <td class="nowrap">{{ row.time }}</td>
+            <td class="nowrap">{{ row.purpose }}</td>
+            <td>{{ row.factor }}</td>
+            <td><span [class]="'badge ' + row.tone">{{ row.outcome }}</span></td>
+            <td>{{ row.currentStep }}</td>
+            <td>
+              @if (row.window.length === 0) {
+                —
+              } @else {
+                <ul class="window">
+                  @for (check of row.window; track check.label) {
+                    <li>{{ check.label }}: {{ check.result }}</li>
+                  }
+                </ul>
+              }
+            </td>
+            <td>{{ row.matched }}</td>
+            <td>{{ row.attempts }}</td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
+}
+
+<h3>What the account keeps</h3>
+@if (record(); as record) {
+  <div class="record">
+    <dl class="facts">
+      <div><dt>Account</dt><dd>{{ accountName }}</dd></div>
+      <div><dt>Authenticator</dt><dd>{{ record.status }}</dd></div>
+      <div><dt>Set up</dt><dd>{{ record.enrolled }}</dd></div>
+      <div><dt>Confirmed</dt><dd>{{ record.confirmed }}</dd></div>
+      <div><dt>Secret</dt><dd>Kept on the server, never shown again after setup</dd></div>
+      <div><dt>Last accepted step</dt><dd>{{ record.lastAcceptedStep }}</dd></div>
+      <div><dt>Attempts</dt><dd>{{ record.attempts }}</dd></div>
+    </dl>
+    <div class="table-scroll" tabindex="0" role="region" aria-labelledby="hashes-caption">
+      <table class="data-table">
+        <caption id="hashes-caption">Recovery codes, as the account keeps them: a SHA-256 hash of each, and when it was used.</caption>
+        <thead>
+          <tr><th scope="col">Hash</th><th scope="col">Used</th></tr>
+        </thead>
+        <tbody>
+          @for (code of record.codes; track $index) {
+            <tr><td><code>{{ code.hash }}</code></td><td>{{ code.used }}</td></tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+} @else {
+  <p class="muted">Nothing yet.  Setup creates the record.</p>
+}

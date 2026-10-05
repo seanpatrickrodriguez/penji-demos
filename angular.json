@@ -1,0 +1,346 @@
+{
+  "$schema": "./node_modules/@angular/cli/lib/config/schema.json",
+  "version": 1,
+  "cli": {
+    "packageManager": "npm"
+  },
+  "newProjectRoot": "apps",
+  "projects": {
+    "dprp-evaluation": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/dprp-evaluation",
+      "sourceRoot": "apps/dprp-evaluation/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/dprp-evaluation/src/main.ts",
+            "tsConfig": "apps/dprp-evaluation/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "packages/ui/public"
+              },
+              {
+                "glob": "**/*",
+                "input": "apps/dprp-evaluation/public"
+              }
+            ],
+            "styles": [
+              "@fontsource/public-sans/400.css",
+              "@fontsource/public-sans/600.css",
+              "@fontsource-variable/source-serif-4/opsz.css",
+              "packages/ui/src/styles/site.scss"
+            ],
+            "outputPath": "dist/dprp-evaluation"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "dprp-evaluation:build:production"
+            },
+            "development": {
+              "buildTarget": "dprp-evaluation:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "apps/dprp-evaluation/tsconfig.spec.json"
+          }
+        }
+      }
+    },
+    "fleet-supply": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/fleet-supply",
+      "sourceRoot": "apps/fleet-supply/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/fleet-supply/src/main.ts",
+            "tsConfig": "apps/fleet-supply/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "packages/ui/public"
+              }
+            ],
+            "styles": [
+              "@fontsource/public-sans/400.css",
+              "@fontsource/public-sans/600.css",
+              "@fontsource-variable/source-serif-4/opsz.css",
+              "packages/ui/src/styles/site.scss"
+            ],
+            "outputPath": "dist/fleet-supply"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "fleet-supply:build:production"
+            },
+            "development": {
+              "buildTarget": "fleet-supply:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "apps/fleet-supply/tsconfig.spec.json"
+          }
+        }
+      }
+    },
+    "totp-sign-in": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/totp-sign-in",
+      "sourceRoot": "apps/totp-sign-in/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/totp-sign-in/src/main.ts",
+            "tsConfig": "apps/totp-sign-in/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "packages/ui/public"
+              }
+            ],
+            "styles": [
+              "@fontsource/public-sans/400.css",
+              "@fontsource/public-sans/600.css",
+              "@fontsource-variable/source-serif-4/opsz.css",
+              "packages/ui/src/styles/site.scss"
+            ],
+            "outputPath": "dist/totp-sign-in"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "500kB",
+                  "maximumError": "1MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "totp-sign-in:build:production"
+            },
+            "development": {
+              "buildTarget": "totp-sign-in:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "apps/totp-sign-in/tsconfig.spec.json"
+          }
+        }
+      }
+    },
+    "tenant-isolation": {
+      "projectType": "application",
+      "schematics": {
+        "@schematics/angular:component": {
+          "style": "scss"
+        }
+      },
+      "root": "apps/tenant-isolation",
+      "sourceRoot": "apps/tenant-isolation/src",
+      "prefix": "app",
+      "architect": {
+        "build": {
+          "builder": "@angular/build:application",
+          "options": {
+            "browser": "apps/tenant-isolation/src/main.ts",
+            "tsConfig": "apps/tenant-isolation/tsconfig.app.json",
+            "inlineStyleLanguage": "scss",
+            "assets": [
+              {
+                "glob": "**/*",
+                "input": "packages/ui/public"
+              }
+            ],
+            "styles": [
+              "@fontsource/public-sans/400.css",
+              "@fontsource/public-sans/600.css",
+              "@fontsource-variable/source-serif-4/opsz.css",
+              "packages/ui/src/styles/site.scss"
+            ],
+            "outputPath": "dist/tenant-isolation"
+          },
+          "configurations": {
+            "production": {
+              "budgets": [
+                {
+                  "type": "initial",
+                  "maximumWarning": "900kB",
+                  "maximumError": "1.5MB"
+                },
+                {
+                  "type": "anyComponentStyle",
+                  "maximumWarning": "4kB",
+                  "maximumError": "8kB"
+                }
+              ],
+              "outputHashing": "all",
+              "optimization": {
+                "scripts": true,
+                "styles": {
+                  "minify": true,
+                  "inlineCritical": false
+                },
+                "fonts": true
+              }
+            },
+            "development": {
+              "optimization": false,
+              "extractLicenses": false,
+              "sourceMap": true
+            }
+          },
+          "defaultConfiguration": "production"
+        },
+        "serve": {
+          "builder": "@angular/build:dev-server",
+          "configurations": {
+            "production": {
+              "buildTarget": "tenant-isolation:build:production"
+            },
+            "development": {
+              "buildTarget": "tenant-isolation:build:development"
+            }
+          },
+          "defaultConfiguration": "development"
+        },
+        "test": {
+          "builder": "@angular/build:unit-test",
+          "options": {
+            "tsConfig": "apps/tenant-isolation/tsconfig.spec.json"
+          }
+        }
+      }
+    }
+  }
+}

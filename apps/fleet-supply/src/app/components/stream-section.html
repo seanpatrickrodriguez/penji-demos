@@ -1,0 +1,102 @@
+<div class="stream-head">
+  <h4 [id]="view().stream.id + '-heading'">{{ view().stream.label }}</h4>
+  @if (view().add.available) {
+    <button type="button" class="button button-secondary" (click)="edit.emit({ entryId: null, focus: null })">Add {{ view().stream.entryLabel.toLowerCase() }}</button>
+  } @else {
+    <p class="muted not-yours">Adding: {{ view().add.reason }}</p>
+  }
+</div>
+
+@if (!view().hasRole) {
+  <p class="muted">You hold no role over this record, so nothing here is yours to change.</p>
+}
+
+<p class="visually-hidden" aria-live="polite">{{ announcement() }}</p>
+
+@if (adding() && form(); as form) {
+  <div class="editor">
+    <p class="muted">A new {{ view().stream.entryLabel.toLowerCase() }}, from the configured form.  Rules marked ◆ come from the policies that apply.</p>
+    <app-definition-form [definition]="form" [constraints]="constraints()" [initial]="initial()" [focusField]="editing()?.focus ?? null" [idPrefix]="idPrefix()" [submitLabel]="'Add ' + view().stream.entryLabel.toLowerCase()" (saved)="save($event)" (cancelled)="closeEditor.emit()" />
+  </div>
+}
+
+<ol class="entries" [attr.aria-labelledby]="view().stream.id + '-heading'">
+  @for (row of rows(); track row.entry.entryId) {
+    <li class="entry" [class.closed]="row.entry.closed">
+      <div class="entry-head">
+        <p class="title">{{ row.entry.title }}</p>
+        <span class="status" [class.closed]="row.entry.closed" [attr.title]="row.entry.statusDescription">{{ row.entry.status }}</span>
+      </div>
+      <p class="meta">
+        Added by {{ row.entry.addedBy }}, {{ row.entry.added }}
+        @if (row.entry.findings > 0) { <span class="flag">{{ row.entry.findings }} finding{{ row.entry.findings === 1 ? '' : 's' }} in the review below</span> }
+      </p>
+      @if (row.entry.details.length > 0) {
+        <dl class="details">
+          @for (detail of row.entry.details; track detail.label) {
+            <div><dt>{{ detail.label }}</dt><dd>{{ detail.value }}</dd></div>
+          }
+        </dl>
+      }
+
+      @if (row.editing && form(); as form) {
+        <div class="editor">
+          <app-definition-form [definition]="form" [constraints]="constraints()" [initial]="initial()" [focusField]="editing()?.focus ?? null" [idPrefix]="idPrefix()" submitLabel="Save changes" (saved)="save($event)" (cancelled)="closeEditor.emit()" />
+        </div>
+      }
+
+      @if (row.pendingStep; as step) {
+        <div class="note">
+          <label [for]="'note-' + row.entry.entryId">{{ step.label }}: add a note saying why</label>
+          <textarea [id]="'note-' + row.entry.entryId" rows="2" [value]="note()" (input)="setNote($event)"></textarea>
+          <div class="actions">
+            <button type="button" class="button button-primary small" (click)="confirmStep(row.entry)">{{ step.label }}</button>
+            <button type="button" class="button button-secondary small" (click)="pending.set(null)">Cancel</button>
+          </div>
+        </div>
+      } @else if (row.confirmingRemoval) {
+        <div class="confirm" role="group" [attr.aria-label]="'Remove ' + row.entry.title">
+          <p>Remove “{{ row.entry.title }}” from the list?  This cannot be undone.</p>
+          <div class="actions">
+            <button type="button" class="button button-primary small" (click)="remove(row.entry)">Yes, remove it</button>
+            <button type="button" class="button button-secondary small" (click)="confirmingRemoval.set(null)">Keep it</button>
+          </div>
+        </div>
+      } @else {
+        <div class="actions">
+          @for (step of row.entry.steps; track step.id) {
+            <button type="button" class="button small" [class.button-primary]="step.primary" [class.button-secondary]="!step.primary" (click)="take(row.entry, step)">{{ step.label }}<span class="visually-hidden">: {{ row.entry.title }}</span></button>
+          }
+          @if (row.entry.edit.available && !row.editing) {
+            <button type="button" class="button button-secondary small" (click)="edit.emit({ entryId: row.entry.entryId, focus: null })">Edit<span class="visually-hidden">: {{ row.entry.title }}</span></button>
+          }
+          @if (row.entry.remove.available) {
+            <button type="button" class="button button-secondary small" (click)="confirmingRemoval.set(row.entry.entryId)">Remove<span class="visually-hidden">: {{ row.entry.title }}</span></button>
+          }
+        </div>
+      }
+      @for (problem of row.problems; track problem) { <p class="problem" role="alert">{{ problem }}</p> }
+
+      @if (row.blocked.length > 0) {
+        <ul class="blocked">
+          @for (blocked of row.blocked; track blocked.label) {
+            <li [class.held]="blocked.held"><span class="step">{{ blocked.label }}:</span> {{ blocked.reason }}</li>
+          }
+        </ul>
+      }
+
+      @if (row.entry.history.length > 0) {
+        <details class="history">
+          <summary>History<span class="visually-hidden"> of {{ row.entry.title }}</span> ({{ row.entry.history.length }} step{{ row.entry.history.length === 1 ? '' : 's' }})</summary>
+          <ol>
+            @for (step of row.entry.history; track $index) {
+              <li><span class="when">{{ step.date }}</span> {{ step.label }}, by {{ step.by }}@if (step.note) {: “{{ step.note }}”}</li>
+            }
+          </ol>
+        </details>
+      }
+    </li>
+  } @empty {
+    <li class="muted">Nothing on the list.</li>
+  }
+</ol>

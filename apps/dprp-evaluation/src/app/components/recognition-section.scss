@@ -1,0 +1,216 @@
+:host {
+  display: block;
+}
+
+.submissions {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(8.5rem, 1fr));
+  gap: var(--space-2);
+}
+
+.submission {
+  display: grid;
+  gap: 0.125rem;
+  text-align: left;
+  font: inherit;
+  color: var(--text);
+  background: var(--bg);
+  border: 1px solid var(--control-border);
+  border-radius: 6px;
+  padding: var(--space-2) var(--space-3);
+  cursor: pointer;
+}
+
+.submission[aria-checked='true'] {
+  border: 2px solid var(--accent);
+  background: var(--surface);
+}
+
+.sequence {
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.month {
+  font-weight: 600;
+}
+
+.status {
+  font-family: var(--font-heading);
+  font-weight: 600;
+}
+
+.legend {
+  font-size: 0.875rem;
+  margin-top: var(--space-2);
+}
+
+.verdict {
+  margin: var(--space-4) 0;
+}
+
+.verdict p {
+  margin: 0;
+}
+
+.verdict-label {
+  color: var(--text-muted);
+}
+
+.verdict-status {
+  font-family: var(--font-heading);
+  font-size: var(--text-display-min);
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-5);
+}
+
+@media (min-width: 64rem) {
+  .grid {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  }
+}
+
+.requirements th[scope='row'] {
+  font-weight: 400;
+}
+
+.note {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+a.note {
+  color: var(--accent);
+}
+
+.tiers {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+}
+
+.tier {
+  padding: var(--space-2) 0;
+  border-top: 1px solid var(--rule);
+}
+
+.tier-head {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.tier-name {
+  font-weight: 600;
+}
+
+.tier-state {
+  color: var(--text-muted);
+}
+
+.tier.reached .tier-state {
+  color: var(--ok);
+  font-weight: 600;
+}
+
+.route {
+  margin-top: var(--space-1);
+}
+
+.route-name {
+  margin: var(--space-1) 0 0;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.or {
+  color: var(--text-muted);
+}
+
+.route-note {
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.route.closed .route-requirements {
+  color: var(--text-muted);
+}
+
+.route-requirements {
+  list-style: none;
+  margin: var(--space-1) 0 0;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.route-requirements li {
+  display: grid;
+  grid-template-columns: 1rem minmax(0, 1fr);
+  gap: var(--space-1);
+  margin-bottom: 0.125rem;
+}
+
+.route-requirements .met .mark {
+  color: var(--ok);
+}
+
+.route-requirements .notMet .mark {
+  color: var(--error);
+}
+
+.reference {
+  display: inline-block;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+th[scope='row'] .reference {
+  display: block;
+  font-size: 0.8125rem;
+  color: var(--text-muted);
+}
+
+.small {
+  font-size: 0.875rem;
+}
+
+.cohorts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.9375rem;
+}
+
+.cohorts li {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  gap: 0 var(--space-2);
+  padding: var(--space-1) 0;
+  border-top: 1px solid var(--rule);
+  color: var(--text-muted);
+}
+
+.cohorts li.in-window {
+  color: var(--text);
+}
+
+.cohort-id {
+  font-weight: 600;
+}
+
+.cohort-state {
+  grid-column: 2 / -1;
+  font-size: 0.8125rem;
+}
+
+.cohorts li.in-window .cohort-state {
+  color: var(--ok);
+  font-weight: 600;
+}

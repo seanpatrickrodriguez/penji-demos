@@ -1,0 +1,46 @@
+<fieldset class="filters">
+  <legend>Show</legend>
+  @for (option of filters; track option.value) {
+    <label><input type="radio" name="participant-filter" [value]="option.value" [checked]="filter() === option.value" (change)="setFilter($event)" /> {{ option.label }}</label>
+  }
+</fieldset>
+
+<div class="table-scroll" tabindex="0" role="region" aria-labelledby="participants-caption">
+  <table class="data-table">
+    <caption id="participants-caption">{{ rows().length }} participant{{ rows().length === 1 ? '' : 's' }}, evaluated with the records as of this submission.</caption>
+    <thead>
+      <tr>
+        <th scope="col">Participant</th>
+        <th scope="col">Cohort</th>
+        <th scope="col">DPRP eligible</th>
+        <th scope="col">MDPP</th>
+        <th scope="col">Completer</th>
+        <th scope="col">Sessions</th>
+        <th scope="col">Weight</th>
+        <th scope="col">Risk reduced</th>
+        <th scope="col">Findings</th>
+      </tr>
+    </thead>
+    <tbody>
+      @for (row of rows(); track row.participantId) {
+        <tr [class.selected]="row.participantId === store.selectedParticipantId()">
+          <th scope="row"><button type="button" class="link-button" (click)="open(row.participantId)">{{ row.participantCode }}</button></th>
+          <td>{{ row.cohortCode }}</td>
+          <td>{{ row.eligible ? 'Yes' : 'No' }}</td>
+          <td>{{ row.mdpp === 'notApplicable' ? '—' : row.mdpp === 'eligible' ? 'Eligible' : 'Not eligible' }}</td>
+          <td>{{ row.completer ? 'Yes' : 'No' }}</td>
+          <td>{{ row.sessions }}</td>
+          <td>{{ row.weightChange }}</td>
+          <td>{{ row.riskReduced ? 'Yes' : 'No' }}</td>
+          <td>@if (row.findings > 0) { {{ row.findings }}@if (row.blocking > 0) {&nbsp;<span class="blocking">({{ row.blocking }} blocking)</span> } } @else { — }</td>
+        </tr>
+      } @empty {
+        <tr><td colspan="9" class="muted">No participants match.</td></tr>
+      }
+    </tbody>
+  </table>
+</div>
+
+@if (store.selectedParticipantId()) {
+  <app-participant-panel />
+}

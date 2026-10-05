@@ -1,0 +1,81 @@
+<div class="workbench">
+  <div class="flow">
+    <ol class="progress" aria-label="Steps">
+      @for (item of view().progress; track item.label) {
+        <li [class.done]="item.done" [class.current]="item.current" [attr.aria-current]="item.current ? 'step' : null">
+          {{ item.label }}@if (item.done) {<span class="visually-hidden"> (done)</span>}
+        </li>
+      }
+    </ol>
+
+    <p class="message" role="status" [class.accepted]="view().accepted" [class.refused]="!view().accepted && view().message !== ''">{{ view().message }}</p>
+
+    @switch (view().step) {
+      @case (steps.SET_UP) {
+        <h3>Set up an authenticator</h3>
+        <p>Signing in to <strong class="breakable">{{ view().accountName }}</strong> takes a password and then a code from an authenticator app.  Setup gives the app a secret that the account shares.  From then on, the app and the account each work out the same code from that secret and the time.</p>
+        <button type="button" class="button button-primary" [disabled]="store.busy()" (click)="store.startSetup()">Start setup</button>
+      }
+      @case (steps.CONFIRM) {
+        <h3>Scan the code, then enter what the app shows</h3>
+        <div class="enroll">
+          @if (view().qr; as qr) {
+            <svg class="qr" [attr.viewBox]="qr.viewBox" role="img" aria-label="QR code holding the setup link for an authenticator app" shape-rendering="crispEdges">
+              <rect width="100%" height="100%" fill="#ffffff" />
+              <path [attr.d]="qr.path" fill="#000000" />
+            </svg>
+          }
+          <div class="enroll-details">
+            <p>Scan it with an authenticator app, or type this key:</p>
+            <p><code class="secret">{{ view().secret }}</code></p>
+            <dl class="details">
+              @for (detail of view().details; track detail.term) {
+                <div><dt>{{ detail.term }}</dt><dd>{{ detail.value }}</dd></div>
+              }
+            </dl>
+          </div>
+        </div>
+        <p class="muted">The account waits for one good code before it turns the factor on, so a secret that was mistyped or never saved cannot lock anyone out.</p>
+        <app-code-form fieldId="confirm-code" label="Code from the app" [hint]="'The ' + view().digits + ' digits the authenticator shows now.'" submitLabel="Confirm" [busy]="store.busy()" [(value)]="store.codeEntry" (submitted)="store.confirmSetup()" />
+      }
+      @case (steps.SAVE_CODES) {
+        <h3>Save your recovery codes</h3>
+        <p>If the phone is lost, each of these signs in once in place of a code.  They are shown only now; the account keeps a hash of each and cannot show them again.</p>
+        <ol class="codes">
+          @for (code of view().recoveryCodes; track code) {
+            <li><code>{{ code }}</code></li>
+          }
+        </ol>
+        <button type="button" class="button button-primary" (click)="store.finishSavingCodes()">I have saved them</button>
+      }
+      @case (steps.SIGN_IN) {
+        <h3>Sign in</h3>
+        <p>The password step is done.  Now the second factor.</p>
+        @if (view().locked) {
+          <p class="locked">{{ view().locked }}</p>
+        }
+        <fieldset class="factor">
+          <legend>Sign in with</legend>
+          @for (option of factors; track option.kind) {
+            <label [for]="option.id">
+              <input type="radio" name="factor" [id]="option.id" [checked]="factor() === option.kind" (change)="chooseFactor(option.kind)" />
+              {{ option.label }}
+            </label>
+          }
+        </fieldset>
+        @if (isRecovery()) {
+          <app-code-form fieldId="recovery-code" label="Recovery code" [hint]="view().recoveryShape" submitLabel="Sign in" [numeric]="false" [busy]="store.busy()" [(value)]="store.recoveryEntry" (submitted)="store.signInWithRecoveryCode()" />
+        } @else {
+          <app-code-form fieldId="sign-in-code" label="Code from the app" [hint]="'The ' + view().digits + ' digits the authenticator shows now.'" submitLabel="Sign in" [busy]="store.busy()" [(value)]="store.codeEntry" (submitted)="store.signInWithCode()" />
+        }
+      }
+      @case (steps.SIGNED_IN) {
+        <h3>Signed in</h3>
+        <p>You are signed in as <strong class="breakable">{{ view().accountName }}</strong>.  Sign out and enter the same code again before it changes: the account refuses it, because a code works once.</p>
+        <button type="button" class="button button-secondary" (click)="store.signOut()">Sign out</button>
+      }
+    }
+  </div>
+
+  <app-authenticator-panel />
+</div>

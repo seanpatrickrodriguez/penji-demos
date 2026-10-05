@@ -1,0 +1,14 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "types": [],
+    "noEmit": true
+  },
+  "include": [
+    "packages/*/src/**/*.ts",
+    "architecture/**/*.ts"
+  ],
+  "exclude": [
+    "packages/ui/**"
+  ]
+}

@@ -1,0 +1,150 @@
+@if (participant(); as participant) {
+  @if (evaluation(); as evaluation) {
+    <div class="panel-head">
+      <div>
+        <p class="eyebrow">Participant</p>
+        <h3 id="participant-heading" tabindex="-1">{{ evaluation.participantCode }} <span class="muted">· cohort {{ evaluation.cohortCode }}</span></h3>
+        <p class="muted">The whole current record, under every standard that applies.  Changes here re-evaluate every submission above.</p>
+      </div>
+      <button type="button" class="button button-secondary" (click)="close()">Close</button>
+    </div>
+
+    @if (chart(); as chart) {
+      <figure class="chart">
+        <svg [attr.viewBox]="'0 0 ' + chartSize.width + ' ' + chartSize.height" role="img" [attr.aria-label]="chart.summary">
+          <rect class="core" [attr.x]="chartSize.left" [attr.y]="chartSize.top" [attr.width]="chart.coreEndX - chartSize.left" [attr.height]="chartSize.height - chartSize.top - chartSize.bottom" />
+          <rect class="maintenance" [attr.x]="chart.coreEndX" [attr.y]="chartSize.top" [attr.width]="chart.yearEndX - chart.coreEndX" [attr.height]="chartSize.height - chartSize.top - chartSize.bottom" />
+          <text class="band" [attr.x]="chartSize.left + 6" [attr.y]="chartSize.top - 8">Core, months 1-6</text>
+          <text class="band" [attr.x]="chart.coreEndX + 6" [attr.y]="chartSize.top - 8">Core Maintenance, months 7-12</text>
+          @for (tick of chart.yTicks; track tick.y) {
+            <line class="grid" [attr.x1]="chartSize.left" [attr.x2]="chartSize.width - chartSize.right" [attr.y1]="tick.y" [attr.y2]="tick.y" />
+            <text class="axis" [attr.x]="chartSize.left - 8" [attr.y]="tick.y + 4" text-anchor="end">{{ tick.label }}</text>
+          }
+          @for (tick of chart.xTicks; track tick.label) {
+            <text class="axis" [attr.x]="tick.x" [attr.y]="chartSize.height - 12" text-anchor="middle">{{ tick.label }}</text>
+          }
+          @for (marker of chart.markers; track marker.label) {
+            <line class="marker" [attr.x1]="marker.x" [attr.x2]="marker.x" [attr.y1]="chartSize.top" [attr.y2]="chartSize.height - chartSize.bottom" />
+          }
+          <line class="year-end" [attr.x1]="chart.yearEndX" [attr.x2]="chart.yearEndX" [attr.y1]="chartSize.top" [attr.y2]="chartSize.height - chartSize.bottom" />
+          <path class="line" [attr.d]="chart.path" />
+          @for (point of chart.points; track $index) {
+            <circle [class.make-up]="point.makeUp" [class.uncounted]="!point.counted" [attr.cx]="point.x" [attr.cy]="point.y" r="4"><title>{{ point.label }}</title></circle>
+          }
+        </svg>
+        <figcaption>{{ chart.summary }}  Dashed lines mark the start of months 4, 7 and 10, the retention checkpoints; the solid line ends the program year.  Hollow points are make-up sessions.</figcaption>
+      </figure>
+    }
+
+    <div class="determinations">
+      @for (standard of standards(); track standard.standardShortName) {
+        <section class="determination" [attr.aria-label]="standard.standardShortName + ' eligibility'">
+          <h4>{{ standard.standardShortName }} eligibility</h4>
+          @if (!standard.applies) {
+            <p class="muted">Does not apply: this participant is not enrolled in Medicare Part B.</p>
+          } @else if (standard.eligibility; as eligibility) {
+            <p class="verdict" [class.met]="eligibility.met" [class.not-met]="!eligibility.met">{{ eligibility.met ? 'Eligible' : 'Not eligible' }}</p>
+            <ul class="findings">
+              @for (finding of eligibility.findings; track finding.criterion) {
+                <li [class.met]="finding.met" [class.not-met]="!finding.met">
+                  <span class="mark" aria-hidden="true">{{ finding.met ? '✓' : '✗' }}</span>
+                  <span><span class="visually-hidden">{{ finding.met ? 'Met: ' : 'Not met: ' }}</span>{{ finding.criterion }}<br /><span class="detail">{{ finding.detail }}</span></span>
+                </li>
+              }
+            </ul>
+            <p class="citation"><a [href]="standard.citationUrl">{{ standard.citation }}</a></p>
+          }
+        </section>
+      }
+      <section class="determination" aria-label="Completer and outcomes">
+        <h4>Completer and outcomes</h4>
+        <p class="verdict" [class.met]="evaluation.completer.met" [class.not-met]="!evaluation.completer.met">{{ evaluation.completer.met ? 'Completer' : 'Not a completer' }}</p>
+        <ul class="findings">
+          @for (finding of evaluation.completer.findings; track finding.criterion) {
+            <li [class.met]="finding.met" [class.not-met]="!finding.met">
+              <span class="mark" aria-hidden="true">{{ finding.met ? '✓' : '✗' }}</span>
+              <span><span class="visually-hidden">{{ finding.met ? 'Met: ' : 'Not met: ' }}</span>{{ finding.criterion }}<br /><span class="detail">{{ finding.detail }}</span></span>
+            </li>
+          }
+          @for (outcome of evaluation.outcomes; track outcome.pathway) {
+            <li [class.met]="outcome.met" [class.not-met]="!outcome.met">
+              <span class="mark" aria-hidden="true">{{ outcome.met ? '✓' : '✗' }}</span>
+              <span><span class="visually-hidden">{{ outcome.met ? 'Met: ' : 'Not met: ' }}</span>{{ outcome.label }}<br /><span class="detail">{{ outcome.detail }}</span></span>
+            </li>
+          }
+        </ul>
+      </section>
+    </div>
+
+    <section class="guidance" aria-labelledby="guidance-heading">
+      <h4 id="guidance-heading">Record review</h4>
+      <app-guidance-list
+        [items]="store.participantGuidance()"
+        [labels]="labels"
+        [fields]="fields"
+        eventLabel="Session"
+        recordLabel="Enrollment record"
+        blockingLabel="blocking submission"
+        [formatDate]="formatDate"
+        [resolve]="resolveGuidance"
+        (fix)="fix($event)"
+        (reopen)="store.reopenGuidance($event)"
+      />
+    </section>
+
+    @if (editingEnrollment(); as editing) {
+      <section class="editor" aria-labelledby="enrollment-editor">
+        <h4 id="enrollment-editor">Edit enrollment</h4>
+        <p class="muted">The platform's own form.  Rules marked ◆ come from the standards that apply, and change as the answers do: set Medicare Part B to Yes and the MDPP's rules join.</p>
+        <app-definition-form [definition]="enrollmentForm()" [constraints]="enrollmentConstraints()" [initial]="enrollmentInitial()" [focusField]="editing.focus" idPrefix="enrollment" submitLabel="Save enrollment" (changed)="draftChanged($event)" (saved)="saveEnrollment($event)" (cancelled)="cancelEdit()" />
+      </section>
+    } @else {
+      <p><button type="button" class="button button-secondary" (click)="editEnrollment()">Edit enrollment</button></p>
+    }
+
+    @if (store.changeProblems().length > 0) {
+      <p class="change-problems" role="alert">{{ store.changeProblems().join(' ') }}</p>
+    }
+
+    <section class="sessions" aria-labelledby="sessions-heading">
+      <div class="section-row">
+        <h4 id="sessions-heading">Sessions</h4>
+        <button type="button" class="button button-secondary" (click)="editSession(null)">Record a session</button>
+      </div>
+      @if (editingSession(); as editing) {
+        <div class="editor">
+          <p class="muted">{{ editing.entryId === null ? 'A new session.' : 'Editing a session.' }}  Rules marked ◆ come from the standards that apply.</p>
+          <app-definition-form [definition]="sessionForm()" [constraints]="sessionConstraints()" [initial]="sessionInitial()" [focusField]="editing.focus" idPrefix="session" submitLabel="Save session" (saved)="saveSession($event)" (cancelled)="cancelEdit()" />
+        </div>
+      }
+      <div class="table-scroll" tabindex="0" role="region" aria-label="Sessions table">
+        <table class="data-table">
+          <thead>
+            <tr><th scope="col">Date</th><th scope="col">Month</th><th scope="col">Phase</th><th scope="col">Weight</th><th scope="col">Minutes</th><th scope="col"><span class="visually-hidden">Actions</span></th></tr>
+          </thead>
+          <tbody>
+            @for (row of sessionRows(); track row.entryId) {
+              <tr [class.flagged]="row.flagged">
+                <td>{{ row.date }}@if (row.makeUp) { <span class="tag">make-up</span> }@if (row.flagged) { <span class="tag flag">flagged</span> }</td>
+                <td>{{ row.programMonth }}</td>
+                <td>{{ row.phase }}</td>
+                <td>{{ row.weight }}</td>
+                <td>{{ row.minutes }}</td>
+                <td class="row-actions">
+                  @if (confirmingRemoval() === row.entryId) {
+                    <span role="alert">Remove this session?</span>
+                    <button type="button" class="link-button" (click)="removeSession(row.entryId)">Yes, remove<span class="visually-hidden"> the session of {{ row.date }}</span></button>
+                    <button type="button" class="link-button" (click)="confirmingRemoval.set(null)">Keep it</button>
+                  } @else {
+                    <button type="button" class="link-button" (click)="editSession(row.entryId)">Edit<span class="visually-hidden"> session of {{ row.date }}</span></button>
+                    <button type="button" class="link-button" (click)="confirmingRemoval.set(row.entryId)">Remove<span class="visually-hidden"> session of {{ row.date }}</span></button>
+                  }
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </section>
+  }
+}

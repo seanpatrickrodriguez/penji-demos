@@ -1,0 +1,44 @@
+<p class="muted" aria-live="polite">
+  {{ summary() }}
+  @if (items().length === 0) { Every rule of every standard that applies is satisfied. }
+</p>
+<ul class="guidance-list">
+  @for (view of views(); track view.item.id) {
+    <li class="guidance-item" [class.resolved]="!view.open">
+      <div class="guidance-head">
+        <span [class]="'badge ' + view.severityClass">{{ view.severity }}</span>
+        <strong>{{ view.item.rule.title }}</strong>
+        <span class="muted">· {{ view.item.finding.standardShortName }} · {{ view.when }}</span>
+      </div>
+      <p>{{ view.item.finding.message }}</p>
+      @if (view.item.finding.expected) {
+        <p class="comparison"><span>Expected: {{ view.item.finding.expected }}</span><span>Recorded: {{ view.item.finding.actual }}</span></p>
+      }
+      <p class="muted">{{ view.item.rule.guidance }}</p>
+      <p class="rule-line">Rule: {{ view.check }}.  <a [href]="view.item.rule.citation.url">{{ view.item.rule.citation.section ?? view.item.rule.citation.title }}</a></p>
+      @if (view.resolution) {
+        <p class="resolution">{{ view.resolution }} <button type="button" class="link-button" (click)="reopen.emit(view.item)">Reopen</button></p>
+      }
+      @if (view.open) {
+        @if (accepting() === view.item.id) {
+          <div class="accept">
+            <label [for]="'note-' + view.item.id">Why can this record stand as it is?</label>
+            <textarea [id]="'note-' + view.item.id" rows="2" [value]="acceptNote()" (input)="setNote($event)"></textarea>
+            @for (problem of acceptProblems(); track problem) { <p class="problem" role="alert">{{ problem }}</p> }
+            <div class="actions">
+              <button type="button" class="button button-primary" (click)="confirmAccept(view.item)">Accept</button>
+              <button type="button" class="button button-secondary" (click)="accepting.set(null)">Cancel</button>
+            </div>
+          </div>
+        } @else {
+          <div class="actions">
+            @for (action of view.item.availableActions; track action.actionType) {
+              <button type="button" class="button small" [class.button-primary]="action.primary" [class.button-secondary]="!action.primary" (click)="act(view.item, action.actionType)">{{ action.label }}</button>
+            }
+          </div>
+          @for (problem of view.problems; track problem) { <p class="problem" role="alert">{{ problem }}</p> }
+        }
+      }
+    </li>
+  }
+</ul>

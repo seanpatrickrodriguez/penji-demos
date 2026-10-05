@@ -1,0 +1,102 @@
+<div class="submissions" role="radiogroup" aria-label="Data submission">
+  @for (submission of submissions(); track submission.sequence) {
+    <button
+      type="button"
+      role="radio"
+      class="submission"
+      [attr.data-sequence]="submission.sequence"
+      [attr.aria-checked]="submission.sequence === store.selectedSequence()"
+      [attr.tabindex]="submission.sequence === store.selectedSequence() ? 0 : -1"
+      [class]="'submission status-' + submission.awarded"
+      (click)="select(submission.sequence)"
+      (keydown)="step($event, submission.sequence)"
+    >
+      <span class="sequence">Sequence {{ submission.sequence }}</span>
+      <span class="month">{{ submission.shortMonth }}</span>
+      <span class="status">{{ submission.awardedLabel }}@if (submission.held) {<span aria-hidden="true">*</span>}</span>
+    </button>
+  }
+</div>
+<p class="muted legend">* Held from an earlier submission: a status carries forward as the Standards allow.  Full Plus lasts 12 months, then falls to Full unless earned again.</p>
+
+@if (current(); as current) {
+  <div class="verdict" aria-live="polite">
+    <p class="verdict-label">{{ current.month }} submission</p>
+    <p class="verdict-status">{{ current.awardedLabel }}</p>
+    <p class="muted">{{ current.held ? current.note : 'The records at this submission support ' + evaluatedLabel() + '.' }}</p>
+  </div>
+}
+
+<div class="grid">
+  <div class="requirements">
+    <h3>Requirements</h3>
+    <div class="table-scroll" tabindex="0" role="region" aria-label="Requirements at this submission">
+      <table class="data-table">
+        <thead>
+          <tr><th scope="col">Requirement</th><th scope="col">Measured</th><th scope="col">Needed</th><th scope="col">Result</th></tr>
+        </thead>
+        <tbody>
+          @for (row of requirements(); track row.id) {
+            <tr>
+              <th scope="row">
+                <span class="reference">{{ row.reference }}</span>
+                {{ row.label }}
+                @if (row.waitsOn) { <span class="note">{{ row.waitsOn }}</span> }
+                @if (row.citation) { <a class="note" [href]="row.citationUrl">{{ row.citation }}</a> }
+              </th>
+              <td>{{ row.measured }}</td>
+              <td>{{ row.threshold }}</td>
+              <td><span [class]="'badge ' + row.outcome">{{ row.outcomeLabel }}</span></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="side">
+    <h3>Recognition tiers</h3>
+    <p class="muted small">Highest first.  A tier is reached when every requirement on one of its routes is met.</p>
+    <ol class="tiers">
+      @for (group of tiers(); track group.status) {
+        <li class="tier" [class.reached]="group.reached">
+          <div class="tier-head">
+            <span class="tier-name">{{ group.label }}</span>
+            <span class="tier-state">{{ group.reached ? 'Reached' : 'Not reached' }}</span>
+          </div>
+          @for (route of group.routes; track $index; let first = $first) {
+            <div class="route" [class.closed]="!route.open">
+              @if (route.route) {
+                <p class="route-name">@if (!first) { <span class="or">Or </span> }{{ route.route }}@if (!route.open) { <span class="route-note">: not open at this submission</span> }</p>
+              }
+              <ul class="route-requirements">
+                @for (requirement of route.requires; track requirement.reference) {
+                  <li [class]="requirement.outcome">
+                    <span class="mark" aria-hidden="true">{{ requirement.mark }}</span>
+                    <span><span class="reference">{{ requirement.reference }}</span> {{ requirement.label }}<span class="visually-hidden">: {{ requirement.outcomeLabel }}</span></span>
+                  </li>
+                }
+              </ul>
+            </div>
+          }
+        </li>
+      }
+    </ol>
+    <p class="muted small">Preliminary options 1 and 2 are decided when an organization applies (a high-vulnerability county, or an added delivery mode), not from its records, so they are not evaluated here.</p>
+
+    <h3>Evaluation cohort</h3>
+    <p class="muted">{{ window() }}.</p>
+    <ul class="cohorts">
+      @for (cohort of cohorts(); track cohort.cohortId) {
+        <li [class.in-window]="cohort.inWindow">
+          <span class="cohort-id">{{ cohort.cohortCode }}</span>
+          <span>{{ cohort.firstSession }}</span>
+          <span>{{ cohort.participants }} participants</span>
+          <span class="cohort-state">{{ cohort.inWindow ? 'Evaluated' : 'Outside the window' }}</span>
+        </li>
+      } @empty {
+        <li class="muted">No cohorts had begun by this submission.</li>
+      }
+    </ul>
+  </div>
+</div>
